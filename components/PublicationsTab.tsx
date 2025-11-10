@@ -1509,7 +1509,7 @@ export default function PublicationsTab() {
                                       {niche.accepted && niche.price !== null ? (
                                         <span className="text-sm">{niche.displayName} price: ${niche.price.toLocaleString()}</span>
                                       ) : (
-                                        <span className="text-sm">The media doesn't accept {niche.displayName}</span>
+                                        <span className="text-sm">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}
                                       <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
                                         <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>

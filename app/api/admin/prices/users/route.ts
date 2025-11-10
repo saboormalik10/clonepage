@@ -26,13 +26,15 @@ async function checkAdmin(request: Request) {
     }
 
     // Use admin client to query profile (bypasses RLS) with retry
-    const { data: profile } = await retryWithBackoff(
-      () => adminClient
+    const profileResult = await retryWithBackoff(
+      async () => await adminClient
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)
         .single()
     )
+    
+    const profile = profileResult?.data
 
     return {
       isAdmin: profile?.role === 'admin',
@@ -56,7 +58,7 @@ export async function GET(request: Request) {
     
     // Fetch adjustments with retry
     const { data: adjustments, error: adjustmentsError } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('user_price_adjustments')
         .select('*')
         .order('created_at', { ascending: false })
@@ -72,11 +74,11 @@ export async function GET(request: Request) {
     }
 
     // Get unique user IDs
-    const userIds = [...new Set(adjustments.map((adj: any) => adj.user_id))]
+    const userIds = Array.from(new Set(adjustments.map((adj: any) => adj.user_id)))
     
     // Fetch user profiles for these users with retry
     const { data: userProfiles, error: profilesError } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('user_profiles')
         .select('id, email, full_name, role')
         .in('id', userIds)
@@ -134,7 +136,7 @@ export async function POST(request: Request) {
 
     // Upsert user adjustment with retry
     const { data, error } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('user_price_adjustments')
         .upsert({
           user_id,
@@ -170,7 +172,7 @@ export async function DELETE(request: Request) {
 
     const adminClient = getAdminClient()
     const { error } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('user_price_adjustments')
         .delete()
         .eq('id', adjustmentId)

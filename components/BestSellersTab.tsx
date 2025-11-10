@@ -101,8 +101,14 @@ export default function BestSellersTab() {
   const parseNiches = (nichesString: string) => {
     if (!nichesString) return []
     
-    const nicheData = []
-    const nicheMap = {
+    const nicheData: Array<{
+      name: string
+      displayName: string
+      icon: string
+      price: string | null
+      accepted: boolean
+    }> = []
+    const nicheMap: Record<string, { displayName: string; icon: string }> = {
       'Health': { displayName: 'health content', icon: 'health' },
       'CBD': { displayName: 'Cbd content', icon: 'cbd' },
       'Crypto': { displayName: 'Crypto content', icon: 'crypto' },
@@ -673,7 +679,7 @@ export default function BestSellersTab() {
                                       {niche.accepted && niche.price ? (
                                         <span className="text-sm">{niche.displayName} price: {niche.price}</span>
                                       ) : (
-                                        <span className="text-sm">The media doesn't accept {niche.displayName}</span>
+                                        <span className="text-sm">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}
                                       <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
                                         <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>

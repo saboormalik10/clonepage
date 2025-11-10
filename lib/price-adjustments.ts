@@ -200,7 +200,7 @@ export function adjustPRBundles(
     
     // Adjust "Bundle 1 — $800" format in name
     if (updated.name && typeof updated.name === 'string') {
-      updated.name = updated.name.replace(/\$[\d,]+/g, (match) => {
+      updated.name = updated.name.replace(/\$[\d,]+/g, (match: string) => {
         const numPrice = parseDollarPrice(match)
         if (numPrice === null) return match
         const adjusted = applyPriceAdjustment(numPrice, adjustments)
@@ -210,7 +210,7 @@ export function adjustPRBundles(
     
     // Adjust "Retail Value — $900" format in retailValue
     if (updated.retailValue && typeof updated.retailValue === 'string') {
-      updated.retailValue = updated.retailValue.replace(/\$[\d,]+/g, (match) => {
+      updated.retailValue = updated.retailValue.replace(/\$[\d,]+/g, (match: string) => {
         const numPrice = parseDollarPrice(match)
         if (numPrice === null) return match
         const adjusted = applyPriceAdjustment(numPrice, adjustments)

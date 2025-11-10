@@ -96,13 +96,15 @@ export async function checkAdmin(request: Request): Promise<{
       return { isAdmin: false, userId: null }
     }
 
-    const { data: profile } = await retryWithBackoff(
-      () => adminClient
+    const profileResult = await retryWithBackoff(
+      async () => await adminClient
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)
         .single()
     )
+    
+    const profile = profileResult?.data
 
     return {
       isAdmin: profile?.role === 'admin',

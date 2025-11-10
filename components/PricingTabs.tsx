@@ -41,7 +41,7 @@ const tabs = [
 export default function PricingTabs() {
   return (
     <Tab.Group defaultIndex={0}>
-      <Tab.List className="space-x-2 font-body border-b-2 pb-2" role="tablist" aria-orientation="horizontal">
+      <Tab.List className="space-x-2 font-body border-b-2 pb-2">
         {tabs.map((tab) => (
           <Tab
             key={tab.id}

@@ -22,13 +22,15 @@ export async function GET(request: Request) {
     }
 
     // Check if user is admin (using admin client to bypass RLS) with retry
-    const { data: profile } = await retryWithBackoff(
-      () => adminClient
+    const result = await retryWithBackoff(
+      async () => await adminClient
         .from('user_profiles')
         .select('id, email, role')
         .eq('id', user.id)
         .single()
     )
+    
+    const profile = result?.data
 
     if (!profile || profile.role !== 'admin') {
       return NextResponse.json({ authenticated: false }, { status: 403 })

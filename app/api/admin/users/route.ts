@@ -25,13 +25,15 @@ async function checkAdmin(request: Request) {
     }
 
     // Use admin client to query profile (bypasses RLS) with retry
-    const { data: profile } = await retryWithBackoff(
-      () => adminClient
+    const profileResult = await retryWithBackoff(
+      async () => await adminClient
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)
         .single()
     )
+    
+    const profile = profileResult?.data
 
     return {
       isAdmin: profile?.role === 'admin',
@@ -53,7 +55,7 @@ export async function GET(request: Request) {
     // Use admin client to ensure we get all users (bypasses RLS) with retry
     const adminClient = getAdminClient()
     const { data, error } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('user_profiles')
         .select('*')
         .neq('role', 'admin') // Exclude admin users from listings
@@ -100,18 +102,20 @@ export async function POST(request: Request) {
     }
 
     // Check if profile exists, if not create it, otherwise update it with retry
-    const { data: existingProfile } = await retryWithBackoff(
-      () => adminClient
+    const existingProfileResult = await retryWithBackoff(
+      async () => await adminClient
         .from('user_profiles')
         .select('id')
         .eq('id', authData.user.id)
         .single()
     )
+    
+    const existingProfile = existingProfileResult?.data
 
     if (existingProfile) {
       // Profile exists, update it with retry
       const { error: profileError } = await retryWithBackoff(
-        () => adminClient
+        async () => await adminClient
           .from('user_profiles')
           .update({
             role: role || 'user',
@@ -124,7 +128,7 @@ export async function POST(request: Request) {
     } else {
       // Profile doesn't exist, create it with retry
       const { error: profileError } = await retryWithBackoff(
-        () => adminClient
+        async () => await adminClient
           .from('user_profiles')
           .insert({
             id: authData.user.id,

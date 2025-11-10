@@ -26,13 +26,15 @@ async function checkAdmin(request: Request) {
     }
 
     // Use admin client to query profile (bypasses RLS) with retry
-    const { data: profile } = await retryWithBackoff(
-      () => adminClient
+    const result = await retryWithBackoff(
+      async () => await adminClient
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)
         .single()
     )
+    
+    const profile = result?.data
 
     return {
       isAdmin: profile?.role === 'admin',
@@ -87,7 +89,7 @@ export async function POST(request: Request) {
 
     // Upsert global adjustment (only save in model, don't modify prices directly) with retry
     const { data, error } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('global_price_adjustments')
         .upsert({
           table_name,
@@ -126,7 +128,7 @@ export async function DELETE(request: Request) {
 
     // Delete the adjustment record (prices will automatically revert when fetched) with retry
     const { error } = await retryWithBackoff(
-      () => adminClient
+      async () => await adminClient
         .from('global_price_adjustments')
         .delete()
         .eq('table_name', tableName)

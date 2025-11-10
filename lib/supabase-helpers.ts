@@ -42,7 +42,7 @@ export async function fetchAllRecords<T = any>(
     }
 
     if (data && data.length > 0) {
-      allData = [...allData, ...data]
+      allData = [...allData, ...(data as T[])]
       
       // If we got fewer records than the batch size, we've reached the end
       if (data.length < batchSize) {
