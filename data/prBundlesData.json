@@ -1,0 +1,274 @@
+[
+  {
+    "category": "Beginner with Ascend",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $800",
+        "retailValue": "Retail Value \u2014 $925",
+        "publications": [
+          "Yahoo Finance",
+          "California Business Journal",
+          "Digital Journal"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $1,850",
+        "retailValue": "Retail Value \u2014 $2,075",
+        "publications": [
+          "Yahoo Finance",
+          "California Business Journal",
+          "Digital Journal",
+          "LA Weekly",
+          "Haute Living"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $4,500",
+        "retailValue": "Retail Value \u2014 $4,825",
+        "publications": [
+          "Yahoo Finance",
+          "California Business Journal",
+          "Digital Journal",
+          "LA Weekly",
+          "Haute Living",
+          "Hollywood Life",
+          "USA Today"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Influencer",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $1,200",
+        "retailValue": "Retail Value \u2014 $1,350",
+        "publications": [
+          "Cultr Magazine",
+          "Flaunt Magazine",
+          "Hollywood Life"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $2,800",
+        "retailValue": "Retail Value \u2014 $3,200",
+        "publications": [
+          "Cultr Magazine",
+          "Flaunt Magazine",
+          "Hollywood Life",
+          "Hollywood Unlocked",
+          "OK! Magazine"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $7,000",
+        "retailValue": "Retail Value \u2014 $7,950",
+        "publications": [
+          "Cultr Magazine",
+          "Flaunt Magazine",
+          "Hollywood Life",
+          "Hollywood Unlocked",
+          "OK! Magazine",
+          "Bustle",
+          "US Weekly"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Fashion",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $950",
+        "retailValue": "Retail Value \u2014 $1,050",
+        "publications": [
+          "Broke & Chic",
+          "Flaunt Magazine",
+          "Galore Magazine"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $2,750",
+        "retailValue": "Retail Value \u2014 $2,950",
+        "publications": [
+          "Broke & Chic",
+          "Flaunt Magazine",
+          "Galore Magazine",
+          "Fashion Week Daily",
+          "Wonderwall.com"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $7,500",
+        "retailValue": "Retail Value \u2014 $8,200",
+        "publications": [
+          "Broke & Chic",
+          "Flaunt Magazine",
+          "Galore Magazine",
+          "Fashion Week Daily",
+          "Wonderwall.com",
+          "Bustle",
+          "WWD"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Corporate",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $800",
+        "retailValue": "Retail Value \u2014 $900",
+        "publications": [
+          "Financial Tech Times",
+          "California Business Journal",
+          "CEO World Biz"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $2,750",
+        "retailValue": "Retail Value \u2014 $2,900",
+        "publications": [
+          "Financial Tech Times",
+          "California Business Journal",
+          "CEO World Biz",
+          "Benzinga",
+          "Success.com"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $5,650",
+        "retailValue": "Retail Value \u2014 $6,150",
+        "publications": [
+          "Financial Tech Times",
+          "California Business Journal",
+          "CEO World Biz",
+          "Benzinga",
+          "Success.com",
+          "Investing.com",
+          "Digital Trends"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Entrepreneur",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $2,250",
+        "retailValue": "Retail Value \u2014 $2,675",
+        "publications": [
+          "CEO Weekly",
+          "Digital Journal (Contributor)",
+          "California Business Journal",
+          "LA Magazine",
+          "Success Magazine"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $5,500",
+        "retailValue": "Retail Value \u2014 $6,175",
+        "publications": [
+          "CEO Weekly",
+          "Digital Journal (Contributor)",
+          "California Business Journal",
+          "LA Magazine",
+          "Success Magazine",
+          "Investing.com",
+          "USA Today"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $11,000",
+        "retailValue": "Retail Value \u2014 $11,925",
+        "publications": [
+          "CEO Weekly",
+          "Digital Journal (Contributor)",
+          "California Business Journal",
+          "LA Magazine",
+          "Success Magazine",
+          "Investing.com",
+          "USA Today",
+          "Entrepreneur Asia Pacific",
+          "Inc Magazine"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Musician",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $950",
+        "retailValue": "Retail Value \u2014 $1,050",
+        "publications": [
+          "The Source",
+          "Notion Online",
+          "Flaunt Magazine"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $2,200",
+        "retailValue": "Retail Value \u2014 $2,300",
+        "publications": [
+          "The Source",
+          "Notion Online",
+          "Flaunt Magazine",
+          "Galore Magazine",
+          "Spin Magazine"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $4,200",
+        "retailValue": "Retail Value \u2014 $4,450",
+        "publications": [
+          "The Source",
+          "Notion Online",
+          "Flaunt Magazine",
+          "Galore Magazine",
+          "Spin Magazine",
+          "Paste Magazine",
+          "Rolling Stone (MENA)"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Organic (No Disclaimers)",
+    "bundles": [
+      {
+        "name": "Bundle 1 \u2014 $950",
+        "retailValue": "Retail Value \u2014 $1,025",
+        "publications": [
+          "The Source",
+          "Digital Journal",
+          "Grit Daily"
+        ]
+      },
+      {
+        "name": "Bundle 2 \u2014 $2,375",
+        "retailValue": "Retail Value \u2014 $2,525",
+        "publications": [
+          "The Source",
+          "Digital Journal",
+          "Grit Daily",
+          "Benzinga",
+          "LA Magazine"
+        ]
+      },
+      {
+        "name": "Bundle 3 \u2014 $3,850",
+        "retailValue": "Retail Value \u2014 $4,275",
+        "publications": [
+          "The Source",
+          "Digital Journal",
+          "Grit Daily",
+          "Benzinga",
+          "LA Magazine",
+          "Hollywood Life",
+          "OK! Magazine"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,211 @@
+[
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2Fb861b23a9dcd9b4e151b988257cc8bc789ead21b-720x720.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://gazette.com/",
+    "publication": "The Gazette",
+    "platforms": [
+      "Facebook"
+    ],
+    "price": "$750",
+    "tat": "3-5 Days",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/103aad43596a67f72bc6a4c755ee6c61c2f43f8d-493x849.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F872a51dec6e2b0ec0704eadeaf2cb33247863ea5-1320x742.webp%3Frect%3D289%2C0%2C742%2C742%26w%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://variety.com/",
+    "publication": "Variety (400,000 Impressions)",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$10,000",
+    "tat": "2 Weeks",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/1c456da575e778f8f26807468e7846cab38edcf5-2340x1108.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F56a402903370b1b5467d8732510680ed1397072c-225x225.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.geekwire.com/",
+    "publication": "Geekwire",
+    "platforms": [
+      "X"
+    ],
+    "price": "$1,500",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F5041b1aaa40d16551100868ea48a56eb9b189663-900x900.jpg%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.muscleandfitness.com/",
+    "publication": "Muscle &amp; Fitness (Includes Social Post)",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$5,000",
+    "tat": "1 Week",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/1eaff3be5f910ba15de012da40372146af01f97a-1802x1204.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2Fb8907d9c003bbda55b799ea2642fcd0f85db12e5-512x512.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://laweekly.com/",
+    "publication": "LA Weekly",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$2,000",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F05e2cab997a8051c0bd76924704537f56258a5d2-1240x260.png%3Frect%3D490%2C0%2C260%2C260%26w%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "http://www.pulse.ng",
+    "publication": "Pulse.ng",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$500",
+    "tat": "5 Days",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2Fda631910aa6fdfb7ecf3f969c496e2496d9a30c1-389x129.png%3Frect%3D131%2C0%2C129%2C129%26w%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://africa.businessinsider.com/",
+    "publication": "Business Insider Africa",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$500",
+    "tat": "5 Days",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/041e5d48e59d3f16908b8272feadacff46325055-1958x1016.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F1bd4caf762f0f95df7b7b0039b0684ca8666de0b-512x512.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://sourcingjournal.com/",
+    "publication": "Sourcing Journal",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$6,000",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F5aa93063d152b789c52f3d48ee530dfdd5e2092f-224x224.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://radaronline.com/",
+    "publication": "Radar Online (AOL Syndication)",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$3,000",
+    "tat": "2-3 Days",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F06a42bcf8a22981a334fe1728f9bf14ff480079b-400x400.jpg%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://wwd.com/",
+    "publication": "WWD",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$6,000",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2Fee6e808ac6c32f264bea72022552690b39c8ce3a-400x400.jpg%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "http://www.sheenmagazine.com/",
+    "publication": "Sheen Magazine",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$2,500",
+    "tat": "1 Week",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/fc1af73c600721fcded8874acccbdb2f44c35a08-1916x1236.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F64b81499dfd9afb2e018929582f7eaf281b4d22a-501x501.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.metrotimes.com/",
+    "publication": "Metro Times",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$500",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2Fc496ba8faf223e9a6edf0e9d8282baad6e5d47aa-1153x1153.jpg%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://okmagazine.com/",
+    "publication": "OK! Magazine (AOL Syndication)",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$3,000",
+    "tat": "2-3 Days",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2Fb0d30dc595716ff469b543cba34785264028584e-300x300.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.sfweekly.com/",
+    "publication": "SF Weekly",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$750",
+    "tat": "1 Week",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/d7a45517728b92235f1f45615376b7787c2f6e76-1063x820.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F419ee287482183f77f795f434081d0a9fa3e011f-500x500.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://footwearnews.com/",
+    "publication": "Foot Wear News",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$6,000",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F249b7b514a457be7020711e0076fc6024fb21094-301x300.png%3Frect%3D1%2C0%2C300%2C300%26w%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.latimes.com/",
+    "publication": "LA Times",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$6,000",
+    "tat": "1 Week",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F062ee3b6d698bf978f049461cd8095fece6a7b81-225x225.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.sfexaminer.com/",
+    "publication": "SF Examiner",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$750",
+    "tat": "1 Week",
+    "exampleUrl": "https://cdn.sanity.io/images/8n90kyzz/production/d7a45517728b92235f1f45615376b7787c2f6e76-1063x820.png"
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F9b5c054cb8bc5056d9c045e6c953fac1820e26ae-3200x3200.png%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.globalbankingandfinance.com/",
+    "publication": "Global Banking &amp; Finance",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$250",
+    "tat": "5 Days",
+    "exampleUrl": ""
+  },
+  {
+    "image": "/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F8n90kyzz%2Fproduction%2F5ea11dfec5f4caf87f539b98c297709091d756c0-200x200.jpg%3Fw%3D100%26h%3D100&amp;w=256&amp;q=75",
+    "url": "https://www.lofficielmonaco.com/",
+    "publication": "L'Officiel Monaco",
+    "platforms": [
+      "Instagram"
+    ],
+    "price": "$750",
+    "tat": "1-2 Weeks",
+    "exampleUrl": ""
+  }
+]

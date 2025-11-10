@@ -1,0 +1,256 @@
+import { getSupabaseClient } from './supabase'
+import { getAdminClient } from './admin-client'
+
+/**
+ * Get price adjustments for a user and table
+ * Returns both global and user-specific adjustments
+ * Uses admin client to bypass RLS for reliable access
+ */
+export async function getPriceAdjustments(userId: string | null, tableName: string) {
+  // Use admin client to bypass RLS (we're in server-side API routes)
+  const adminClient = getAdminClient()
+  
+  // Run queries in parallel for better performance
+  const queries = [
+    adminClient
+      .from('global_price_adjustments')
+      .select('adjustment_percentage')
+      .eq('table_name', tableName)
+      .single()
+  ]
+
+  if (userId) {
+    queries.push(
+      adminClient
+        .from('user_price_adjustments')
+        .select('adjustment_percentage')
+        .eq('user_id', userId)
+        .eq('table_name', tableName)
+        .single()
+    )
+  }
+
+  const results = await Promise.all(queries)
+  const [globalResult, userResult] = results
+
+  if (globalResult.error && globalResult.error.code !== 'PGRST116') {
+    // PGRST116 is "not found" which is fine, but log other errors
+    console.warn(`⚠️ [Price Adjustments] Error fetching global adjustment for ${tableName}:`, globalResult.error.message)
+  }
+
+  if (userResult?.error) {
+    if (userResult.error.code === 'PGRST116') {
+      // Not found is fine - user just doesn't have a custom adjustment
+      console.log(`ℹ️ [Price Adjustments] No user-specific adjustment found for user ${userId} on ${tableName}`)
+    } else {
+      console.warn(`⚠️ [Price Adjustments] Error fetching user adjustment for ${tableName} (user: ${userId}):`, userResult.error.message)
+    }
+  }
+
+  const global = globalResult.data?.adjustment_percentage || 0
+  const user = userResult?.data?.adjustment_percentage || 0
+  const total = global + user
+
+  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): Global ${global}%, User ${user}%, Total ${total}%`)
+
+  return {
+    global,
+    user,
+    total
+  }
+}
+
+/**
+ * Apply price adjustments to a value
+ */
+export function applyPriceAdjustment(basePrice: number, adjustments: { global: number; user: number; total: number }): number {
+  // Apply global adjustment first
+  let adjustedPrice = basePrice * (1 + adjustments.global / 100)
+  
+  // Then apply user adjustment on top
+  adjustedPrice = adjustedPrice * (1 + adjustments.user / 100)
+  
+  return Math.round(adjustedPrice)
+}
+
+/**
+ * Apply adjustments to publications data
+ */
+export function applyAdjustmentsToPublications(
+  publications: any[],
+  adjustments: { global: number; user: number; total: number }
+): any[] {
+  return publications.map(pub => {
+    const updated = { ...pub }
+
+    // Adjust defaultPrice array (handles both string and number arrays)
+    if (updated.defaultPrice && Array.isArray(updated.defaultPrice)) {
+      updated.defaultPrice = updated.defaultPrice.map((price: string | number) => {
+        const numPrice = typeof price === 'string' ? parseFloat(price) : price
+        if (isNaN(numPrice)) return price
+        const adjusted = applyPriceAdjustment(numPrice, adjustments)
+        return typeof price === 'string' ? adjusted.toString() : adjusted
+      })
+    }
+
+    // Adjust customPrice array (handles both string and number arrays)
+    if (updated.customPrice && Array.isArray(updated.customPrice)) {
+      updated.customPrice = updated.customPrice.map((price: string | number) => {
+        const numPrice = typeof price === 'string' ? parseFloat(price) : price
+        if (isNaN(numPrice)) return price
+        const adjusted = applyPriceAdjustment(numPrice, adjustments)
+        return typeof price === 'string' ? adjusted.toString() : adjusted
+      })
+    }
+
+    // Adjust eroticPrice
+    if (updated.eroticPrice !== null && updated.eroticPrice !== undefined) {
+      updated.eroticPrice = applyPriceAdjustment(updated.eroticPrice, adjustments)
+    }
+
+    // Adjust niche multipliers (they affect base price, so we adjust the multiplier effect)
+    // Note: Multipliers are applied to base price, so we adjust the resulting price
+    // This is handled at display time in the component
+
+    return updated
+  })
+}
+
+/**
+ * Apply adjustments to simple price field (for other tables)
+ */
+export function applyAdjustmentsToPrice(
+  price: string | number | null,
+  adjustments: { global: number; user: number; total: number }
+): string | number | null {
+  if (price === null || price === undefined || price === '') {
+    return price
+  }
+
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price
+  if (isNaN(numericPrice)) {
+    return price
+  }
+
+  const adjusted = applyPriceAdjustment(numericPrice, adjustments)
+  return typeof price === 'string' ? adjusted.toString() : adjusted
+}
+
+/**
+ * Parse price from format "$2,000" or "$750"
+ */
+function parseDollarPrice(priceStr: string): number | null {
+  if (!priceStr) return null
+  // Remove $ and commas, then parse
+  const cleaned = priceStr.replace(/[$,]/g, '')
+  const num = parseFloat(cleaned)
+  return isNaN(num) ? null : num
+}
+
+/**
+ * Format price back to "$2,000" format
+ */
+function formatDollarPrice(price: number): string {
+  return `$${price.toLocaleString('en-US')}`
+}
+
+/**
+ * Adjust price in "$2,000" format
+ */
+export function adjustDollarPrice(
+  priceStr: string | null,
+  adjustments: { global: number; user: number; total: number }
+): string | null {
+  if (!priceStr) return priceStr
+  const numPrice = parseDollarPrice(priceStr)
+  if (numPrice === null) return priceStr
+  const adjusted = applyPriceAdjustment(numPrice, adjustments)
+  return formatDollarPrice(adjusted)
+}
+
+/**
+ * Adjust prices in listicles format: "Top 5: $4,500Top 10: $5,500"
+ */
+export function adjustListiclesPrice(
+  priceStr: string | null,
+  adjustments: { global: number; user: number; total: number }
+): string | null {
+  if (!priceStr) return priceStr
+  
+  // Match patterns like "Top 5: $4,500" or "Top 10: $5,500"
+  return priceStr.replace(/\$[\d,]+/g, (match) => {
+    const numPrice = parseDollarPrice(match)
+    if (numPrice === null) return match
+    const adjusted = applyPriceAdjustment(numPrice, adjustments)
+    return formatDollarPrice(adjusted)
+  })
+}
+
+/**
+ * Adjust prices in PR bundles format
+ */
+export function adjustPRBundles(
+  bundles: any[] | null,
+  adjustments: { global: number; user: number; total: number }
+): any[] | null {
+  if (!bundles || !Array.isArray(bundles)) return bundles
+  
+  return bundles.map(bundle => {
+    const updated = { ...bundle }
+    
+    // Adjust "Bundle 1 — $800" format in name
+    if (updated.name && typeof updated.name === 'string') {
+      updated.name = updated.name.replace(/\$[\d,]+/g, (match) => {
+        const numPrice = parseDollarPrice(match)
+        if (numPrice === null) return match
+        const adjusted = applyPriceAdjustment(numPrice, adjustments)
+        return formatDollarPrice(adjusted)
+      })
+    }
+    
+    // Adjust "Retail Value — $900" format in retailValue
+    if (updated.retailValue && typeof updated.retailValue === 'string') {
+      updated.retailValue = updated.retailValue.replace(/\$[\d,]+/g, (match) => {
+        const numPrice = parseDollarPrice(match)
+        if (numPrice === null) return match
+        const adjusted = applyPriceAdjustment(numPrice, adjustments)
+        return formatDollarPrice(adjusted)
+      })
+    }
+    
+    return updated
+  })
+}
+
+/**
+ * Adjust prices in print magazines format
+ */
+export function adjustPrintMagazines(
+  magazines: any[] | null,
+  adjustments: { global: number; user: number; total: number }
+): any[] | null {
+  if (!magazines || !Array.isArray(magazines)) return magazines
+  
+  return magazines.map(magazine => {
+    const updated = { ...magazine }
+    
+    // Adjust prices in details array like "Full Page $7500"
+    if (updated.details && Array.isArray(updated.details)) {
+      updated.details = updated.details.map((detail: string) => {
+        if (typeof detail === 'string') {
+          return detail.replace(/\$[\d,]+/g, (match) => {
+            const numPrice = parseDollarPrice(match)
+            if (numPrice === null) return match
+            const adjusted = applyPriceAdjustment(numPrice, adjustments)
+            return formatDollarPrice(adjusted)
+          })
+        }
+        return detail
+      })
+    }
+    
+    return updated
+  })
+}
+
+

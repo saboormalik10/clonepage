@@ -1,0 +1,54 @@
+[
+  {
+    "callSign": "KDA",
+    "station": "Dallas Area Fox",
+    "rate": "$750",
+    "tat": "1 Week",
+    "sponsored": "Yes",
+    "indexed": "Yes",
+    "segmentLength": "5-10 Minutes",
+    "location": "Texas,",
+    "programName": "Innovator\u2019s Journey",
+    "interviewType": "Video Call",
+    "exampleUrl": "https://cw33.com/innovators-journey/redefining-the-coffee-experience-with-jeffrey-dietrichs-px-coffee/"
+  },
+  {
+    "callSign": "KSWB",
+    "station": "Fox 5 San Diego",
+    "rate": "$500",
+    "tat": "1 Week",
+    "sponsored": "Yes",
+    "indexed": "No",
+    "segmentLength": "5-10 Minutes",
+    "location": "California,",
+    "programName": "Innovator\u2019s Journey",
+    "interviewType": "Video Call",
+    "exampleUrl": "https://fox5sandiego.com/fox-5-partners/innovators-journey/entrepreneur-larry-vivola-empowers-business-owners-to-take-control-with-customized-coaching-sponsored-content/"
+  },
+  {
+    "callSign": "USA Today TV",
+    "station": "USA Today",
+    "rate": "$2,500",
+    "tat": "1-2 Weeks",
+    "sponsored": "No",
+    "indexed": "Yes",
+    "segmentLength": "3-5 Minutes",
+    "location": "United States,",
+    "programName": "Contributor Content",
+    "interviewType": "Video Call",
+    "exampleUrl": "https://www.usatoday.com/story/special/contributor-content/2024/08/23/michael-kaufman-grows-protuff-products-making-pool-care-easier-for-all/74921864007/"
+  },
+  {
+    "callSign": "PIX11",
+    "station": "WPIX-TV",
+    "rate": "$1,500",
+    "tat": "1 Week",
+    "sponsored": "Yes",
+    "indexed": "Yes",
+    "segmentLength": "5-10 Minutes",
+    "location": "New York,",
+    "programName": "Innovator\u2019s Journey",
+    "interviewType": "Video Call",
+    "exampleUrl": "https://pix11.com/pix11-partner-sponsored/innovators-journey/saul-marquez-drives-healthcare-innovation-with-outcomes-rockets-growth-strategies-sponsored-content/"
+  }
+]

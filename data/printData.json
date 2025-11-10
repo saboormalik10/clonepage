@@ -1,0 +1,373 @@
+[
+  {
+    "category": "Magazine Print",
+    "magazines": [
+      {
+        "name": "Billboard USA",
+        "url": "https://billboard.com/",
+        "details": [
+          "Full Page $7500",
+          "2-Page Spread $15000",
+          "Turn Around: 1-2 Months"
+        ]
+      },
+      {
+        "name": "Billboard Argentina",
+        "url": "https://billboard.ar/",
+        "details": [
+          "Full Page $1000",
+          "Turn Around: 1-2 Months"
+        ]
+      },
+      {
+        "name": "Hamptons Magazine",
+        "url": "https://mlhamptons.com/",
+        "details": [
+          "Full Page $5000",
+          "2-Page Spread $10000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Riveria Magazine",
+        "url": "https://mlriviera.com/",
+        "details": [
+          "Full Page $5000",
+          "2-Page Spread $10000",
+          "Turn Around: 1-2 Months",
+          "40,000+ Circulation"
+        ]
+      },
+      {
+        "name": "San Diego Magazine",
+        "url": "https://mlsandiegomag.com/",
+        "details": [
+          "Full Page $4375",
+          "2-Page Spread $8750",
+          "Turn Around: 1-2 Months",
+          "35,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Angeleno Magazine",
+        "url": "https://mlangeleno.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Aspen Magazine",
+        "url": "https://modernluxurymedia.com/Brand-Post-Custom-Publishing/Aspen",
+        "details": [
+          "Full Page $3125",
+          "2-Page Spread $6250",
+          "Turn Around: 1-2 Months",
+          "25,000+ Circulation"
+        ]
+      },
+      {
+        "name": "The Atlantan Magazine",
+        "url": "https://atlantanmagazine.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Austin Way Magazine",
+        "url": "https://austinway.com/",
+        "details": [
+          "Full Page $4375",
+          "2-Page Spread $8750",
+          "Turn Around: 1-2 Months",
+          "35,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Boston Common Magazine",
+        "url": "https://modernluxurymedia.com/Brand-Post-Custom-Publishing/Boston-Common",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Chicago Magazine",
+        "url": "https://www.chicagomag.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Dallas Magazine",
+        "url": "https://mldallasmagazine.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Capitol File Magazine",
+        "url": "https://capitolfile.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Hawaii Magazine",
+        "url": "https://mlhawaii.com/",
+        "details": [
+          "Full Page $6250",
+          "2-Page Spread $12500",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Houston Magazine",
+        "url": "https://mlhoustonmagazine.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Jezebel Magazine",
+        "url": "https://jezebelmagazine.com/",
+        "details": [
+          "Full Page $3750",
+          "2-Page Spread $7500",
+          "Turn Around: 1-2 Months",
+          "30,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Manhattan Magazine",
+        "url": "https://mlmanhattan.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Miami Magazine",
+        "url": "https://mlmiamimag.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Ocean Drive Magazine",
+        "url": "https://oceandrive.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Palm Beach Magazine",
+        "url": "https://mlpalmbeach.com/",
+        "details": [
+          "Full Page $3750",
+          "2-Page Spread $7500",
+          "Turn Around: 1-2 Months",
+          "30,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Philadelphia Style Magazine",
+        "url": "https://phillystylemag.com/",
+        "details": [
+          "Full Page $6000",
+          "2-Page Spread $12000",
+          "Turn Around: 1-2 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "San Francisco Magazine",
+        "url": "https://sanfran.com/",
+        "details": [
+          "Full Page $6500",
+          "2-Page Spread $13000",
+          "Turn Around: 1-2 Months",
+          "55,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Scottsdale Magazine",
+        "url": "https://mlscottsdale.com/",
+        "details": [
+          "Full Page $4375",
+          "2-Page Spread $8750",
+          "Turn Around: 1-2 Months",
+          "35,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Silicon Valley Magazine",
+        "url": "https://mlsiliconvalley.com/",
+        "details": [
+          "Full Page $4375",
+          "2-Page Spread $8750",
+          "Turn Around: 1-2 Months",
+          "35,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Vegas Magazine",
+        "url": "https://vegasmagazine.com/",
+        "details": [
+          "Full Page $7500",
+          "2-Page Spread $15000",
+          "Turn Around: 1-2 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Haute Living",
+        "url": "https://www.hauteliving.com/",
+        "details": [
+          "Full Page $4000",
+          "2-Page Spread $8000",
+          "Turn Around: 1-2 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "In Touch Weekly",
+        "url": "https://www.intouchweekly.com",
+        "details": [
+          "Full Page $10000",
+          "Turn Around: 2-4 Months",
+          "75,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Life & Style",
+        "url": "https://www.lifeandstylemag.com",
+        "details": [
+          "Full Page $10000",
+          "Turn Around: 2-4 Months",
+          "75,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Entrepreneur India",
+        "url": "https://www.entrepreneur.com",
+        "details": [
+          "Front Cover $25000",
+          "Turn Around: 2-4 Months",
+          "100,000+ Circulation"
+        ]
+      },
+      {
+        "name": "LA Weekly",
+        "url": "https://www.laweekly.com",
+        "details": [
+          "Front Cover $30000",
+          "Turn Around: 2-3 Months",
+          "50,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Arabian Business",
+        "url": "https://www.arabianbusiness.com/",
+        "details": [
+          "Front Cover $65000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation",
+          "Retail, VIP & Airline Lounges (Emirates Airlines Business Lounges)"
+        ]
+      },
+      {
+        "name": "CEO Middle East",
+        "url": "https://www.ceo-middleeast.com/",
+        "details": [
+          "Front Cover $65000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Esquire Qatar",
+        "url": "https://www.esquireme.com/tags/qatar",
+        "details": [
+          "Front Cover $75000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Esquire KSA",
+        "url": "https://www.esquireme.com/tags/saudi-arabia",
+        "details": [
+          "Front Cover $85000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Grazia Middle East",
+        "url": "https://graziamagazine.com/me/",
+        "details": [
+          "Front Cover $85000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Cosmopolitan Middle East",
+        "url": "https://www.cosmopolitanme.com/",
+        "details": [
+          "Front Cover $85000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Esquire Middle East",
+        "url": "https://www.esquireme.com/",
+        "details": [
+          "Front Cover $90000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      },
+      {
+        "name": "Harpers Bazaar Middle East Qatar",
+        "url": "https://www.harpersbazaararabia.com/tags/qatar",
+        "details": [
+          "Front Cover $100000",
+          "Turn Around: 2-4 Months",
+          "60,000+ Circulation"
+        ]
+      }
+    ]
+  }
+]

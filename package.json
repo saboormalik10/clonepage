@@ -1,0 +1,51 @@
+{
+  "name": "clonepage",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "migrate": "node scripts/migrate-to-supabase.js",
+    "migrate:publications": "node scripts/migrate-publications.js",
+    "migrate:social-posts": "node scripts/migrate-social-posts.js",
+    "migrate:digital-tv": "node scripts/migrate-digital-tv.js",
+    "migrate:best-sellers": "node scripts/migrate-best-sellers.js",
+    "migrate:listicles": "node scripts/migrate-listicles.js",
+    "migrate:pr-bundles": "node scripts/migrate-pr-bundles.js",
+    "migrate:print": "node scripts/migrate-print.js",
+    "migrate:broadcast-tv": "node scripts/migrate-broadcast-tv.js",
+    "migrate:all": "yarn migrate:publications && yarn migrate:social-posts && yarn migrate:digital-tv && yarn migrate:best-sellers && yarn migrate:listicles && yarn migrate:pr-bundles && yarn migrate:print && yarn migrate:broadcast-tv",
+    "migrate:retry-failed": "node scripts/retry-failed-publications.js",
+    "setup:schema": "node scripts/setup-supabase-schema.js",
+    "setup:schema:auto": "node scripts/setup-schema-auto.js",
+    "admin:create-user": "node scripts/create-admin-user.js",
+    "admin:fix-profiles": "node scripts/fix-missing-profiles.js"
+  },
+  "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.80.0",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "^18.2.15",
+    "autoprefixer": "^10.4.16",
+    "dotenv": "^17.2.3",
+    "eslint": "^8.53.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "yarn@4.9.2+sha512.1fc009bc09d13cfd0e19efa44cbfc2b9cf6ca61482725eb35bbc5e257e093ebf4130db6dfe15d604ff4b79efd8e1e8e99b25fa7d0a6197c9f9826358d4d65c3c"
+}

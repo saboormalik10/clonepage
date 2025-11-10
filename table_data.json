@@ -1,0 +1,202 @@
+[
+  {
+    "affiliate": "CBS",
+    "calls": "WNCT",
+    "state": "North Carolina",
+    "market": "Greenville-New Bern-Washington",
+    "program": "102",
+    "location": "$800",
+    "rate": "$800",
+    "exampleUrl": "https://www.wnct.com/news/living-local/"
+  },
+  {
+    "affiliate": "NBC",
+    "calls": "WCMH",
+    "state": "Ohio",
+    "market": "Columbus",
+    "program": "33",
+    "location": "$1,500",
+    "rate": "$1,500",
+    "exampleUrl": "https://www.nbc4i.com/daytime-columbus/"
+  },
+  {
+    "affiliate": "CW",
+    "calls": "KDAF",
+    "state": "Texas",
+    "market": "Dallas-Ft Worth",
+    "program": "5",
+    "location": "$3,500",
+    "rate": "$3,500",
+    "exampleUrl": "https://cw33.com/news/inside-dfw/"
+  },
+  {
+    "affiliate": "CW",
+    "calls": "KWBQ",
+    "state": "New Mexico",
+    "market": "Albuquerque",
+    "program": "49",
+    "location": "$1,000",
+    "rate": "$1,000",
+    "exampleUrl": "https://www.krqe.com/new-mexicos-cw/"
+  },
+  {
+    "affiliate": "NBC",
+    "calls": "WHO",
+    "state": "Iowa",
+    "market": "Des Moines-Ames",
+    "program": "68",
+    "location": "$1,000",
+    "rate": "$1,000",
+    "exampleUrl": "https://who13.com/helloiowa/"
+  },
+  {
+    "affiliate": "ABC",
+    "calls": "WKRN",
+    "state": "Tenesee",
+    "market": "Nashville",
+    "program": "100",
+    "location": "$2,000",
+    "rate": "$2,000",
+    "exampleUrl": "https://www.wkrn.com/local-on-2/"
+  },
+  {
+    "affiliate": "CW",
+    "calls": "KIAH",
+    "state": "TEXAS",
+    "market": "HOUSTON",
+    "program": "9",
+    "location": "$3,000",
+    "rate": "$3,000",
+    "exampleUrl": "https://cw39.com/houstonhappens/"
+  },
+  {
+    "affiliate": "Fox",
+    "calls": "KHON",
+    "state": "HI",
+    "market": "Honolulu",
+    "program": "65",
+    "location": "$2,500",
+    "rate": "$2,500",
+    "exampleUrl": "https://www.khon2.com/living-808/"
+  },
+  {
+    "affiliate": "Fox",
+    "calls": "KTVI",
+    "state": "MO",
+    "market": "St. Louis",
+    "program": "23",
+    "location": "$1,500",
+    "rate": "$1,500",
+    "exampleUrl": "https://fox2now.com/studiostl/"
+  },
+  {
+    "affiliate": "CBS",
+    "calls": "WHBF",
+    "state": "Illinois",
+    "market": "Davenport",
+    "program": "100",
+    "location": "$400",
+    "rate": "$400",
+    "exampleUrl": "https://www.ourquadcities.com/living-local/"
+  },
+  {
+    "affiliate": "CBS",
+    "calls": "KLBK",
+    "state": "Texas",
+    "market": "Lubbock",
+    "program": "146",
+    "location": "$750",
+    "rate": "$750",
+    "exampleUrl": "https://www.everythinglubbock.com/news/trends-and-friends/"
+  },
+  {
+    "affiliate": "CBS",
+    "calls": "WBTW",
+    "state": "SC-NC",
+    "market": "Myrtle Beach-Florence",
+    "program": "101",
+    "location": "$500",
+    "rate": "$500",
+    "exampleUrl": "https://www.wbtw.com/living-local/"
+  },
+  {
+    "affiliate": "CW",
+    "calls": "KTLA",
+    "state": "CA",
+    "market": "Los Angeles",
+    "program": "2",
+    "location": "$15,500",
+    "rate": "$15,500",
+    "exampleUrl": "https://ktla.com/la-unscripted/"
+  },
+  {
+    "affiliate": "Fox",
+    "calls": "WQRF",
+    "state": "Illinois",
+    "market": "Rockford",
+    "program": "139",
+    "location": "$1,000",
+    "rate": "$1,000",
+    "exampleUrl": "https://www.mystateline.com/gooddaystateline/"
+  },
+  {
+    "affiliate": "Fox",
+    "calls": "WJW",
+    "state": "Ohio",
+    "market": "Cleveland",
+    "program": "19",
+    "location": "$5,000",
+    "rate": "$5,000",
+    "exampleUrl": "https://fox8.com/on-air/new-day-cleveland/"
+  },
+  {
+    "affiliate": "ABC",
+    "calls": "KTVX",
+    "state": "UTAH",
+    "market": "Salt Lake City",
+    "program": "29",
+    "location": "$3,000",
+    "rate": "$3,000",
+    "exampleUrl": "https://www.abc4.com/gtu/?ipid=GTU_Nav"
+  },
+  {
+    "affiliate": "NBC",
+    "calls": "KGET",
+    "state": "CALIFORNIA",
+    "market": "BAKERSFIELD",
+    "program": "126",
+    "location": "$400",
+    "rate": "$400",
+    "exampleUrl": "https://www.kget.com/studio17live/data-protection-day-with-red-clover-advisors/"
+  },
+  {
+    "affiliate": "CBS",
+    "calls": "WMBD",
+    "state": "Illinois",
+    "market": "Peoria-Bloomington",
+    "program": "123",
+    "location": "$500",
+    "rate": "$500",
+    "exampleUrl": "https://www.centralillinoisproud.com/get-local/"
+  },
+  {
+    "affiliate": "NBC",
+    "calls": "KXAN",
+    "state": "Texas",
+    "market": "Austin",
+    "program": "40",
+    "location": "$2,000",
+    "rate": "$2,000",
+    "exampleUrl": "https://www.kxan.com/studio-512/"
+  },
+  {
+    "affiliate": "Fox",
+    "calls": "NRQE",
+    "state": "New Mexico",
+    "market": "Albuquerque",
+    "program": "49",
+    "location": "$1,000",
+    "rate": "$1,000",
+    "exampleUrl": "https://www.krqe.com/new-mexico-living/"
+  }
+]
