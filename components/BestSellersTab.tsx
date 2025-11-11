@@ -633,6 +633,9 @@ export default function BestSellersTab() {
                                   <button 
                                     className="inline-flex items-center justify-center" 
                                     data-state="closed"
+                                    style={{
+                                      color: niche && niche.accepted ? 'currentColor' : '#9ca3af'
+                                    }}
                                     onMouseEnter={() => {
                                       setHoveredNicheIcon({ index, niche: iconInfo.name })
                                     }}

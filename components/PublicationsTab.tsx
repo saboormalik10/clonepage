@@ -64,6 +64,7 @@ const types = ['Staff', 'New', 'Updated', 'Press Release', 'Contributor', 'Lower
 
 const niches = ['Health', 'Crypto', 'Cbd', 'Gambling', 'Erotic']
 
+
 export default function PublicationsTab() {
   const [publicationsData, setPublicationsData] = useState<Publication[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -80,11 +81,9 @@ export default function PublicationsTab() {
   const [filteredData, setFilteredData] = useState<Publication[]>([])
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<'example' | 'image' | 'genres' | 'regions' | 'niches' | null>(null)
-  const [hoveredNiche, setHoveredNiche] = useState<string | null>(null)
   const [hoveredNicheIcon, setHoveredNicheIcon] = useState<{index: number, niche: string} | null>(null)
   const minRangeRef = useRef<HTMLInputElement>(null)
   const maxRangeRef = useRef<HTMLInputElement>(null)
-  const [activeThumb, setActiveThumb] = useState<'min' | 'max' | null>(null)
 
   const getPrice = (pub: Publication): number => {
     if (pub.customPrice && pub.customPrice.length > 0) {
@@ -309,23 +308,23 @@ export default function PublicationsTab() {
   const maxPrice = calculateMaxPrice()
   console.log({maxPrice})
   
-  // Update price range when maxPrice changes (but only if priceRange[1] is 0 or maxPrice changed significantly)
+  // Update price range only when maxPrice changes and priceRange hasn't been set yet
   useEffect(() => {
-    if (maxPrice > 0 && (priceRange[1] === 0 || Math.abs(priceRange[1] - maxPrice) > 100)) {
+    if (maxPrice > 0 && priceRange[1] === 0) {
       setPriceRange([0, maxPrice])
     }
-  }, [maxPrice, priceRange])
+  }, [maxPrice]) // Remove priceRange from dependencies to avoid infinite loop
   
   // Apply filters when publicationsData changes and priceRange is properly set
   // This is a safety net in case filteredData wasn't set properly on initial load
   useEffect(() => {
     // Only re-apply if we have data, price range is set, but filteredData is still empty
     // This handles edge cases where the initial filter application didn't work
-    if (publicationsData.length > 0 && priceRange[1] > 0 && filteredData.length === 0) {
+    if (publicationsData.length > 0 && priceRange[1] > 0 && filteredData.length === 0 && !searchTerm && selectedGenres.length === 0 && selectedTypes.length === 0) {
       console.log(`🔄 [Publications] Re-applying filters (filteredData was empty): ${publicationsData.length} items, price range [${priceRange[0]}, ${priceRange[1]}]`)
       applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
     }
-  }, [publicationsData.length, priceRange[1]]) // Re-run when data length or max price changes
+  }, [publicationsData.length]) // Only re-run when data length changes, not price range
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase()
     setSearchTerm(term)
@@ -510,13 +509,13 @@ export default function PublicationsTab() {
     applyFilters('', [0, maxPrice], 'Price (Asc)', [], [], '', '', '', '', [])
   }
 
-  // Apply filters when publicationsData changes
+  // Apply filters only when publicationsData is first loaded
   useEffect(() => {
-    if (publicationsData.length > 0) {
+    if (publicationsData.length > 0 && filteredData.length === 0) {
       applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicationsData])
+  }, [publicationsData.length]) // Only trigger on data length change, not every render
 
   if (isLoading) {
     return (
@@ -544,205 +543,99 @@ export default function PublicationsTab() {
               />
             </div>
 
-            <div className="space-y-1 space-x-5">
+            <div className="space-y-1">
+              <style dangerouslySetInnerHTML={{ __html: `
+                .dual-range-slider input[type="range"]::-webkit-slider-thumb {
+                  -webkit-appearance: none;
+                  appearance: none;
+                  pointer-events: all;
+                  width: 20px;
+                  height: 20px;
+                  background: #dc2626;
+                  border: none;
+                  border-radius: 4px;
+                  cursor: pointer;
+                }
+                .dual-range-slider input[type="range"]::-moz-range-thumb {
+                  pointer-events: all;
+                  width: 20px;
+                  height: 20px;
+                  background: #dc2626;
+                  border: none;
+                  border-radius: 4px;
+                  cursor: pointer;
+                }
+                .dual-range-slider input[type="range"]::-webkit-slider-thumb:hover {
+                  background: #b91c1c;
+                }
+                .dual-range-slider input[type="range"]::-moz-range-thumb:hover {
+                  background: #b91c1c;
+                }
+              ` }} />
               <p className="text-sm">Price range</p>
-              <div 
-                className="relative flex items-center select-none touch-none h-5" 
-                style={{ '--radix-slider-thumb-transform': 'translateX(-50%)' } as React.CSSProperties}
-                onMouseMove={(e) => {
-                  if (!activeThumb || maxPrice === 0) return
-                  
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  const mouseX = e.clientX - rect.left
-                  const percentage = (mouseX / rect.width) * 100
-                  const newValue = Math.max(0, Math.min(maxPrice, (percentage / 100) * maxPrice))
-                  
-                  if (activeThumb === 'min') {
-                    const newRange = [Math.min(newValue, priceRange[1]), priceRange[1]] as [number, number]
-                    setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                  } else if (activeThumb === 'max') {
-                    const newRange = [priceRange[0], Math.max(newValue, priceRange[0])] as [number, number]
-                    setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                  }
-                }}
-                onMouseUp={(e) => {
-                  if (activeThumb) {
-                    setActiveThumb(null)
-                    // Reset z-index
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '3'
-                    }
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '2'
-                    }
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (activeThumb) {
-                    setActiveThumb(null)
-                    // Reset z-index
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '3'
-                    }
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '2'
-                    }
-                  }
-                }}
-                onMouseDown={(e) => {
-                  // Only handle if not clicking on a thumb (thumbs handle their own clicks)
-                  if ((e.target as HTMLElement).closest('span[style*="zIndex: 6"]')) return
-                  if (maxPrice === 0) return
-                  
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  const clickX = e.clientX - rect.left
-                  const percentage = (clickX / rect.width) * 100
-                  const clickValue = Math.max(0, Math.min(maxPrice, (percentage / 100) * maxPrice))
-                  
-                  // Calculate thumb positions in pixels
-                  const minThumbPos = (priceRange[0] / maxPrice) * rect.width
-                  const maxThumbPos = (priceRange[1] / maxPrice) * rect.width
-                  
-                  // Determine which thumb is closer
-                  const minDistance = Math.abs(clickX - minThumbPos)
-                  const maxDistance = Math.abs(clickX - maxThumbPos)
-                  
-                  // Clicking on track - update closer thumb
-                  if (minDistance < maxDistance && clickValue < priceRange[1]) {
-                    // Update minimum
-                    const newRange = [clickValue, priceRange[1]] as [number, number]
-                    setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                  } else if (clickValue > priceRange[0]) {
-                    // Update maximum
-                    const newRange = [priceRange[0], clickValue] as [number, number]
-                    setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                  }
-                }}
-              >
-                <span className="bg-black/10 relative grow rounded-full h-2">
-                  <span 
-                    className="absolute bg-primary/50 rounded-full h-full"
-                    style={{ left: `${maxPrice > 0 ? (priceRange[0] / maxPrice) * 100 : 0}%`, right: `${maxPrice > 0 ? 100 - (priceRange[1] / maxPrice) * 100 : 100}%` }}
+              <div className="relative px-2 py-3 dual-range-slider">
+                <div className="relative h-2">
+                  {/* Track background */}
+                  <div className="absolute w-full h-2 bg-black/10 rounded-full"></div>
+                  {/* Active track */}
+                  <div 
+                    className="absolute h-2 bg-primary/50 rounded-full"
+                    style={{ 
+                      left: `${maxPrice > 0 ? (priceRange[0] / maxPrice) * 100 : 0}%`, 
+                      right: `${maxPrice > 0 ? 100 - (priceRange[1] / maxPrice) * 100 : 100}%` 
+                    }}
                   />
-                </span>
-                <input
-                  ref={minRangeRef}
-                  type="range"
-                  min="0"
-                  max={maxPrice}
-                  value={priceRange[0]}
-                  onChange={(e) => {
-                    const newValue = parseInt(e.target.value)
-                    const newRange = [Math.min(newValue, priceRange[1]), priceRange[1]] as [number, number]
-                    setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation()
-                    // Bring minimum input to front when dragging
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '5'
-                    }
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '2'
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    // Reset z-index after dragging
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '3'
-                    }
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '2'
-                    }
-                  }}
-                  className="absolute w-full h-5 opacity-0 cursor-pointer"
-                  style={{ zIndex: 3 }}
-                />
-                <input
-                  ref={maxRangeRef}
-                  type="range"
-                  min="0"
-                  max={maxPrice}
-                  value={priceRange[1]}
-                  onChange={(e) => {
-                    const newValue = parseInt(e.target.value)
-                    const newRange = [priceRange[0], Math.max(newValue, priceRange[0])] as [number, number]
-                    setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation()
-                    // Bring maximum input to front when dragging
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '5'
-                    }
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '2'
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    // Reset z-index after dragging
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '2'
-                    }
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '3'
-                    }
-                  }}
-                  className="absolute w-full h-5 opacity-0 cursor-pointer"
-                  style={{ zIndex: 2 }}
-                />
-                <span 
-                  className="absolute bg-primary focus:outline focus:outline-offset-2 focus:outline-gray-500 rounded-sm block w-5 h-5 cursor-grab"
-                  style={{ 
-                    left: `calc(${maxPrice > 0 ? (priceRange[0] / maxPrice) * 100 : 0}% - 10px)`,
-                    transform: 'translateX(-50%)',
-                    zIndex: 6,
-                    pointerEvents: 'auto'
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                    setActiveThumb('min')
-                    // Activate minimum input
-                    if (minRangeRef.current) {
-                      minRangeRef.current.style.zIndex = '5'
-                      if (maxRangeRef.current) {
-                        maxRangeRef.current.style.zIndex = '2'
-                      }
-                    }
-                  }}
-                />
-                <span 
-                  className="absolute bg-primary focus:outline focus:outline-offset-2 focus:outline-gray-500 rounded-sm block w-5 h-5 cursor-grab"
-                  style={{ 
-                    left: `calc(${maxPrice > 0 ? (priceRange[1] / maxPrice) * 100 : 0}% - 10px)`,
-                    transform: 'translateX(-50%)',
-                    zIndex: 6,
-                    pointerEvents: 'auto'
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                    setActiveThumb('max')
-                    // Activate maximum input
-                    if (maxRangeRef.current) {
-                      maxRangeRef.current.style.zIndex = '5'
-                      if (minRangeRef.current) {
-                        minRangeRef.current.style.zIndex = '2'
-                      }
-                    }
-                  }}
-                />
-              </div>
-              <div className="flex justify-between text-gray-500">
-                <span className="text-sm">${priceRange[0].toLocaleString()}</span>
-                <span className="text-sm">${priceRange[1].toLocaleString()}</span>
+                  
+                  {/* Min range input */}
+                  <input
+                    ref={minRangeRef}
+                    type="range"
+                    min="0"
+                    max={maxPrice}
+                    value={priceRange[0]}
+                    onChange={(e) => {
+                      const newValue = parseInt(e.target.value)
+                      // Ensure min doesn't exceed max
+                      const newRange = [Math.min(newValue, priceRange[1] - 1), priceRange[1]] as [number, number]
+                      setPriceRange(newRange)
+                      applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    }}
+                    className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
+                    style={{ 
+                      zIndex: priceRange[0] > priceRange[1] - 100 ? 5 : 3,
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none'
+                    }}
+                  />
+                  
+                  {/* Max range input */}
+                  <input
+                    ref={maxRangeRef}
+                    type="range"
+                    min="0"
+                    max={maxPrice}
+                    value={priceRange[1]}
+                    onChange={(e) => {
+                      const newValue = parseInt(e.target.value)
+                      // Ensure max doesn't go below min
+                      const newRange = [priceRange[0], Math.max(newValue, priceRange[0] + 1)] as [number, number]
+                      setPriceRange(newRange)
+                      applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    }}
+                    className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
+                    style={{ 
+                      zIndex: 4,
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none'
+                    }}
+                  />
+                </div>
+                
+                {/* Price labels */}
+                <div className="flex justify-between mt-3 text-gray-600">
+                  <span className="text-sm">${priceRange[0].toLocaleString()}</span>
+                  <span className="text-sm">${priceRange[1].toLocaleString()}</span>
+                </div>
               </div>
             </div>
 
@@ -1447,6 +1340,9 @@ export default function PublicationsTab() {
                                   <button 
                                     className="inline-flex items-center justify-center" 
                                     data-state="closed"
+                                    style={{
+                                      color: niche && niche.accepted && niche.price !== null ? 'currentColor' : '#9ca3af'
+                                    }}
                                     onMouseEnter={() => {
                                       setHoveredNicheIcon({ index, niche: icon.name })
                                     }}

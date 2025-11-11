@@ -42,9 +42,15 @@ export default function PrintTab() {
           throw new Error(`API error: ${response.status}`)
         }
         
-        const printData = await response.json()
+        const responseData = await response.json()
         
         if (!isMounted) return
+        
+        // Handle new response format with data and priceAdjustments
+        let printData = responseData
+        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+          printData = responseData.data
+        }
         
         if (Array.isArray(printData)) {
           setData(printData)

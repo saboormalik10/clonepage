@@ -42,9 +42,15 @@ export default function PRBundlesTab() {
           throw new Error(`API error: ${response.status}`)
         }
         
-        const bundlesData = await response.json()
+        const responseData = await response.json()
         
         if (!isMounted) return
+        
+        // Handle new response format with data and priceAdjustments
+        let bundlesData = responseData
+        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+          bundlesData = responseData.data
+        }
         
         if (Array.isArray(bundlesData)) {
           setData(bundlesData)

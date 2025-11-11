@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
+import DualRangeSlider from '@/components/DualRangeSlider'
 
 const TABLES = [
   { value: 'publications', label: 'Publications' },
@@ -266,49 +267,23 @@ export default function GlobalPricesPage() {
                       </p>
                     </div>
                     <div>
-                      <label htmlFor="min_price" className="block text-sm font-medium text-gray-700">
-                        Minimum Price (Optional)
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">$</span>
-                        </div>
-                        <input
-                          type="number"
-                          id="min_price"
-                          step="0.01"
-                          min="0"
-                          className="block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          placeholder="0.00"
-                          value={formData.min_price}
-                          onChange={(e) => setFormData({ ...formData, min_price: e.target.value })}
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Adjustment only applies to prices above this amount
-                      </p>
-                    </div>
-                    <div>
-                      <label htmlFor="max_price" className="block text-sm font-medium text-gray-700">
-                        Maximum Price (Optional)
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">$</span>
-                        </div>
-                        <input
-                          type="number"
-                          id="max_price"
-                          step="0.01"
-                          min="0"
-                          className="block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          placeholder="Unlimited"
-                          value={formData.max_price}
-                          onChange={(e) => setFormData({ ...formData, max_price: e.target.value })}
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Adjustment only applies to prices below this amount
+                      <DualRangeSlider
+                        min={0}
+                        max={10000}
+                        minValue={formData.min_price ? parseFloat(formData.min_price) : null}
+                        maxValue={formData.max_price ? parseFloat(formData.max_price) : null}
+                        step={10}
+                        onChange={(min, max) => {
+                          setFormData({
+                            ...formData,
+                            min_price: min !== null ? min.toString() : '',
+                            max_price: max !== null ? max.toString() : ''
+                          })
+                        }}
+                        label="Price Range (Optional)"
+                      />
+                      <p className="mt-2 text-xs text-gray-500">
+                        Drag the handles to set the price range. Adjustment will only apply to prices within this range.
                       </p>
                     </div>
                   </div>

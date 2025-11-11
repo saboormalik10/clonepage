@@ -9,7 +9,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [loginAs, setLoginAs] = useState<'admin' | 'user'>('user')
   const router = useRouter()
   const supabase = createClient()
 
@@ -75,30 +74,12 @@ export default function LoginPage() {
           return
         }
 
-        // Validate login type matches user role
-        if (loginAs === 'admin') {
-          if (profile.role === 'admin') {
-            // Admin logging in as admin - allowed
-            router.push('/admin/dashboard')
-          } else {
-            // Regular user trying to login as admin - not allowed
-            await supabase.auth.signOut()
-            setError('You do not have admin privileges. Please select "Press Portal (User)" and try again.')
-            setLoading(false)
-            return
-          }
+        // Redirect based on user role
+        if (profile.role === 'admin') {
+          router.push('/admin/dashboard')
         } else {
-          // loginAs === 'user'
-          if (profile.role === 'admin') {
-            // Admin trying to login as user - not allowed
-            await supabase.auth.signOut()
-            setError('Admins cannot login to the Press Portal. Please select "Admin" and try again.')
-            setLoading(false)
-            return
-          } else {
-            // Regular user logging in as user - allowed
-            router.push('/')
-          }
+          // Regular users go to main pricing page (press portal)
+          router.push('/')
         }
       }
     } catch (err: any) {
@@ -124,35 +105,6 @@ export default function LoginPage() {
               <div className="text-sm text-red-800">{error}</div>
             </div>
           )}
-          
-          {/* Role Toggle */}
-          <div className="flex items-center justify-center">
-            <div className="inline-flex rounded-md shadow-sm" role="group">
-              <button
-                type="button"
-                onClick={() => setLoginAs('user')}
-                className={`px-4 py-2 text-sm font-medium rounded-l-lg border ${
-                  loginAs === 'user'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Press Portal (User)
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginAs('admin')}
-                className={`px-4 py-2 text-sm font-medium rounded-r-lg border ${
-                  loginAs === 'admin'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
-          </div>
-
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
