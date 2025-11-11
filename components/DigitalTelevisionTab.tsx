@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
 
 interface DigitalTV {
   callSign: string
@@ -24,6 +25,7 @@ export default function DigitalTelevisionTab() {
   const [filteredData, setFilteredData] = useState<DigitalTV[]>([])
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<'example' | null>(null)
+  const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
 
   const userId = useUserId()
 
@@ -55,10 +57,17 @@ export default function DigitalTelevisionTab() {
           throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
         }
         
-        const data = await response.json()
-        console.log('✅ [Digital TV] Data received:', Array.isArray(data) ? `${data.length} items` : 'unexpected format', data)
+        const responseData = await response.json()
+        console.log('✅ [Digital TV] Data received:', responseData)
         
         if (!isMounted) return
+        
+        // Handle new response format with data and priceAdjustments
+        let data = responseData
+        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+          data = responseData.data
+          setPriceAdjustments(responseData.priceAdjustments)
+        }
         
         if (Array.isArray(data)) {
           setDigitalTvData(data)
@@ -145,7 +154,14 @@ export default function DigitalTelevisionTab() {
                     <div className="flex justify-center">Station</div>
                   </th>
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
-                    <div className="flex justify-center">Rate</div>
+                    <div className="flex flex-col items-center">
+                      <span>Rate</span>
+                      {hasActiveAdjustments(priceAdjustments) && (
+                        <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
+                          (Adjusted)
+                        </span>
+                      )}
+                    </div>
                   </th>
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex justify-center">TAT</div>

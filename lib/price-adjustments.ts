@@ -14,7 +14,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
   const queries = [
     adminClient
       .from('global_price_adjustments')
-      .select('adjustment_percentage')
+      .select('adjustment_percentage, min_price, max_price')
       .eq('table_name', tableName)
       .single()
   ]
@@ -23,7 +23,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
     queries.push(
       adminClient
         .from('user_price_adjustments')
-        .select('adjustment_percentage')
+        .select('adjustment_percentage, min_price, max_price')
         .eq('user_id', userId)
         .eq('table_name', tableName)
         .single()
@@ -47,30 +47,66 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
     }
   }
 
-  const global = globalResult.data?.adjustment_percentage || 0
-  const user = userResult?.data?.adjustment_percentage || 0
-  const total = global + user
+  const globalAdj = globalResult.data || { adjustment_percentage: 0, min_price: null, max_price: null }
+  const userAdj = userResult?.data || { adjustment_percentage: 0, min_price: null, max_price: null }
 
-  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): Global ${global}%, User ${user}%, Total ${total}%`)
+  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): Global ${globalAdj.adjustment_percentage}%, User ${userAdj.adjustment_percentage}%`)
 
   return {
-    global,
-    user,
-    total
+    global: globalAdj,
+    user: userAdj
   }
 }
 
 /**
- * Apply price adjustments to a value
+ * Apply price adjustments to a value with price range support
  */
-export function applyPriceAdjustment(basePrice: number, adjustments: { global: number; user: number; total: number }): number {
-  // Apply global adjustment first
-  let adjustedPrice = basePrice * (1 + adjustments.global / 100)
+export function applyPriceAdjustment(
+  basePrice: number, 
+  adjustments: { 
+    global: { adjustment_percentage: number; min_price: number | null; max_price: number | null } | number;
+    user: { adjustment_percentage: number; min_price: number | null; max_price: number | null } | number;
+  }
+): number {
+  let adjustedPrice = basePrice;
   
-  // Then apply user adjustment on top
-  adjustedPrice = adjustedPrice * (1 + adjustments.user / 100)
+  // Handle global adjustment
+  if (typeof adjustments.global === 'object') {
+    // Check if price is within range
+    const withinRange = 
+      (adjustments.global.min_price === null || basePrice >= adjustments.global.min_price) &&
+      (adjustments.global.max_price === null || basePrice <= adjustments.global.max_price);
+    
+    if (withinRange && adjustments.global.adjustment_percentage !== 0) {
+      console.log(`💵 Applying global adjustment ${adjustments.global.adjustment_percentage}% to price $${basePrice} (within range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
+      adjustedPrice = adjustedPrice * (1 + adjustments.global.adjustment_percentage / 100);
+    } else if (!withinRange && adjustments.global.adjustment_percentage !== 0) {
+      console.log(`⏭️ Skipping global adjustment for price $${basePrice} (outside range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
+    }
+  } else {
+    // Legacy support for number type
+    adjustedPrice = adjustedPrice * (1 + adjustments.global / 100);
+  }
   
-  return Math.round(adjustedPrice)
+  // Handle user adjustment
+  if (typeof adjustments.user === 'object') {
+    // Check if price is within range
+    const withinRange = 
+      (adjustments.user.min_price === null || basePrice >= adjustments.user.min_price) &&
+      (adjustments.user.max_price === null || basePrice <= adjustments.user.max_price);
+    
+    if (withinRange && adjustments.user.adjustment_percentage !== 0) {
+      console.log(`💵 Applying user adjustment ${adjustments.user.adjustment_percentage}% to price $${basePrice} (within range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
+      adjustedPrice = adjustedPrice * (1 + adjustments.user.adjustment_percentage / 100);
+    } else if (!withinRange && adjustments.user.adjustment_percentage !== 0) {
+      console.log(`⏭️ Skipping user adjustment for price $${basePrice} (outside range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
+    }
+  } else {
+    // Legacy support for number type
+    adjustedPrice = adjustedPrice * (1 + adjustments.user / 100);
+  }
+  
+  return Math.round(adjustedPrice);
 }
 
 /**
@@ -78,7 +114,7 @@ export function applyPriceAdjustment(basePrice: number, adjustments: { global: n
  */
 export function applyAdjustmentsToPublications(
   publications: any[],
-  adjustments: { global: number; user: number; total: number }
+  adjustments: any
 ): any[] {
   return publications.map(pub => {
     const updated = { ...pub }
@@ -121,7 +157,7 @@ export function applyAdjustmentsToPublications(
  */
 export function applyAdjustmentsToPrice(
   price: string | number | null,
-  adjustments: { global: number; user: number; total: number }
+  adjustments: any
 ): string | number | null {
   if (price === null || price === undefined || price === '') {
     return price
@@ -159,7 +195,7 @@ function formatDollarPrice(price: number): string {
  */
 export function adjustDollarPrice(
   priceStr: string | null,
-  adjustments: { global: number; user: number; total: number }
+  adjustments: any
 ): string | null {
   if (!priceStr) return priceStr
   const numPrice = parseDollarPrice(priceStr)
@@ -173,7 +209,7 @@ export function adjustDollarPrice(
  */
 export function adjustListiclesPrice(
   priceStr: string | null,
-  adjustments: { global: number; user: number; total: number }
+  adjustments: any
 ): string | null {
   if (!priceStr) return priceStr
   
@@ -191,7 +227,7 @@ export function adjustListiclesPrice(
  */
 export function adjustPRBundles(
   bundles: any[] | null,
-  adjustments: { global: number; user: number; total: number }
+  adjustments: any
 ): any[] | null {
   if (!bundles || !Array.isArray(bundles)) return bundles
   
@@ -227,7 +263,7 @@ export function adjustPRBundles(
  */
 export function adjustPrintMagazines(
   magazines: any[] | null,
-  adjustments: { global: number; user: number; total: number }
+  adjustments: any
 ): any[] | null {
   if (!magazines || !Array.isArray(magazines)) return magazines
   

@@ -36,24 +36,26 @@ export async function GET(request: Request) {
         }))
 
         // Apply price adjustments
+        let adjustments: any = null
         try {
-          const adjustments = await getPriceAdjustments(userId, 'pr_bundles')
-          console.log(`💰 [PR Bundles API] Price adjustments fetched: Global ${adjustments.global}%, User ${adjustments.user}%, Total ${adjustments.total}%`)
+          adjustments = await getPriceAdjustments(userId, 'pr_bundles')
+          console.log(`💰 [PR Bundles API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             bundles: adjustPRBundles(item.bundles, adjustments)
           }))
-          if (adjustments.total !== 0) {
-            console.log(`✅ [PR Bundles API] Applied price adjustments to ${transformedData.length} categories`)
-          } else {
-            console.log(`ℹ️ [PR Bundles API] Price adjustments applied (all adjustments are 0, no change)`)
-          }
+          console.log(`✅ [PR Bundles API] Applied price adjustments to ${transformedData.length} categories`)
         } catch (adjError) {
           console.warn('⚠️ [PR Bundles API] Error applying price adjustments:', adjError)
         }
 
-        return NextResponse.json(transformedData)
+        // Include adjustments in response
+        const result = {
+          data: transformedData,
+          priceAdjustments: adjustments
+        }
+        return NextResponse.json(result)
       }
     }
 

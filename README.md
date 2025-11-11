@@ -1,4 +1,4 @@
-# Ascend PR Pricing Portal - Next.js TypeScript Conversion
+# Hotshot Social Pricing Portal - Next.js TypeScript Conversion
 
 This project is a Next.js TypeScript conversion of the original HTML/CSS pricing portal.
 

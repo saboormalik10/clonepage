@@ -45,24 +45,26 @@ export async function GET(request: Request) {
         }))
 
         // Apply price adjustments
+        let adjustments: any = null
         try {
-          const adjustments = await getPriceAdjustments(userId, 'social_posts')
-          console.log(`💰 [Social Posts API] Price adjustments fetched: Global ${adjustments.global}%, User ${adjustments.user}%, Total ${adjustments.total}%`)
+          adjustments = await getPriceAdjustments(userId, 'social_posts')
+          console.log(`💰 [Social Posts API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             price: adjustDollarPrice(item.price, adjustments)
           }))
-          if (adjustments.total !== 0) {
-            console.log(`✅ [Social Posts API] Applied price adjustments to ${transformedData.length} items`)
-          } else {
-            console.log(`ℹ️ [Social Posts API] Price adjustments applied (all adjustments are 0, no change)`)
-          }
+          console.log(`✅ [Social Posts API] Applied price adjustments to ${transformedData.length} items`)
         } catch (adjError) {
           console.warn('⚠️ [Social Posts API] Error applying price adjustments:', adjError)
         }
 
-        return createFreshResponse(transformedData)
+        // Include adjustments in response
+        const result = {
+          data: transformedData,
+          priceAdjustments: adjustments
+        }
+        return createFreshResponse(result)
       }
     }
 

@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { user_id, table_name, adjustment_percentage } = body
+    const { user_id, table_name, adjustment_percentage, min_price, max_price } = body
 
     if (!user_id || !table_name || adjustment_percentage === undefined) {
       return NextResponse.json({ error: 'User ID, table name and adjustment percentage are required' }, { status: 400 })
@@ -142,6 +142,8 @@ export async function POST(request: Request) {
           user_id,
           table_name,
           adjustment_percentage: parseFloat(adjustment_percentage),
+          min_price: min_price ? parseFloat(min_price) : null,
+          max_price: max_price ? parseFloat(max_price) : null,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,table_name'

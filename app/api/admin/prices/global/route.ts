@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { table_name, adjustment_percentage } = body
+    const { table_name, adjustment_percentage, min_price, max_price } = body
 
     if (!table_name || adjustment_percentage === undefined) {
       return NextResponse.json({ error: 'Table name and adjustment percentage are required' }, { status: 400 })
@@ -94,6 +94,8 @@ export async function POST(request: Request) {
         .upsert({
           table_name,
           adjustment_percentage: parseFloat(adjustment_percentage),
+          min_price: min_price ? parseFloat(min_price) : null,
+          max_price: max_price ? parseFloat(max_price) : null,
           applied_by: userId,
           updated_at: new Date().toISOString()
         }, {

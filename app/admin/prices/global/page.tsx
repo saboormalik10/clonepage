@@ -18,6 +18,8 @@ interface Adjustment {
   id: string
   table_name: string
   adjustment_percentage: number
+  min_price?: number | null
+  max_price?: number | null
   created_at: string
   updated_at: string
 }
@@ -29,6 +31,8 @@ export default function GlobalPricesPage() {
   const [formData, setFormData] = useState({
     table_name: 'publications',
     adjustment_percentage: '',
+    min_price: '',
+    max_price: '',
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -84,7 +88,9 @@ export default function GlobalPricesPage() {
         },
         body: JSON.stringify({
           table_name: formData.table_name,
-          adjustment_percentage: parseFloat(formData.adjustment_percentage)
+          adjustment_percentage: parseFloat(formData.adjustment_percentage),
+          min_price: formData.min_price ? parseFloat(formData.min_price) : null,
+          max_price: formData.max_price ? parseFloat(formData.max_price) : null
         })
       })
 
@@ -95,7 +101,7 @@ export default function GlobalPricesPage() {
       }
 
       setSuccess(`Successfully applied ${formData.adjustment_percentage}% adjustment to ${TABLES.find(t => t.value === formData.table_name)?.label}`)
-      setFormData({ table_name: 'publications', adjustment_percentage: '' })
+      setFormData({ table_name: 'publications', adjustment_percentage: '', min_price: '', max_price: '' })
       setShowModal(false)
       fetchAdjustments()
     } catch (err: any) {
@@ -177,12 +183,19 @@ export default function GlobalPricesPage() {
                   <div>
                     <p className="text-sm font-medium text-gray-900">{table.label}</p>
                     {adjustment ? (
-                      <p className="mt-1 text-sm text-gray-500">
-                        Current adjustment: {adjustment.adjustment_percentage > 0 ? '+' : ''}{adjustment.adjustment_percentage}%
-                        <span className="ml-2 text-xs text-gray-400">
-                          (Updated: {new Date(adjustment.updated_at).toLocaleDateString()})
-                        </span>
-                      </p>
+                      <div>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Current adjustment: {adjustment.adjustment_percentage > 0 ? '+' : ''}{adjustment.adjustment_percentage}%
+                          <span className="ml-2 text-xs text-gray-400">
+                            (Updated: {new Date(adjustment.updated_at).toLocaleDateString()})
+                          </span>
+                        </p>
+                        {(adjustment.min_price || adjustment.max_price) && (
+                          <p className="mt-1 text-xs text-gray-400">
+                            Price range: ${adjustment.min_price || '0'} - ${adjustment.max_price || 'unlimited'}
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       <p className="mt-1 text-sm text-gray-500">No adjustment applied</p>
                     )}
@@ -250,6 +263,52 @@ export default function GlobalPricesPage() {
                       </div>
                       <p className="mt-2 text-sm text-gray-500">
                         Positive values increase prices, negative values decrease prices
+                      </p>
+                    </div>
+                    <div>
+                      <label htmlFor="min_price" className="block text-sm font-medium text-gray-700">
+                        Minimum Price (Optional)
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          id="min_price"
+                          step="0.01"
+                          min="0"
+                          className="block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          placeholder="0.00"
+                          value={formData.min_price}
+                          onChange={(e) => setFormData({ ...formData, min_price: e.target.value })}
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Adjustment only applies to prices above this amount
+                      </p>
+                    </div>
+                    <div>
+                      <label htmlFor="max_price" className="block text-sm font-medium text-gray-700">
+                        Maximum Price (Optional)
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          id="max_price"
+                          step="0.01"
+                          min="0"
+                          className="block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          placeholder="Unlimited"
+                          value={formData.max_price}
+                          onChange={(e) => setFormData({ ...formData, max_price: e.target.value })}
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Adjustment only applies to prices below this amount
                       </p>
                     </div>
                   </div>

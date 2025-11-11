@@ -75,7 +75,7 @@ export default function Home() {
       <main className="w-full p-2 lg:w-full lg:p-4 lg:mx-auto xl:p-[2] 2xl:w-[1650px]">
         <section className="mt-2 mb-4 flex-col font-body space-y-3 flex lg:space-y-0 lg:items-center lg:flex-row justify-between">
           <div className="flex flex-col">
-            <h1 className="text-2xl uppercase bold">Pricing (Ascend PR)</h1>
+            <h1 className="text-2xl uppercase bold">Pricing (Hotshot Social)</h1>
             <p className="text-sm">
               Once we have published the article for you, any further edits may include an extra charge.
             </p>
@@ -101,7 +101,7 @@ export default function Home() {
               How To
             </a> */}
             <a
-              href="https://docs.google.com/document/d/1TVFolHJVq-cfI_EnZRTo2OFrreGMYKwMMEndYGgsusc/edit?usp=sharing"
+              href="https://docs.google.com/document/d/1fMHASfp2its2jacTJyxN2LYiG6ABhNKup0WGsaOrlHk/edit?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary p-2 px-2 text-white font-body text-sm"

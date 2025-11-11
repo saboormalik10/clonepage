@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
 
 interface BestSeller {
   publication: string
@@ -28,6 +29,7 @@ export default function BestSellersTab() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<'example' | 'regions' | 'genres' | null>(null)
   const [hoveredNicheIcon, setHoveredNicheIcon] = useState<{index: number, niche: string} | null>(null)
+  const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
 
   const userId = useUserId()
 
@@ -53,9 +55,16 @@ export default function BestSellersTab() {
           throw new Error(`API error: ${response.status}`)
         }
         
-        const data = await response.json()
+        const responseData = await response.json()
         
         if (!isMounted) return
+        
+        // Handle new response format with data and priceAdjustments
+        let data = responseData
+        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+          data = responseData.data
+          setPriceAdjustments(responseData.priceAdjustments)
+        }
         
         if (Array.isArray(data)) {
           setBestSellersData(data)
@@ -404,7 +413,14 @@ export default function BestSellersTab() {
                     <div className="flex justify-center">Genres</div>
                   </th>
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
-                    <div className="flex justify-center">Price</div>
+                    <div className="flex flex-col items-center">
+                      <span>Price</span>
+                      {hasActiveAdjustments(priceAdjustments) && (
+                        <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
+                          (Adjusted)
+                        </span>
+                      )}
+                    </div>
                   </th>
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex justify-center">

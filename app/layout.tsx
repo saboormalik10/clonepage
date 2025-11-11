@@ -9,8 +9,8 @@ const oswald = Oswald({
 })
 
 export const metadata: Metadata = {
-  title: 'Pricing - Ascend PR',
-  description: 'Ascend PR Pricing Portal',
+  title: 'Pricing - Hotshot Social',
+  description: 'Hotshot Social Pricing Portal',
 }
 
 export default function RootLayout({

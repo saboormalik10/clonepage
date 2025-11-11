@@ -53,11 +53,14 @@ export default function Header() {
   return (
     <div className="bg-white mb-2 xl:mb-8">
       <div className="flex justify-between w-full lg:w-full lg:mx-auto xl:p-[2] 2xl:w-[1400px]">
-        <img
-          src="https://pricing.ascendagency.com/logo.svg"
-          alt="Logo"
-          className="w-52 invert p-3 -ml-2 xl:-ml-6"
-        />
+        <div className="flex items-center gap-3 p-3 -ml-2 xl:-ml-6">
+          <img
+            src="/logo.jpeg"
+            alt="Logo"
+            className="w-16 h-16 object-contain"
+          />
+          <span className="text-2xl font-bold text-gray-800">Hotshot Social</span>
+        </div>
         {user && (
           <button 
             onClick={handleLogout}

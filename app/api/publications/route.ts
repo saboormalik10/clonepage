@@ -96,17 +96,14 @@ export async function GET(request: Request) {
         }))
 
         // Apply price adjustments (global always, user-specific if userId provided)
+        let adjustments: any = null
         try {
           console.log(`🔍 [Publications API] Fetching price adjustments for userId: ${userId || 'none'}`)
-          const adjustments = await getPriceAdjustments(userId, 'publications')
-          console.log(`💰 [Publications API] Price adjustments fetched: Global ${adjustments.global}%, User ${adjustments.user}%, Total ${adjustments.total}%`)
+          adjustments = await getPriceAdjustments(userId, 'publications')
+          console.log(`💰 [Publications API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = applyAdjustmentsToPublications(transformedData, adjustments)
-          if (adjustments.total !== 0) {
-            console.log(`✅ [Publications API] Applied price adjustments to ${transformedData.length} publications`)
-          } else {
-            console.log(`ℹ️ [Publications API] Price adjustments applied (all adjustments are 0, no change)`)
-          }
+          console.log(`✅ [Publications API] Applied price adjustments to ${transformedData.length} publications`)
         } catch (adjError: any) {
           console.error('❌ [Publications API] Error applying price adjustments:', adjError)
           console.error('   Error message:', adjError?.message)
@@ -118,7 +115,8 @@ export async function GET(request: Request) {
           query: '',
           result: transformedData,
           syncTags: [],
-          ms: 0
+          ms: 0,
+          priceAdjustments: adjustments // Include adjustment details for frontend
         }
         return createFreshResponse(result)
     } else {

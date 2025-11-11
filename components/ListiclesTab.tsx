@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
 
 interface Listicle {
   publication: string
@@ -26,6 +27,7 @@ export default function ListiclesTab() {
   const [filteredData, setFilteredData] = useState<Listicle[]>([])
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<'example' | 'genres' | 'regions' | null>(null)
+  const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
 
   const userId = useUserId()
 
@@ -59,10 +61,17 @@ export default function ListiclesTab() {
           throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
         }
         
-        const data = await response.json()
-        console.log('✅ [Listicles] Data received:', Array.isArray(data) ? `${data.length} items` : 'unexpected format', data)
+        const responseData = await response.json()
+        console.log('✅ [Listicles] Data received:', responseData)
         
         if (!isMounted) return
+        
+        // Handle new response format with data and priceAdjustments
+        let data = responseData
+        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+          data = responseData.data
+          setPriceAdjustments(responseData.priceAdjustments)
+        }
         
         if (Array.isArray(data)) {
           setListiclesData(data)
@@ -389,7 +398,14 @@ export default function ListiclesTab() {
                     <div className="flex justify-center">Genres</div>
                   </th>
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
-                    <div className="flex justify-center">Price</div>
+                    <div className="flex flex-col items-center">
+                      <span>Price</span>
+                      {hasActiveAdjustments(priceAdjustments) && (
+                        <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
+                          (Adjusted)
+                        </span>
+                      )}
+                    </div>
                   </th>
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex justify-center">
