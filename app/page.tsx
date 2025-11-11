@@ -80,7 +80,7 @@ export default function Home() {
               Once we have published the article for you, any further edits may include an extra charge.
             </p>
             <p className="text-sm">
-              Ascend Agency will use reasonable good faith efforts to ensure that such article will remain publicly available in the applicable publication for at least 12 months.
+              Hotshot Social Agency will use reasonable good faith efforts to ensure that such article will remain publicly available in the applicable publication for at least 12 months.
             </p>
           </div>
           <div className="flex space-x-2">
@@ -93,7 +93,7 @@ export default function Home() {
               Video Tutorial
             </a> */}
             {/* <a
-              href="https://www.figma.com/proto/0VHlTHQ0nY19KcyvrSwcCG/Ascend-Pricing-Portal?type=design&node-id=1-2&t=4SMS3QL3VksDvURV-0&scaling=contain&page-id=0%3A1"
+              href="https://www.figma.com/proto/0VHlTHQ0nY19KcyvrSwcCG/Hotshot Social-Pricing-Portal?type=design&node-id=1-2&t=4SMS3QL3VksDvURV-0&scaling=contain&page-id=0%3A1"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary p-2 px-2 text-white font-body text-sm"
