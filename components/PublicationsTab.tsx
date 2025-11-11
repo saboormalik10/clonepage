@@ -587,54 +587,54 @@ export default function PublicationsTab() {
                   />
                   
                   {/* Min range input */}
-                  <input
-                    ref={minRangeRef}
-                    type="range"
-                    min="0"
-                    max={maxPrice}
-                    value={priceRange[0]}
-                    onChange={(e) => {
-                      const newValue = parseInt(e.target.value)
+                <input
+                  ref={minRangeRef}
+                  type="range"
+                  min="0"
+                  max={maxPrice}
+                  value={priceRange[0]}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value)
                       // Ensure min doesn't exceed max
-                      const newRange = [Math.min(newValue, priceRange[1] - 1), priceRange[1]] as [number, number]
-                      setPriceRange(newRange)
-                      applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                    }}
+                    const newRange = [Math.min(newValue, priceRange[1] - 1), priceRange[1]] as [number, number]
+                    setPriceRange(newRange)
+                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                  }}
                     className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
-                    style={{ 
+                  style={{ 
                       zIndex: priceRange[0] > priceRange[1] - 100 ? 5 : 3,
                       WebkitAppearance: 'none',
                       MozAppearance: 'none'
-                    }}
-                  />
+                  }}
+                />
                   
                   {/* Max range input */}
-                  <input
-                    ref={maxRangeRef}
-                    type="range"
-                    min="0"
-                    max={maxPrice}
-                    value={priceRange[1]}
-                    onChange={(e) => {
-                      const newValue = parseInt(e.target.value)
+                <input
+                  ref={maxRangeRef}
+                  type="range"
+                  min="0"
+                  max={maxPrice}
+                  value={priceRange[1]}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value)
                       // Ensure max doesn't go below min
-                      const newRange = [priceRange[0], Math.max(newValue, priceRange[0] + 1)] as [number, number]
-                      setPriceRange(newRange)
-                      applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-                    }}
+                    const newRange = [priceRange[0], Math.max(newValue, priceRange[0] + 1)] as [number, number]
+                    setPriceRange(newRange)
+                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                  }}
                     className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
-                    style={{ 
+                  style={{ 
                       zIndex: 4,
                       WebkitAppearance: 'none',
                       MozAppearance: 'none'
-                    }}
-                  />
-                </div>
+                  }}
+                />
+              </div>
                 
                 {/* Price labels */}
                 <div className="flex justify-between mt-3 text-gray-600">
-                  <span className="text-sm">${priceRange[0].toLocaleString()}</span>
-                  <span className="text-sm">${priceRange[1].toLocaleString()}</span>
+                <span className="text-sm">${priceRange[0].toLocaleString()}</span>
+                <span className="text-sm">${priceRange[1].toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -860,7 +860,7 @@ export default function PublicationsTab() {
           </p>
           <div className="overflow-x-scroll lg:overflow-visible relative" style={{ overflow: 'visible' }}>
             <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white" style={{ overflow: 'visible' }}>
-              <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
+              <thead className="text-xs text-gray-700 bg-white sticky top-0 z-20 shadow-sm">
                 <tr className="text-primary">
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex">Publication</div>
@@ -931,7 +931,7 @@ export default function PublicationsTab() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 relative z-0">
                 {Array.isArray(filteredData) && filteredData.map((pub, index) => {
                   const price = getPrice(pub)
                   const genresArray = getGenresArray(pub)
