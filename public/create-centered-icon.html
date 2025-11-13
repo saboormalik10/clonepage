@@ -86,8 +86,8 @@
                 </li>
                 <li><strong>Export as PNG:</strong>
                     <ul>
-                        <li>Save as <code>logo.png</code></li>
-                        <li>Replace the existing file in <code>public/logo.png</code></li>
+                        <li>Save as <code>logo.jpeg</code></li>
+                        <li>Replace the existing file in <code>public/logo.jpeg</code></li>
                     </ul>
                 </li>
                 <li><strong>Clear cache and re-add to home screen:</strong>
@@ -103,7 +103,7 @@
         <div class="preview-area">
             <div>
                 <p>Current logo preview (180x180 for iOS):</p>
-                <img src="/logo.png" alt="Current Logo" class="preview-icon" id="currentLogo">
+                <img src="/logo.jpeg" alt="Current Logo" class="preview-icon" id="currentLogo">
             </div>
         </div>
 
@@ -127,7 +127,7 @@
         const img = document.getElementById('currentLogo');
         img.onerror = function() {
             this.style.display = 'none';
-            this.parentElement.innerHTML = '<p style="color: #999;">Logo not found. Please check that logo.png exists in the public folder.</p>';
+            this.parentElement.innerHTML = '<p style="color: #999;">Logo not found. Please check that logo.jpeg exists in the public folder.</p>';
         };
     </script>
 </body>

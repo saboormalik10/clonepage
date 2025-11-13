@@ -46,5 +46,5 @@ For proper centering on home screens, the icon image needs to be properly format
 4. The icon should now appear centered
 
 ### Note:
-If the logo still doesn't appear centered, you may need to recreate the `logo.png` file with proper padding using an image editor.
+If the logo still doesn't appear centered, you may need to recreate the `logo.jpeg` file with proper padding using an image editor.
 

@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/logo.png', sizes: '192x192', type: 'image/png' },
-      { url: '/logo.png', sizes: '512x512', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '192x192', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/logo.png', sizes: '180x180', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '180x180', type: 'image/png' },
     ],
   },
   manifest: '/manifest.json',

@@ -81,7 +81,7 @@ export default function Header() {
       <div className="flex justify-between w-full lg:w-full lg:mx-auto xl:p-[2] 2xl:w-[1400px]">
         <div className="flex items-center gap-3 p-3 -ml-2 xl:-ml-6">
           <img
-            src="/logo.png"
+            src="/logo.jpeg"
             alt="Logo"
             className="w-16 h-16 object-contain ml-5"
           />
