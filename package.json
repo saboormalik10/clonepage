@@ -25,7 +25,11 @@
     "setup:schema": "node scripts/setup-supabase-schema.js",
     "setup:schema:auto": "node scripts/setup-schema-auto.js",
     "admin:create-user": "node scripts/create-admin-user.js",
-    "admin:fix-profiles": "node scripts/fix-missing-profiles.js"
+    "admin:fix-profiles": "node scripts/fix-missing-profiles.js",
+    "admin:update-password": "node scripts/update-admin-password.js",
+    "admin:make-admin": "node scripts/make-user-admin.js",
+    "clone:tables": "node scripts/clone-supabase-tables.js",
+    "clone:generate-schemas": "node scripts/generate-table-schemas.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
