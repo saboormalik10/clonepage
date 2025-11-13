@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Centered PWA Icon</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        .preview-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            background: white;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preview-icon {
+            max-width: 180px;
+            max-height: 180px;
+            border: 1px solid #ddd;
+        }
+        .note {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .note strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Create Centered PWA Icon</h1>
+        
+        <div class="instructions">
+            <h2>Instructions:</h2>
+            <ol>
+                <li><strong>Open your image editor</strong> (Photoshop, GIMP, Figma, Canva, or any image editor)</li>
+                <li><strong>Create a new square canvas:</strong>
+                    <ul>
+                        <li>Size: 512x512 pixels (or 1024x1024 for high quality)</li>
+                        <li>Background: White (#FFFFFF) or transparent</li>
+                    </ul>
+                </li>
+                <li><strong>Add your logo:</strong>
+                    <ul>
+                        <li>Place your logo in the center</li>
+                        <li>Leave approximately <strong>10-15% padding</strong> on all sides</li>
+                        <li>For a 512x512 canvas: Logo should be ~360x360 pixels, with ~76px padding</li>
+                    </ul>
+                </li>
+                <li><strong>Export as PNG:</strong>
+                    <ul>
+                        <li>Save as <code>logo.png</code></li>
+                        <li>Replace the existing file in <code>public/logo.png</code></li>
+                    </ul>
+                </li>
+                <li><strong>Clear cache and re-add to home screen:</strong>
+                    <ul>
+                        <li>Clear browser cache</li>
+                        <li>Remove the app from home screen (if already added)</li>
+                        <li>Re-add to home screen</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="preview-area">
+            <div>
+                <p>Current logo preview (180x180 for iOS):</p>
+                <img src="/logo.png" alt="Current Logo" class="preview-icon" id="currentLogo">
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>💡 Tip:</strong> The logo should NOT fill the entire square. Leave padding around it so iOS and Android can properly center it on the home screen. Think of it like a picture frame - the logo is the picture, and you need space (padding) around it.
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+            <h3>Quick Reference Sizes:</h3>
+            <ul>
+                <li><strong>iOS:</strong> 180x180 pixels (apple-touch-icon)</li>
+                <li><strong>Android Small:</strong> 192x192 pixels</li>
+                <li><strong>Android Large:</strong> 512x512 pixels</li>
+                <li><strong>Recommended Canvas:</strong> 512x512 or 1024x1024 (can be scaled down)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Check if logo loads
+        const img = document.getElementById('currentLogo');
+        img.onerror = function() {
+            this.style.display = 'none';
+            this.parentElement.innerHTML = '<p style="color: #999;">Logo not found. Please check that logo.png exists in the public folder.</p>';
+        };
+    </script>
+</body>
+</html>
+
