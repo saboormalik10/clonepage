@@ -41,6 +41,7 @@ export default function GlobalPricesPage() {
 
   useEffect(() => {
     fetchAdjustments()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const getAuthToken = async () => {

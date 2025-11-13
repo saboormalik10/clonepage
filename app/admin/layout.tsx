@@ -87,6 +87,7 @@ export default function AdminLayout({
       mounted = false
       subscription.unsubscribe()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, router])
 
   const handleLogout = async () => {

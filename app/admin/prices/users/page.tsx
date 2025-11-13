@@ -51,6 +51,7 @@ export default function UserPricesPage() {
 
   useEffect(() => {
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const getAuthToken = async () => {
