@@ -14,7 +14,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
   const queries = [
     adminClient
       .from('global_price_adjustments')
-      .select('adjustment_percentage, min_price, max_price')
+      .select('adjustment_percentage, min_price, max_price, exact_amount')
       .eq('table_name', tableName)
       .single()
   ]
@@ -23,7 +23,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
     queries.push(
       adminClient
         .from('user_price_adjustments')
-        .select('adjustment_percentage, min_price, max_price')
+        .select('adjustment_percentage, min_price, max_price, exact_amount')
         .eq('user_id', userId)
         .eq('table_name', tableName)
         .single()
@@ -47,10 +47,10 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
     }
   }
 
-  const globalAdj = globalResult.data || { adjustment_percentage: 0, min_price: null, max_price: null }
-  const userAdj = userResult?.data || { adjustment_percentage: 0, min_price: null, max_price: null }
+  const globalAdj = globalResult.data || { adjustment_percentage: 0, min_price: null, max_price: null, exact_amount: null }
+  const userAdj = userResult?.data || { adjustment_percentage: 0, min_price: null, max_price: null, exact_amount: null }
 
-  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): Global ${globalAdj.adjustment_percentage}%, User ${userAdj.adjustment_percentage}%`)
+  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): Global ${globalAdj.exact_amount ? `$${globalAdj.exact_amount}` : `${globalAdj.adjustment_percentage}%`}, User ${userAdj.exact_amount ? `$${userAdj.exact_amount}` : `${userAdj.adjustment_percentage}%`}`)
 
   return {
     global: globalAdj,
@@ -60,12 +60,13 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
 
 /**
  * Apply price adjustments to a value with price range support
+ * If exact_amount is set, it replaces the price instead of applying percentage
  */
 export function applyPriceAdjustment(
   basePrice: number, 
   adjustments: { 
-    global: { adjustment_percentage: number; min_price: number | null; max_price: number | null } | number;
-    user: { adjustment_percentage: number; min_price: number | null; max_price: number | null } | number;
+    global: { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | number;
+    user: { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | number;
   }
 ): number {
   let adjustedPrice = basePrice;
@@ -77,10 +78,18 @@ export function applyPriceAdjustment(
       (adjustments.global.min_price === null || basePrice >= adjustments.global.min_price) &&
       (adjustments.global.max_price === null || basePrice <= adjustments.global.max_price);
     
-    if (withinRange && adjustments.global.adjustment_percentage !== 0) {
-      console.log(`💵 Applying global adjustment ${adjustments.global.adjustment_percentage}% to price $${basePrice} (within range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
-      adjustedPrice = adjustedPrice * (1 + adjustments.global.adjustment_percentage / 100);
-    } else if (!withinRange && adjustments.global.adjustment_percentage !== 0) {
+    if (withinRange) {
+      // If exact_amount is set, replace the price
+      if (adjustments.global.exact_amount !== null && adjustments.global.exact_amount !== undefined) {
+        console.log(`💵 Replacing price $${basePrice} with exact amount $${adjustments.global.exact_amount} (global)`)
+        adjustedPrice = adjustments.global.exact_amount;
+      } 
+      // Otherwise apply percentage adjustment
+      else if (adjustments.global.adjustment_percentage !== 0) {
+        console.log(`💵 Applying global adjustment ${adjustments.global.adjustment_percentage}% to price $${basePrice} (within range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
+        adjustedPrice = adjustedPrice * (1 + adjustments.global.adjustment_percentage / 100);
+      }
+    } else if (!withinRange && (adjustments.global.adjustment_percentage !== 0 || (adjustments.global.exact_amount !== null && adjustments.global.exact_amount !== undefined))) {
       console.log(`⏭️ Skipping global adjustment for price $${basePrice} (outside range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
     }
   } else {
@@ -92,14 +101,22 @@ export function applyPriceAdjustment(
   if (typeof adjustments.user === 'object') {
     // Check if price is within range
     const withinRange = 
-      (adjustments.user.min_price === null || basePrice >= adjustments.user.min_price) &&
-      (adjustments.user.max_price === null || basePrice <= adjustments.user.max_price);
+      (adjustments.user.min_price === null || adjustedPrice >= adjustments.user.min_price) &&
+      (adjustments.user.max_price === null || adjustedPrice <= adjustments.user.max_price);
     
-    if (withinRange && adjustments.user.adjustment_percentage !== 0) {
-      console.log(`💵 Applying user adjustment ${adjustments.user.adjustment_percentage}% to price $${basePrice} (within range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
-      adjustedPrice = adjustedPrice * (1 + adjustments.user.adjustment_percentage / 100);
-    } else if (!withinRange && adjustments.user.adjustment_percentage !== 0) {
-      console.log(`⏭️ Skipping user adjustment for price $${basePrice} (outside range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
+    if (withinRange) {
+      // If exact_amount is set, replace the price
+      if (adjustments.user.exact_amount !== null && adjustments.user.exact_amount !== undefined) {
+        console.log(`💵 Replacing price $${adjustedPrice} with exact amount $${adjustments.user.exact_amount} (user)`)
+        adjustedPrice = adjustments.user.exact_amount;
+      } 
+      // Otherwise apply percentage adjustment
+      else if (adjustments.user.adjustment_percentage !== 0) {
+        console.log(`💵 Applying user adjustment ${adjustments.user.adjustment_percentage}% to price $${adjustedPrice} (within range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
+        adjustedPrice = adjustedPrice * (1 + adjustments.user.adjustment_percentage / 100);
+      }
+    } else if (!withinRange && (adjustments.user.adjustment_percentage !== 0 || (adjustments.user.exact_amount !== null && adjustments.user.exact_amount !== undefined))) {
+      console.log(`⏭️ Skipping user adjustment for price $${adjustedPrice} (outside range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
     }
   } else {
     // Legacy support for number type

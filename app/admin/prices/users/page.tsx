@@ -26,6 +26,7 @@ interface Adjustment {
   user_id: string
   table_name: string
   adjustment_percentage: number
+  exact_amount?: number | null
   min_price?: number | null
   max_price?: number | null
   created_at: string
@@ -37,10 +38,12 @@ export default function UserPricesPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [adjustmentType, setAdjustmentType] = useState<'percentage' | 'exact'>('percentage')
   const [formData, setFormData] = useState({
     user_id: '',
     table_name: 'publications',
     adjustment_percentage: '',
+    exact_amount: '',
     min_price: '',
     max_price: '',
   })
@@ -116,7 +119,8 @@ export default function UserPricesPage() {
         body: JSON.stringify({
           user_id: formData.user_id,
           table_name: formData.table_name,
-          adjustment_percentage: parseFloat(formData.adjustment_percentage),
+          adjustment_percentage: adjustmentType === 'percentage' ? parseFloat(formData.adjustment_percentage) : undefined,
+          exact_amount: adjustmentType === 'exact' ? parseFloat(formData.exact_amount) : undefined,
           min_price: formData.min_price ? parseFloat(formData.min_price) : null,
           max_price: formData.max_price ? parseFloat(formData.max_price) : null
         })
@@ -130,8 +134,12 @@ export default function UserPricesPage() {
 
       const userName = users.find(u => u.id === formData.user_id)?.email || 'User'
       const tableLabel = TABLES.find(t => t.value === formData.table_name)?.label || formData.table_name
-      setSuccess(`Successfully applied ${formData.adjustment_percentage}% adjustment to ${tableLabel} for ${userName}`)
-      setFormData({ user_id: '', table_name: 'publications', adjustment_percentage: '', min_price: '', max_price: '' })
+      const adjustmentText = adjustmentType === 'exact' 
+        ? `$${formData.exact_amount}` 
+        : `${formData.adjustment_percentage}%`
+      setSuccess(`Successfully applied ${adjustmentText} adjustment to ${tableLabel} for ${userName}`)
+      setFormData({ user_id: '', table_name: 'publications', adjustment_percentage: '', exact_amount: '', min_price: '', max_price: '' })
+      setAdjustmentType('percentage')
       setShowModal(false)
       fetchData()
     } catch (err: any) {
@@ -215,7 +223,10 @@ export default function UserPricesPage() {
                   <p className="mt-1 text-sm text-gray-500">
                     {TABLES.find(t => t.value === adjustment.table_name)?.label || adjustment.table_name}: 
                     <span className="ml-2 font-medium">
-                      {adjustment.adjustment_percentage > 0 ? '+' : ''}{adjustment.adjustment_percentage}%
+                      {adjustment.exact_amount !== null && adjustment.exact_amount !== undefined
+                        ? `$${adjustment.exact_amount} (exact amount)`
+                        : `${adjustment.adjustment_percentage > 0 ? '+' : ''}${adjustment.adjustment_percentage}%`
+                      }
                     </span>
                     {(adjustment.min_price || adjustment.max_price) && (
                       <span className="ml-2 text-xs text-gray-400">
@@ -291,30 +302,86 @@ export default function UserPricesPage() {
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="adjustment_percentage" className="block text-sm font-medium text-gray-700">
-                        Adjustment Percentage
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Adjustment Type
                       </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <input
-                          type="number"
-                          id="adjustment_percentage"
-                          required
-                          step="0.01"
-                          min="-100"
-                          max="1000"
-                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-8 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          placeholder="e.g., 10 for +10%, -5 for -5%"
-                          value={formData.adjustment_percentage}
-                          onChange={(e) => setFormData({ ...formData, adjustment_percentage: e.target.value })}
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">%</span>
-                        </div>
+                      <div className="flex space-x-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="adjustmentType"
+                            value="percentage"
+                            checked={adjustmentType === 'percentage'}
+                            onChange={(e) => setAdjustmentType(e.target.value as 'percentage' | 'exact')}
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-gray-700">Percentage</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="adjustmentType"
+                            value="exact"
+                            checked={adjustmentType === 'exact'}
+                            onChange={(e) => setAdjustmentType(e.target.value as 'percentage' | 'exact')}
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-gray-700">Exact Amount ($)</span>
+                        </label>
                       </div>
-                      <p className="mt-2 text-sm text-gray-500">
-                        This adjustment will be applied on top of global adjustments (if any)
-                      </p>
                     </div>
+                    {adjustmentType === 'percentage' ? (
+                      <div>
+                        <label htmlFor="adjustment_percentage" className="block text-sm font-medium text-gray-700">
+                          Adjustment Percentage
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <input
+                            type="number"
+                            id="adjustment_percentage"
+                            required={adjustmentType === 'percentage'}
+                            step="0.01"
+                            min="-100"
+                            max="1000"
+                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-8 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            placeholder="e.g., 10 for +10%, -5 for -5%"
+                            value={formData.adjustment_percentage}
+                            onChange={(e) => setFormData({ ...formData, adjustment_percentage: e.target.value })}
+                          />
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">%</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm text-gray-500">
+                          This adjustment will be applied on top of global adjustments (if any)
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <label htmlFor="exact_amount" className="block text-sm font-medium text-gray-700">
+                          Exact Amount ($)
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 text-sm">$</span>
+                          </div>
+                          <input
+                            type="number"
+                            id="exact_amount"
+                            required={adjustmentType === 'exact'}
+                            step="0.01"
+                            min="0"
+                            className="block w-full pl-7 pr-3 border border-gray-300 rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="e.g., 1000"
+                            value={formData.exact_amount}
+                            onChange={(e) => setFormData({ ...formData, exact_amount: e.target.value })}
+                          />
+                        </div>
+                        <p className="mt-2 text-sm text-gray-500">
+                          This will replace the price with the exact amount instead of applying a percentage
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Price Range (Optional)

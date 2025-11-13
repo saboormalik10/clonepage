@@ -530,8 +530,8 @@ export default function PublicationsTab() {
   return (
     <div className="opacity-100">
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
-        <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px]">
-          <div className="sticky space-y-2 top-5 max-h-[calc(100vh-2.5rem)] overflow-y-auto overscroll-contain">
+        <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px] filter-sidebar-container">
+          <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-sm">Publication name</p>
               <input
@@ -543,6 +543,15 @@ export default function PublicationsTab() {
               />
             </div>
 
+            <style dangerouslySetInnerHTML={{ __html: `
+              .filter-sidebar-container {
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+              }
+              .filter-sidebar-container::-webkit-scrollbar {
+                display: none;
+              }
+            ` }} />
             <div className="space-y-1">
               <style dangerouslySetInnerHTML={{ __html: `
                 .dual-range-slider input[type="range"]::-webkit-slider-thumb {

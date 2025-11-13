@@ -122,15 +122,24 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { user_id, table_name, adjustment_percentage, min_price, max_price } = body
+    const { user_id, table_name, adjustment_percentage, exact_amount, min_price, max_price } = body
 
-    if (!user_id || !table_name || adjustment_percentage === undefined) {
-      return NextResponse.json({ error: 'User ID, table name and adjustment percentage are required' }, { status: 400 })
+    if (!user_id || !table_name || (adjustment_percentage === undefined && exact_amount === undefined)) {
+      return NextResponse.json({ error: 'User ID, table name and either adjustment percentage or exact amount is required' }, { status: 400 })
     }
 
     if (!TABLES.includes(table_name)) {
       return NextResponse.json({ error: 'Invalid table name' }, { status: 400 })
     }
+
+    // If exact_amount is provided, set adjustment_percentage to 0 and use exact_amount
+    // Otherwise, use adjustment_percentage and set exact_amount to null
+    const finalAdjustmentPercentage = exact_amount !== undefined && exact_amount !== null && exact_amount !== '' 
+      ? 0 
+      : parseFloat(adjustment_percentage) || 0
+    const finalExactAmount = exact_amount !== undefined && exact_amount !== null && exact_amount !== '' 
+      ? parseFloat(exact_amount) 
+      : null
 
     const adminClient = getAdminClient()
 
@@ -141,7 +150,8 @@ export async function POST(request: Request) {
         .upsert({
           user_id,
           table_name,
-          adjustment_percentage: parseFloat(adjustment_percentage),
+          adjustment_percentage: finalAdjustmentPercentage,
+          exact_amount: finalExactAmount,
           min_price: min_price ? parseFloat(min_price) : null,
           max_price: max_price ? parseFloat(max_price) : null,
           updated_at: new Date().toISOString()
