@@ -531,7 +531,7 @@ export default function PublicationsTab() {
     <div className="opacity-100">
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
         <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px]">
-          <div className="sticky space-y-2 top-5">
+          <div className="sticky space-y-2 top-5 max-h-[calc(100vh-2.5rem)] overflow-y-auto overscroll-contain">
             <div className="space-y-1">
               <p className="text-sm">Publication name</p>
               <input
