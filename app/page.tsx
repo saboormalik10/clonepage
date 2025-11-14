@@ -6,6 +6,7 @@ import Header from '@/components/Header'
 import PricingTabs from '@/components/PricingTabs'
 import BroadcastMessagePopup from '@/components/BroadcastMessagePopup'
 import { createClient } from '@/lib/supabase-client'
+import { refreshSession, hasValidSession } from '@/lib/session-refresh'
 
 export default function Home() {
   const router = useRouter()
@@ -46,6 +47,65 @@ export default function Home() {
 
     checkAuth()
   }, [router, supabase])
+
+  // Handle visibility change - refresh session when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      // Only refresh when tab becomes visible (not when it becomes hidden)
+      if (document.visibilityState === 'visible') {
+        console.log('👁️ [Page] Tab became visible, checking session...')
+        
+        // Check if we have a valid session
+        const hasSession = await hasValidSession()
+        
+        if (!hasSession) {
+          console.warn('⚠️ [Page] No valid session when tab became visible, redirecting to login')
+          router.push('/login')
+          return
+        }
+        
+        // Refresh session to ensure it's up to date
+        const refreshed = await refreshSession()
+        
+        if (!refreshed) {
+          console.warn('⚠️ [Page] Failed to refresh session when tab became visible')
+          // Don't redirect immediately - let the auth state change handler deal with it
+        } else {
+          console.log('✅ [Page] Session refreshed after tab became visible')
+        }
+      }
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Also listen for focus events as a backup
+    const handleFocus = async () => {
+      console.log('👁️ [Page] Window focused, checking session...')
+      // Don't redirect immediately on timeout - try to refresh first
+      const refreshed = await refreshSession()
+      
+      if (!refreshed) {
+        // Only check and redirect if refresh completely failed (not just timeout)
+        const hasSession = await hasValidSession()
+        
+        if (!hasSession) {
+          console.warn('⚠️ [Page] No valid session when window focused, redirecting to login')
+          router.push('/login')
+          return
+        } else {
+          console.log('✅ [Page] Session exists, continuing...')
+        }
+      }
+    }
+    
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [router])
 
   if (loading) {
     return (

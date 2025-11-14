@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
+import { clearSessionCache } from '@/lib/authenticated-fetch'
 import { useEffect, useState, useMemo } from 'react'
 
 export default function Header() {
@@ -10,6 +11,7 @@ export default function Header() {
   const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<any>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in and if they are admin
@@ -53,27 +55,57 @@ export default function Header() {
     return () => subscription.unsubscribe()
   }, [supabase])
 
-  const handleLogout = async () => {
-    try {
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut()
-      
-      if (error) {
-        console.error('Error logging out:', error)
-        // Still redirect even if there's an error
-      }
-      
-      // Clear local user state
-      setUser(null)
-      
-      // Redirect to login page
-      router.push('/login')
-      router.refresh() // Force a refresh to clear any cached data
-    } catch (error) {
-      console.error('Error logging out:', error)
-      // Still redirect on error
-      router.push('/login')
+  const handleLogout = async (e?: React.MouseEvent) => {
+    // Prevent double-clicks and event bubbling
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
     }
+    
+    // Prevent multiple simultaneous logout attempts
+    if (isLoggingOut) {
+      return
+    }
+    
+    setIsLoggingOut(true)
+    
+    // Clear session cache immediately
+    clearSessionCache()
+    
+    // Clear localStorage manually (in case signOut hangs)
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      let projectRef = 'default'
+      try {
+        const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+        if (urlMatch && urlMatch[1]) {
+          projectRef = urlMatch[1]
+        } else {
+          const parts = supabaseUrl.split('//')
+          if (parts[1]) {
+            projectRef = parts[1].split('.')[0]
+          }
+        }
+      } catch (e) {
+        // Use default
+      }
+      const storageKey = `sb-${projectRef}-auth-token`
+      localStorage.removeItem(storageKey)
+    } catch (storageError) {
+      // Ignore storage errors
+    }
+    
+    // Clear local user state immediately
+    setUser(null)
+    setIsAdmin(false)
+    
+    // Redirect to login page IMMEDIATELY (don't wait for signOut)
+    window.location.href = '/login'
+    
+    // Sign out from Supabase in background (don't wait for it)
+    supabase.auth.signOut().catch(() => {
+      // Ignore errors - we're already logged out locally
+    })
   }
 
   return (
@@ -104,9 +136,10 @@ export default function Header() {
             )}
             <button 
               onClick={handleLogout}
-              className="text-sm font-body text-primary ml-2 uppercase hover:opacity-50"
+              disabled={isLoggingOut}
+              className="text-sm font-body text-primary ml-2 uppercase hover:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Log out
+              {isLoggingOut ? 'Logging out...' : 'Log out'}
             </button>
           </div>
         )}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { createClient } from '@/lib/supabase-client'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
 import AddListicleForm from './AddListicleForm'
@@ -38,6 +39,7 @@ export default function ListiclesTab() {
 
   const userId = useUserId()
   const isAdmin = useIsAdmin()
+  const { refreshTrigger } = useVisibilityChange()
   const supabase = createClient()
 
   // Refetch listicles data (reusable function)
@@ -94,10 +96,10 @@ export default function ListiclesTab() {
     }
   }, [])
 
-  // Fetch listicles data from API on mount
+  // Fetch listicles data from API on mount and when tab becomes visible
   useEffect(() => {
     fetchData()
-  }, []) // Only run on mount
+  }, [fetchData, refreshTrigger]) // Re-fetch when tab becomes visible
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession()

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { createClient } from '@/lib/supabase-client'
 import AddPublicationForm from './AddPublicationForm'
 
@@ -136,6 +137,7 @@ export default function PublicationsTab() {
 
   // Get user ID for user-specific pricing
   const userId = useUserId()
+  const { refreshTrigger } = useVisibilityChange()
 
   // Refetch publications data (reusable function)
   const fetchPublications = useCallback(async () => {
@@ -294,10 +296,10 @@ export default function PublicationsTab() {
     }
   }, [searchTerm, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, sortBy])
 
-  // Fetch publications data from API on mount
+  // Fetch publications data from API on mount and when tab becomes visible
   useEffect(() => {
     fetchPublications()
-  }, []) // Only run on mount
+  }, [fetchPublications, refreshTrigger]) // Re-fetch when tab becomes visible
 
 
   const getAuthToken = async () => {

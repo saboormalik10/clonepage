@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
+import { refreshSession, hasValidSession } from '@/lib/session-refresh'
+import { clearSessionCache } from '@/lib/authenticated-fetch'
 import Link from 'next/link'
 
 export default function AdminLayout({
@@ -15,6 +17,7 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [viewMode, setViewMode] = useState<'admin' | 'portal'>('admin')
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const supabase = createClient()
   
   // Check if we're on admin routes or main portal
@@ -90,9 +93,111 @@ export default function AdminLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, router])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
+  // Handle visibility change - refresh session when tab becomes visible again
+  useEffect(() => {
+    // Skip for login page
+    if (pathname === '/admin/login') {
+      return
+    }
+
+    const handleVisibilityChange = async () => {
+      // Only refresh when tab becomes visible (not when it becomes hidden)
+      if (document.visibilityState === 'visible') {
+        console.log('👁️ [AdminLayout] Tab became visible, checking session...')
+        
+        // Check if we have a valid session
+        const hasSession = await hasValidSession()
+        
+        if (!hasSession) {
+          console.warn('⚠️ [AdminLayout] No valid session when tab became visible, redirecting to login')
+          router.push('/login')
+          return
+        }
+        
+        // Refresh session to ensure it's up to date
+        const refreshed = await refreshSession()
+        
+        if (!refreshed) {
+          console.warn('⚠️ [AdminLayout] Failed to refresh session when tab became visible')
+          // Don't redirect immediately - let the auth state change handler deal with it
+        } else {
+          console.log('✅ [AdminLayout] Session refreshed after tab became visible')
+        }
+      }
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Also listen for focus events as a backup
+    const handleFocus = async () => {
+      console.log('👁️ [AdminLayout] Window focused, checking session...')
+      const hasSession = await hasValidSession()
+      
+      if (!hasSession) {
+        console.warn('⚠️ [AdminLayout] No valid session when window focused, redirecting to login')
+        router.push('/login')
+        return
+      }
+      
+      await refreshSession()
+    }
+    
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [pathname, router])
+
+  const handleLogout = async (e?: React.MouseEvent) => {
+    // Prevent double-clicks and event bubbling
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    
+    // Prevent multiple simultaneous logout attempts
+    if (isLoggingOut) {
+      return
+    }
+    
+    setIsLoggingOut(true)
+    
+    // Clear session cache immediately
+    clearSessionCache()
+    
+    // Clear localStorage manually (in case signOut hangs)
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      let projectRef = 'default'
+      try {
+        const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+        if (urlMatch && urlMatch[1]) {
+          projectRef = urlMatch[1]
+        } else {
+          const parts = supabaseUrl.split('//')
+          if (parts[1]) {
+            projectRef = parts[1].split('.')[0]
+          }
+        }
+      } catch (e) {
+        // Use default
+      }
+      const storageKey = `sb-${projectRef}-auth-token`
+      localStorage.removeItem(storageKey)
+    } catch (storageError) {
+      // Ignore storage errors
+    }
+    
+    // Redirect to login page IMMEDIATELY (don't wait for signOut)
+    window.location.href = '/login'
+    
+    // Sign out from Supabase in background (don't wait for it)
+    supabase.auth.signOut().catch(() => {
+      // Ignore errors - we're already logged out locally
+    })
   }
 
   const handleViewToggle = (mode: 'admin' | 'portal') => {
@@ -212,9 +317,10 @@ export default function AdminLayout({
               <span className="text-sm text-gray-700">{user?.email}</span>
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                disabled={isLoggingOut}
+                className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Logout
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
               </button>
             </div>
           </div>

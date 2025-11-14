@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
 
 interface DigitalTV {
@@ -28,6 +29,7 @@ export default function DigitalTelevisionTab() {
   const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
 
   const userId = useUserId()
+  const { refreshTrigger } = useVisibilityChange()
 
   useEffect(() => {
     let isMounted = true
@@ -97,7 +99,7 @@ export default function DigitalTelevisionTab() {
     return () => {
       isMounted = false
     }
-  }, []) // Empty dependency array - fetch only once on mount
+  }, [refreshTrigger]) // Re-fetch when tab becomes visible
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase()

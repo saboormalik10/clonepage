@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { createClient } from '@/lib/supabase-client'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
 import AddBestSellerForm from './AddBestSellerForm'
@@ -40,6 +41,7 @@ export default function BestSellersTab() {
 
   const userId = useUserId()
   const isAdmin = useIsAdmin()
+  const { refreshTrigger } = useVisibilityChange()
   const supabase = createClient()
 
   // Refetch best sellers data (reusable function)
@@ -86,10 +88,10 @@ export default function BestSellersTab() {
     }
   }, [])
 
-  // Fetch best sellers data from API on mount
+  // Fetch best sellers data from API on mount and when tab becomes visible
   useEffect(() => {
     fetchData()
-  }, []) // Only run on mount
+  }, [fetchData, refreshTrigger]) // Re-fetch when tab becomes visible
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession()

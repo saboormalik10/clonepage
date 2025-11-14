@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 
 interface Magazine {
   name: string
@@ -19,6 +20,7 @@ export default function PrintTab() {
   const [isLoading, setIsLoading] = useState(true)
 
   const userId = useUserId()
+  const { refreshTrigger } = useVisibilityChange()
 
   useEffect(() => {
     let isMounted = true
@@ -75,7 +77,7 @@ export default function PrintTab() {
     return () => {
       isMounted = false
     }
-  }, []) // Empty dependency array - fetch only once on mount
+  }, [refreshTrigger]) // Re-fetch when tab becomes visible
 
   if (isLoading) {
     return (
