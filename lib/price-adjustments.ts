@@ -163,9 +163,9 @@ export function applyPriceAdjustment(
     if (mostSpecificGlobal) {
       adjustedPrice = applySingleAdjustment(mostSpecificGlobal, adjustedPrice, 'global');
     }
-  } else if (typeof adjustments.global === 'object' && adjustments.global !== null) {
+  } else if (typeof adjustments.global === 'object' && adjustments.global !== null && !Array.isArray(adjustments.global)) {
     // Single global adjustment (legacy support)
-    adjustedPrice = applySingleAdjustment(adjustments.global, adjustedPrice, 'global');
+    adjustedPrice = applySingleAdjustment(adjustments.global as { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }, adjustedPrice, 'global');
   } else if (typeof adjustments.global === 'number') {
     // Legacy support for number type
     adjustedPrice = adjustedPrice * (1 + adjustments.global / 100);
@@ -178,9 +178,9 @@ export function applyPriceAdjustment(
     if (mostSpecificUser) {
       adjustedPrice = applySingleAdjustment(mostSpecificUser, adjustedPrice, 'user');
     }
-  } else if (typeof adjustments.user === 'object' && adjustments.user !== null) {
+  } else if (typeof adjustments.user === 'object' && adjustments.user !== null && !Array.isArray(adjustments.user)) {
     // Single user adjustment (legacy support)
-    adjustedPrice = applySingleAdjustment(adjustments.user, adjustedPrice, 'user');
+    adjustedPrice = applySingleAdjustment(adjustments.user as { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }, adjustedPrice, 'user');
   } else if (typeof adjustments.user === 'number') {
     // Legacy support for number type
     adjustedPrice = adjustedPrice * (1 + adjustments.user / 100);
