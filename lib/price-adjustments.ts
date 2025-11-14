@@ -3,7 +3,7 @@ import { getAdminClient } from './admin-client'
 
 /**
  * Get price adjustments for a user and table
- * Returns both global and user-specific adjustments
+ * Returns both global and user-specific adjustments as arrays
  * Uses admin client to bypass RLS for reliable access
  */
 export async function getPriceAdjustments(userId: string | null, tableName: string) {
@@ -16,7 +16,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
       .from('global_price_adjustments')
       .select('adjustment_percentage, min_price, max_price, exact_amount')
       .eq('table_name', tableName)
-      .single()
+      .order('created_at', { ascending: true })
   ]
 
   if (userId) {
@@ -26,7 +26,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
         .select('adjustment_percentage, min_price, max_price, exact_amount')
         .eq('user_id', userId)
         .eq('table_name', tableName)
-        .single()
+        .order('created_at', { ascending: true })
     )
   }
 
@@ -35,89 +35,95 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
 
   if (globalResult.error && globalResult.error.code !== 'PGRST116') {
     // PGRST116 is "not found" which is fine, but log other errors
-    console.warn(`⚠️ [Price Adjustments] Error fetching global adjustment for ${tableName}:`, globalResult.error.message)
+    console.warn(`⚠️ [Price Adjustments] Error fetching global adjustments for ${tableName}:`, globalResult.error.message)
   }
 
   if (userResult?.error) {
     if (userResult.error.code === 'PGRST116') {
-      // Not found is fine - user just doesn't have a custom adjustment
-      console.log(`ℹ️ [Price Adjustments] No user-specific adjustment found for user ${userId} on ${tableName}`)
+      // Not found is fine - user just doesn't have custom adjustments
+      console.log(`ℹ️ [Price Adjustments] No user-specific adjustments found for user ${userId} on ${tableName}`)
     } else {
-      console.warn(`⚠️ [Price Adjustments] Error fetching user adjustment for ${tableName} (user: ${userId}):`, userResult.error.message)
+      console.warn(`⚠️ [Price Adjustments] Error fetching user adjustments for ${tableName} (user: ${userId}):`, userResult.error.message)
     }
   }
 
-  const globalAdj = globalResult.data || { adjustment_percentage: 0, min_price: null, max_price: null, exact_amount: null }
-  const userAdj = userResult?.data || { adjustment_percentage: 0, min_price: null, max_price: null, exact_amount: null }
+  const globalAdjs = globalResult.data || []
+  const userAdjs = userResult?.data || []
 
-  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): Global ${globalAdj.exact_amount ? `$${globalAdj.exact_amount}` : `${globalAdj.adjustment_percentage}%`}, User ${userAdj.exact_amount ? `$${userAdj.exact_amount}` : `${userAdj.adjustment_percentage}%`}`)
+  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): ${globalAdjs.length} global, ${userAdjs.length} user adjustments`)
 
   return {
-    global: globalAdj,
-    user: userAdj
+    global: globalAdjs,
+    user: userAdjs
   }
 }
 
 /**
  * Apply price adjustments to a value with price range support
+ * Handles multiple adjustments applied sequentially
  * If exact_amount is set, it replaces the price instead of applying percentage
  */
 export function applyPriceAdjustment(
   basePrice: number, 
   adjustments: { 
-    global: { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | number;
-    user: { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | number;
+    global: Array<{ adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }> | { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | number;
+    user: Array<{ adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }> | { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | number;
   }
 ): number {
   let adjustedPrice = basePrice;
   
-  // Handle global adjustment
-  if (typeof adjustments.global === 'object') {
+  // Helper function to apply a single adjustment
+  const applySingleAdjustment = (
+    adj: { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null },
+    currentPrice: number,
+    type: 'global' | 'user'
+  ): number => {
     // Check if price is within range
     const withinRange = 
-      (adjustments.global.min_price === null || basePrice >= adjustments.global.min_price) &&
-      (adjustments.global.max_price === null || basePrice <= adjustments.global.max_price);
+      (adj.min_price === null || currentPrice >= adj.min_price) &&
+      (adj.max_price === null || currentPrice <= adj.max_price);
     
     if (withinRange) {
       // If exact_amount is set, replace the price
-      if (adjustments.global.exact_amount !== null && adjustments.global.exact_amount !== undefined) {
-        console.log(`💵 Replacing price $${basePrice} with exact amount $${adjustments.global.exact_amount} (global)`)
-        adjustedPrice = adjustments.global.exact_amount;
+      if (adj.exact_amount !== null && adj.exact_amount !== undefined) {
+        console.log(`💵 Replacing price $${currentPrice} with exact amount $${adj.exact_amount} (${type})`)
+        return adj.exact_amount;
       } 
       // Otherwise apply percentage adjustment
-      else if (adjustments.global.adjustment_percentage !== 0) {
-        console.log(`💵 Applying global adjustment ${adjustments.global.adjustment_percentage}% to price $${basePrice} (within range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
-        adjustedPrice = adjustedPrice * (1 + adjustments.global.adjustment_percentage / 100);
+      else if (adj.adjustment_percentage !== 0) {
+        console.log(`💵 Applying ${type} adjustment ${adj.adjustment_percentage}% to price $${currentPrice} (within range $${adj.min_price || '0'}-$${adj.max_price || 'unlimited'})`)
+        return currentPrice * (1 + adj.adjustment_percentage / 100);
       }
-    } else if (!withinRange && (adjustments.global.adjustment_percentage !== 0 || (adjustments.global.exact_amount !== null && adjustments.global.exact_amount !== undefined))) {
-      console.log(`⏭️ Skipping global adjustment for price $${basePrice} (outside range $${adjustments.global.min_price}-$${adjustments.global.max_price})`)
+    } else if (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)) {
+      console.log(`⏭️ Skipping ${type} adjustment for price $${currentPrice} (outside range $${adj.min_price || '0'}-$${adj.max_price || 'unlimited'})`)
     }
+    
+    return currentPrice;
+  };
+  
+  // Handle global adjustments (apply all in order)
+  if (Array.isArray(adjustments.global)) {
+    // Multiple global adjustments - apply sequentially
+    for (const globalAdj of adjustments.global) {
+      adjustedPrice = applySingleAdjustment(globalAdj, adjustedPrice, 'global');
+    }
+  } else if (typeof adjustments.global === 'object') {
+    // Single global adjustment (legacy support)
+    adjustedPrice = applySingleAdjustment(adjustments.global, adjustedPrice, 'global');
   } else {
     // Legacy support for number type
     adjustedPrice = adjustedPrice * (1 + adjustments.global / 100);
   }
   
-  // Handle user adjustment
-  if (typeof adjustments.user === 'object') {
-    // Check if price is within range
-    const withinRange = 
-      (adjustments.user.min_price === null || adjustedPrice >= adjustments.user.min_price) &&
-      (adjustments.user.max_price === null || adjustedPrice <= adjustments.user.max_price);
-    
-    if (withinRange) {
-      // If exact_amount is set, replace the price
-      if (adjustments.user.exact_amount !== null && adjustments.user.exact_amount !== undefined) {
-        console.log(`💵 Replacing price $${adjustedPrice} with exact amount $${adjustments.user.exact_amount} (user)`)
-        adjustedPrice = adjustments.user.exact_amount;
-      } 
-      // Otherwise apply percentage adjustment
-      else if (adjustments.user.adjustment_percentage !== 0) {
-        console.log(`💵 Applying user adjustment ${adjustments.user.adjustment_percentage}% to price $${adjustedPrice} (within range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
-        adjustedPrice = adjustedPrice * (1 + adjustments.user.adjustment_percentage / 100);
-      }
-    } else if (!withinRange && (adjustments.user.adjustment_percentage !== 0 || (adjustments.user.exact_amount !== null && adjustments.user.exact_amount !== undefined))) {
-      console.log(`⏭️ Skipping user adjustment for price $${adjustedPrice} (outside range $${adjustments.user.min_price}-$${adjustments.user.max_price})`)
+  // Handle user adjustments (apply all in order)
+  if (Array.isArray(adjustments.user)) {
+    // Multiple user adjustments - apply sequentially
+    for (const userAdj of adjustments.user) {
+      adjustedPrice = applySingleAdjustment(userAdj, adjustedPrice, 'user');
     }
+  } else if (typeof adjustments.user === 'object') {
+    // Single user adjustment (legacy support)
+    adjustedPrice = applySingleAdjustment(adjustments.user, adjustedPrice, 'user');
   } else {
     // Legacy support for number type
     adjustedPrice = adjustedPrice * (1 + adjustments.user / 100);

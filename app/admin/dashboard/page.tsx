@@ -186,6 +186,21 @@ export default function AdminDashboard() {
               <p className="text-sm font-medium text-gray-900">Adjust User Prices</p>
             </div>
           </Link>
+
+          <Link
+            href="/admin/broadcast-messages"
+            className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+          >
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="absolute inset-0" aria-hidden="true" />
+              <p className="text-sm font-medium text-gray-900">Broadcast Messages</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

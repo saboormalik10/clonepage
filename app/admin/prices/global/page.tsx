@@ -120,12 +120,12 @@ export default function GlobalPricesPage() {
     }
   }
 
-  const handleRemoveAdjustment = async (tableName: string) => {
-    if (!confirm(`Are you sure you want to remove the adjustment for ${TABLES.find(t => t.value === tableName)?.label}? This will revert prices to their original values.`)) return
+  const handleRemoveAdjustment = async (adjustmentId: string) => {
+    if (!confirm('Are you sure you want to remove this adjustment?')) return
 
     try {
       const token = await getAuthToken()
-      const response = await fetch(`/api/admin/prices/global?table_name=${tableName}`, {
+      const response = await fetch(`/api/admin/prices/global?id=${adjustmentId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -159,7 +159,7 @@ export default function GlobalPricesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Global Price Management</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Adjust prices globally across all tables by percentage
+            Adjust prices globally across all tables. You can add multiple adjustments per table.
           </p>
         </div>
         <button
@@ -185,40 +185,47 @@ export default function GlobalPricesPage() {
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {TABLES.map((table) => {
-            const adjustment = adjustments.find(a => a.table_name === table.value)
+            const tableAdjustments = adjustments.filter(a => a.table_name === table.value)
             return (
               <li key={table.value}>
-                <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
-                  <div>
+                <div className="px-4 py-4 sm:px-6">
+                  <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-gray-900">{table.label}</p>
-                    {adjustment ? (
-                      <div>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Current adjustment: {adjustment.exact_amount !== null && adjustment.exact_amount !== undefined
-                            ? `$${adjustment.exact_amount} (exact amount)`
-                            : `${adjustment.adjustment_percentage > 0 ? '+' : ''}${adjustment.adjustment_percentage}%`
-                          }
-                          <span className="ml-2 text-xs text-gray-400">
-                            (Updated: {new Date(adjustment.updated_at).toLocaleDateString()})
-                          </span>
-                        </p>
-                        {(adjustment.min_price || adjustment.max_price) && (
-                          <p className="mt-1 text-xs text-gray-400">
-                            Price range: ${adjustment.min_price || '0'} - ${adjustment.max_price || 'unlimited'}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-500">No adjustment applied</p>
-                    )}
+                    <span className="text-xs text-gray-500">
+                      {tableAdjustments.length} adjustment{tableAdjustments.length !== 1 ? 's' : ''}
+                    </span>
                   </div>
-                  {adjustment && (
-                    <button
-                      onClick={() => handleRemoveAdjustment(table.value)}
-                      className="text-red-600 hover:text-red-900 text-sm font-medium"
-                    >
-                      Remove
-                    </button>
+                  {tableAdjustments.length > 0 ? (
+                    <div className="space-y-2">
+                      {tableAdjustments.map((adjustment) => (
+                        <div key={adjustment.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-700">
+                              {adjustment.exact_amount !== null && adjustment.exact_amount !== undefined
+                                ? `$${adjustment.exact_amount} (exact amount)`
+                                : `${adjustment.adjustment_percentage > 0 ? '+' : ''}${adjustment.adjustment_percentage}%`
+                              }
+                              {(adjustment.min_price || adjustment.max_price) && (
+                                <span className="ml-2 text-xs text-gray-500">
+                                  (Range: ${adjustment.min_price || '0'} - ${adjustment.max_price || 'unlimited'})
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Created: {new Date(adjustment.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveAdjustment(adjustment.id)}
+                            className="ml-4 text-red-600 hover:text-red-900 text-sm font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No adjustments applied</p>
                   )}
                 </div>
               </li>

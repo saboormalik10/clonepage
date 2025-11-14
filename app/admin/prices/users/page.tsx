@@ -188,7 +188,7 @@ export default function UserPricesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">User-Specific Price Management</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Adjust prices for specific users by percentage
+            Adjust prices for specific users. You can add multiple adjustments per user and table combination.
           </p>
         </div>
         <button
@@ -213,41 +213,42 @@ export default function UserPricesPage() {
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
-          {adjustments.map((adjustment) => (
-            <li key={adjustment.id}>
-              <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {adjustment.user_profiles?.email || 'Unknown User'}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {TABLES.find(t => t.value === adjustment.table_name)?.label || adjustment.table_name}: 
-                    <span className="ml-2 font-medium">
-                      {adjustment.exact_amount !== null && adjustment.exact_amount !== undefined
-                        ? `$${adjustment.exact_amount} (exact amount)`
-                        : `${adjustment.adjustment_percentage > 0 ? '+' : ''}${adjustment.adjustment_percentage}%`
-                      }
-                    </span>
-                    {(adjustment.min_price || adjustment.max_price) && (
-                      <span className="ml-2 text-xs text-gray-400">
-                        (${adjustment.min_price || '0'} - ${adjustment.max_price || 'unlimited'})
+          {adjustments.length > 0 ? (
+            adjustments.map((adjustment) => (
+              <li key={adjustment.id}>
+                <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {adjustment.user_profiles?.email || 'Unknown User'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {TABLES.find(t => t.value === adjustment.table_name)?.label || adjustment.table_name}: 
+                      <span className="ml-2 font-medium">
+                        {adjustment.exact_amount !== null && adjustment.exact_amount !== undefined
+                          ? `$${adjustment.exact_amount} (exact amount)`
+                          : `${adjustment.adjustment_percentage > 0 ? '+' : ''}${adjustment.adjustment_percentage}%`
+                        }
                       </span>
-                    )}
-                    <span className="ml-2 text-xs text-gray-400">
-                      (Created: {new Date(adjustment.created_at).toLocaleDateString()})
-                    </span>
-                  </p>
+                      {(adjustment.min_price || adjustment.max_price) && (
+                        <span className="ml-2 text-xs text-gray-400">
+                          (Range: ${adjustment.min_price || '0'} - ${adjustment.max_price || 'unlimited'})
+                        </span>
+                      )}
+                      <span className="ml-2 text-xs text-gray-400">
+                        (Created: {new Date(adjustment.created_at).toLocaleDateString()})
+                      </span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveAdjustment(adjustment.id)}
+                    className="ml-4 text-red-600 hover:text-red-900 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleRemoveAdjustment(adjustment.id)}
-                  className="text-red-600 hover:text-red-900 text-sm font-medium"
-                >
-                  Remove
-                </button>
-              </div>
-            </li>
-          ))}
-          {adjustments.length === 0 && (
+              </li>
+            ))
+          ) : (
             <li>
               <div className="px-4 py-8 text-center text-sm text-gray-500">
                 No user-specific adjustments found

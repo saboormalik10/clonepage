@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import PricingTabs from '@/components/PricingTabs'
+import BroadcastMessagePopup from '@/components/BroadcastMessagePopup'
 import { createClient } from '@/lib/supabase-client'
 
 export default function Home() {
@@ -120,6 +121,7 @@ export default function Home() {
         </section>
         <PricingTabs />
       </main>
+      <BroadcastMessagePopup />
     </div>
   )
 }

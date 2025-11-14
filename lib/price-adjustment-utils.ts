@@ -30,22 +30,30 @@ export function isPriceAdjusted(priceStr: string | number, priceAdjustments: any
   
   const { global, user } = priceAdjustments
   
-  // Check global adjustment
+  // Check global adjustments (handle both array and single object)
   let globalApplies = false
   if (global) {
-    const withinGlobalRange = 
-      (global.min_price === null || global.min_price === undefined || price >= global.min_price) &&
-      (global.max_price === null || global.max_price === undefined || price <= global.max_price)
-    globalApplies = withinGlobalRange && global.adjustment_percentage !== 0
+    const globalAdjs = Array.isArray(global) ? global : [global]
+    globalApplies = globalAdjs.some((adj: any) => {
+      if (!adj) return false
+      const withinGlobalRange = 
+        (adj.min_price === null || adj.min_price === undefined || price >= adj.min_price) &&
+        (adj.max_price === null || adj.max_price === undefined || price <= adj.max_price)
+      return withinGlobalRange && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined))
+    })
   }
   
-  // Check user adjustment
+  // Check user adjustments (handle both array and single object)
   let userApplies = false
   if (user) {
-    const withinUserRange = 
-      (user.min_price === null || user.min_price === undefined || price >= user.min_price) &&
-      (user.max_price === null || user.max_price === undefined || price <= user.max_price)
-    userApplies = withinUserRange && user.adjustment_percentage !== 0
+    const userAdjs = Array.isArray(user) ? user : [user]
+    userApplies = userAdjs.some((adj: any) => {
+      if (!adj) return false
+      const withinUserRange = 
+        (adj.min_price === null || adj.min_price === undefined || price >= adj.min_price) &&
+        (adj.max_price === null || adj.max_price === undefined || price <= adj.max_price)
+      return withinUserRange && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined))
+    })
   }
   
   return globalApplies || userApplies
@@ -58,22 +66,44 @@ export function getAdjustmentInfo(priceAdjustments: any): string {
   if (!priceAdjustments) return ''
   
   const { global, user } = priceAdjustments
-  const parts = []
+  const parts: string[] = []
   
-  if (global && global.adjustment_percentage !== 0) {
-    let text = `Global: ${global.adjustment_percentage > 0 ? '+' : ''}${global.adjustment_percentage}%`
-    if (global.min_price || global.max_price) {
-      text += ` ($${global.min_price || '0'}-$${global.max_price || '∞'})`
-    }
-    parts.push(text)
+  // Handle global adjustments (array or single)
+  if (global) {
+    const globalAdjs = Array.isArray(global) ? global : [global]
+    globalAdjs.forEach((adj: any) => {
+      if (adj && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined))) {
+        let text = 'Global: '
+        if (adj.exact_amount !== null && adj.exact_amount !== undefined) {
+          text += `$${adj.exact_amount}`
+        } else {
+          text += `${adj.adjustment_percentage > 0 ? '+' : ''}${adj.adjustment_percentage}%`
+        }
+        if (adj.min_price || adj.max_price) {
+          text += ` ($${adj.min_price || '0'}-$${adj.max_price || '∞'})`
+        }
+        parts.push(text)
+      }
+    })
   }
   
-  if (user && user.adjustment_percentage !== 0) {
-    let text = `User: ${user.adjustment_percentage > 0 ? '+' : ''}${user.adjustment_percentage}%`
-    if (user.min_price || user.max_price) {
-      text += ` ($${user.min_price || '0'}-$${user.max_price || '∞'})`
-    }
-    parts.push(text)
+  // Handle user adjustments (array or single)
+  if (user) {
+    const userAdjs = Array.isArray(user) ? user : [user]
+    userAdjs.forEach((adj: any) => {
+      if (adj && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined))) {
+        let text = 'User: '
+        if (adj.exact_amount !== null && adj.exact_amount !== undefined) {
+          text += `$${adj.exact_amount}`
+        } else {
+          text += `${adj.adjustment_percentage > 0 ? '+' : ''}${adj.adjustment_percentage}%`
+        }
+        if (adj.min_price || adj.max_price) {
+          text += ` ($${adj.min_price || '0'}-$${adj.max_price || '∞'})`
+        }
+        parts.push(text)
+      }
+    })
   }
   
   return parts.join(', ')
@@ -85,5 +115,22 @@ export function getAdjustmentInfo(priceAdjustments: any): string {
 export function hasActiveAdjustments(priceAdjustments: any): boolean {
   if (!priceAdjustments) return false
   const { global, user } = priceAdjustments
-  return (global?.adjustment_percentage !== 0) || (user?.adjustment_percentage !== 0)
+  
+  // Check global adjustments
+  if (global) {
+    const globalAdjs = Array.isArray(global) ? global : [global]
+    if (globalAdjs.some((adj: any) => adj && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)))) {
+      return true
+    }
+  }
+  
+  // Check user adjustments
+  if (user) {
+    const userAdjs = Array.isArray(user) ? user : [user]
+    if (userAdjs.some((adj: any) => adj && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)))) {
+      return true
+    }
+  }
+  
+  return false
 }

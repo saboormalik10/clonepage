@@ -96,11 +96,11 @@ export async function POST(request: Request) {
 
     const adminClient = getAdminClient()
 
-    // Upsert global adjustment (only save in model, don't modify prices directly) with retry
+    // Insert new global adjustment (allows multiple adjustments per table) with retry
     const { data, error } = await retryWithBackoff(
       async () => await adminClient
         .from('global_price_adjustments')
-        .upsert({
+        .insert({
           table_name,
           adjustment_percentage: finalAdjustmentPercentage,
           exact_amount: finalExactAmount,
@@ -108,9 +108,8 @@ export async function POST(request: Request) {
           max_price: max_price ? parseFloat(max_price) : null,
           applied_by: userId,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'table_name'
         })
+        .select()
     )
 
     if (error) throw error
@@ -130,21 +129,26 @@ export async function DELETE(request: Request) {
     }
 
     const { searchParams } = new URL(request.url)
+    const adjustmentId = searchParams.get('id')
     const tableName = searchParams.get('table_name')
 
-    if (!tableName) {
-      return NextResponse.json({ error: 'Table name is required' }, { status: 400 })
+    // Support both ID-based deletion (for specific adjustment) and table_name-based deletion (for all adjustments in a table)
+    if (!adjustmentId && !tableName) {
+      return NextResponse.json({ error: 'Adjustment ID or table name is required' }, { status: 400 })
     }
 
     const adminClient = getAdminClient()
 
-    // Delete the adjustment record (prices will automatically revert when fetched) with retry
-    const { error } = await retryWithBackoff(
-      async () => await adminClient
-        .from('global_price_adjustments')
-        .delete()
-        .eq('table_name', tableName)
-    )
+    // Delete the adjustment record(s) (prices will automatically revert when fetched) with retry
+    let query = adminClient.from('global_price_adjustments').delete()
+    
+    if (adjustmentId) {
+      query = query.eq('id', adjustmentId)
+    } else if (tableName) {
+      query = query.eq('table_name', tableName)
+    }
+
+    const { error } = await retryWithBackoff(async () => await query)
 
     if (error) throw error
 

@@ -143,11 +143,11 @@ export async function POST(request: Request) {
 
     const adminClient = getAdminClient()
 
-    // Upsert user adjustment with retry
+    // Insert new user adjustment (allows multiple adjustments per user/table) with retry
     const { data, error } = await retryWithBackoff(
       async () => await adminClient
         .from('user_price_adjustments')
-        .upsert({
+        .insert({
           user_id,
           table_name,
           adjustment_percentage: finalAdjustmentPercentage,
@@ -155,9 +155,8 @@ export async function POST(request: Request) {
           min_price: min_price ? parseFloat(min_price) : null,
           max_price: max_price ? parseFloat(max_price) : null,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,table_name'
         })
+        .select()
     )
 
     if (error) throw error

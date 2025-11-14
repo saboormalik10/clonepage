@@ -1,7 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { createClient } from '@/lib/supabase-client'
+import AddPublicationForm from './AddPublicationForm'
 
 interface Genre {
   name: string
@@ -84,6 +87,11 @@ export default function PublicationsTab() {
   const [hoveredNicheIcon, setHoveredNicheIcon] = useState<{index: number, niche: string} | null>(null)
   const minRangeRef = useRef<HTMLInputElement>(null)
   const maxRangeRef = useRef<HTMLInputElement>(null)
+  const isAdmin = useIsAdmin()
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const supabase = createClient()
 
   const getPrice = (pub: Publication): number => {
     if (pub.customPrice && pub.customPrice.length > 0) {
@@ -103,6 +111,21 @@ export default function PublicationsTab() {
     return `https://cdn.sanity.io/images/8n90kyzz/production/${cleaned.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}`
   }
 
+  // Get Supabase storage URL from logo reference
+  const getSupabaseLogoUrl = async (ref: string): Promise<string | null> => {
+    try {
+      // Parse reference: image-{hash}-{width}x{height}-{ext}
+      // For Supabase uploads, we need to query storage to find the file
+      // Since we can't reconstruct filename from hash alone, we'll need to list and match
+      // This is not ideal - better would be to store filename mapping
+      // For now, return null and handle in display logic
+      return null
+    } catch (error) {
+      console.error('Error getting Supabase logo URL:', error)
+      return null
+    }
+  }
+
   // Get articlePreview URL (handles both object and null)
   const getArticlePreviewUrl = (articlePreview: Publication['articlePreview']): string | null => {
     if (!articlePreview || !articlePreview.asset) {
@@ -114,185 +137,438 @@ export default function PublicationsTab() {
   // Get user ID for user-specific pricing
   const userId = useUserId()
 
-  // Fetch publications data from API
-  useEffect(() => {
-    let isMounted = true
-    
-    const fetchPublications = async () => {
-      try {
-        setIsLoading(true)
-        const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
-        const response = await authenticatedFetch('/api/publications', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate'
+  // Refetch publications data (reusable function)
+  const fetchPublications = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/publications', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate'
+        }
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('❌ [Publications] API error:', response.status, errorData)
+        if (response.status === 401) {
+          console.error('❌ [Publications] Authentication failed - redirecting to login')
+          window.location.href = '/login'
+          return
+        }
+        throw new Error(`API error: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      // Handle different response formats
+      let publications: Publication[] = []
+      if (Array.isArray(data)) {
+        publications = data as Publication[]
+      } else if (data && typeof data === 'object' && 'result' in data && Array.isArray(data.result)) {
+        publications = data.result as Publication[]
+      } else if (data && typeof data === 'object' && Array.isArray(data.data)) {
+        publications = data.data as Publication[]
+      } else {
+        console.warn('⚠️ [Publications] Unexpected data format:', data)
+        publications = []
+      }
+      
+      console.log(`✅ [Publications] Parsed ${publications.length} publications from API response`)
+      
+      if (publications.length > 0) {
+        // Calculate max price from the fetched data
+        const prices = publications.map((pub: Publication) => {
+          if (pub.customPrice && pub.customPrice.length > 0) {
+            return typeof pub.customPrice[0] === 'string' ? parseFloat(pub.customPrice[0]) : pub.customPrice[0]
           }
+          if (pub.defaultPrice && pub.defaultPrice.length > 0) {
+            return typeof pub.defaultPrice[0] === 'string' ? parseFloat(pub.defaultPrice[0]) : pub.defaultPrice[0]
+          }
+          return 0
+        }).filter(price => price > 0)
+        
+        const calculatedMaxPrice = prices.length > 0 ? Math.max(...prices) : 0
+        console.log(`💰 [Publications] Calculated max price: ${calculatedMaxPrice}`)
+        
+        // Set price range to [0, maxPrice] so all items are visible initially
+        const initialPriceRange: [number, number] = [0, calculatedMaxPrice]
+        
+        // Set the data and price range together
+        setPublicationsData(publications)
+        setPriceRange(initialPriceRange)
+        
+        // Apply filters immediately with the correct price range
+        let filtered = [...publications] as Publication[]
+        
+        // Apply price filter with the calculated range
+        filtered = filtered.filter(pub => {
+          const priceNum = getPrice(pub)
+          return priceNum >= initialPriceRange[0] && priceNum <= initialPriceRange[1]
         })
         
-        if (!isMounted) return
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-          console.error('❌ [Publications] API error:', response.status, errorData)
-          if (response.status === 401) {
-            console.error('❌ [Publications] Authentication failed - redirecting to login')
-            window.location.href = '/login'
-            return
-          }
-          throw new Error(`API error: ${response.status}`)
+        // Apply other filters
+        if (searchTerm) {
+          filtered = filtered.filter(pub =>
+            pub.name && pub.name.toLowerCase().includes(searchTerm)
+          )
         }
         
-        const data = await response.json()
-        
-        if (!isMounted) return
-        
-        // Handle different response formats
-        let publications: Publication[] = []
-        if (Array.isArray(data)) {
-          // Data is already an array
-          publications = data as Publication[]
-        } else if (data && typeof data === 'object' && 'result' in data && Array.isArray(data.result)) {
-          // Data has a result property with array
-          publications = data.result as Publication[]
-        } else if (data && typeof data === 'object' && Array.isArray(data.data)) {
-          // Data has a data property with array
-          publications = data.data as Publication[]
-        } else {
-          console.warn('⚠️ [Publications] Unexpected data format:', data)
-          publications = []
+        if (selectedGenres.length > 0) {
+          filtered = filtered.filter(pub =>
+            selectedGenres.some(genre => 
+              pub.genres?.some(g => g.name.toLowerCase() === genre.toLowerCase()) || false
+            )
+          )
         }
         
-        console.log(`✅ [Publications] Parsed ${publications.length} publications from API response`)
+        if (selectedTypes.length > 0) {
+          filtered = filtered.filter(pub =>
+            selectedTypes.some(type => 
+              pub.name?.toLowerCase().includes(type.toLowerCase()) || false
+            ) || false
+          )
+        }
         
-        if (isMounted && publications.length > 0) {
-          // Calculate max price from the fetched data
-          const prices = publications.map((pub: Publication) => {
-            if (pub.customPrice && pub.customPrice.length > 0) {
-              return typeof pub.customPrice[0] === 'string' ? parseFloat(pub.customPrice[0]) : pub.customPrice[0]
-            }
-            if (pub.defaultPrice && pub.defaultPrice.length > 0) {
-              return typeof pub.defaultPrice[0] === 'string' ? parseFloat(pub.defaultPrice[0]) : pub.defaultPrice[0]
-            }
-            return 0
-          }).filter(price => price > 0)
-          
-          const calculatedMaxPrice = prices.length > 0 ? Math.max(...prices) : 0
-          console.log(`💰 [Publications] Calculated max price: ${calculatedMaxPrice}`)
-          
-          // Set price range to [0, maxPrice] so all items are visible initially
-          const initialPriceRange: [number, number] = [0, calculatedMaxPrice]
-          
-          // Set the data and price range together
-          setPublicationsData(publications)
-          setPriceRange(initialPriceRange)
-          
-          // Apply filters immediately with the correct price range
-          // This ensures data is visible on first load
-          let filtered = [...publications] as Publication[]
-          
-          // Apply price filter with the calculated range
+        if (selectedSponsored) {
+          filtered = filtered.filter(pub =>
+            pub.sponsored?.toLowerCase() === selectedSponsored.toLowerCase()
+          )
+        }
+        
+        if (selectedDofollow) {
+          filtered = filtered.filter(pub =>
+            pub.do_follow?.toLowerCase() === selectedDofollow.toLowerCase()
+          )
+        }
+        
+        if (selectedIndexed) {
+          filtered = filtered.filter(pub =>
+            pub.indexed?.toLowerCase() === selectedIndexed.toLowerCase()
+          )
+        }
+        
+        if (selectedImage) {
+          filtered = filtered.filter(pub =>
+            pub.image?.toLowerCase() === selectedImage.toLowerCase()
+          )
+        }
+        
+        if (selectedNiches.length > 0) {
           filtered = filtered.filter(pub => {
-            const priceNum = getPrice(pub)
-            return priceNum >= initialPriceRange[0] && priceNum <= initialPriceRange[1]
+            const nichesList: string[] = []
+            if (pub.health === true) nichesList.push('Health')
+            if (pub.cbd === true) nichesList.push('CBD')
+            if (pub.crypto === true) nichesList.push('Crypto')
+            if (pub.gambling === true) nichesList.push('Gambling')
+            if (pub.erotic === true) nichesList.push('Erotic')
+            return selectedNiches.some(niche => nichesList.includes(niche))
           })
-          
-          // Apply other filters (they're all empty initially, so no effect)
-          if (searchTerm) {
-            filtered = filtered.filter(pub =>
-              pub.name && pub.name.toLowerCase().includes(searchTerm)
-            )
-          }
-          
-          if (selectedGenres.length > 0) {
-            filtered = filtered.filter(pub =>
-              selectedGenres.some(genre => 
-                pub.genres?.some(g => g.name.toLowerCase() === genre.toLowerCase()) || false
-              )
-            )
-          }
-          
-          if (selectedTypes.length > 0) {
-            filtered = filtered.filter(pub =>
-              selectedTypes.some(type => 
-                pub.name?.toLowerCase().includes(type.toLowerCase()) || false
-              ) || false
-            )
-          }
-          
-          if (selectedSponsored) {
-            filtered = filtered.filter(pub =>
-              pub.sponsored?.toLowerCase() === selectedSponsored.toLowerCase()
-            )
-          }
-          
-          if (selectedDofollow) {
-            filtered = filtered.filter(pub =>
-              pub.do_follow?.toLowerCase() === selectedDofollow.toLowerCase()
-            )
-          }
-          
-          if (selectedIndexed) {
-            filtered = filtered.filter(pub =>
-              pub.indexed?.toLowerCase() === selectedIndexed.toLowerCase()
-            )
-          }
-          
-          if (selectedImage) {
-            filtered = filtered.filter(pub =>
-              pub.image?.toLowerCase() === selectedImage.toLowerCase()
-            )
-          }
-          
-          if (selectedNiches.length > 0) {
-            filtered = filtered.filter(pub => {
-              const nichesList: string[] = []
-              if (pub.health === true) nichesList.push('Health')
-              if (pub.cbd === true) nichesList.push('CBD')
-              if (pub.crypto === true) nichesList.push('Crypto')
-              if (pub.gambling === true) nichesList.push('Gambling')
-              if (pub.erotic === true) nichesList.push('Erotic')
-              return selectedNiches.some(niche => nichesList.includes(niche))
-            })
-          }
-          
-          // Sort
-          if (sortBy === 'Price (Asc)') {
-            filtered.sort((a, b) => getPrice(a) - getPrice(b))
-          } else if (sortBy === 'Price (Desc)') {
-            filtered.sort((a, b) => getPrice(b) - getPrice(a))
-          } else if (sortBy === 'Name (A-Z)') {
-            filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-          } else if (sortBy === 'Name (Z-A)') {
-            filtered.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
-          }
-          
-          // Set filtered data immediately
-          setFilteredData(filtered)
-          console.log(`✅ [Publications] Set ${filtered.length} filtered publications on initial load with price range [0, ${calculatedMaxPrice}]`)
-        } else if (isMounted) {
-          // No publications
-          setPublicationsData([])
-          setFilteredData([])
         }
-      } catch (error) {
-        console.error('Error fetching publications:', error)
-        if (isMounted) {
-          setPublicationsData([])
-          setFilteredData([])
+        
+        // Sort
+        if (sortBy === 'Price (Asc)') {
+          filtered.sort((a, b) => getPrice(a) - getPrice(b))
+        } else if (sortBy === 'Price (Desc)') {
+          filtered.sort((a, b) => getPrice(b) - getPrice(a))
+        } else if (sortBy === 'Name (A-Z)') {
+          filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        } else if (sortBy === 'Name (Z-A)') {
+          filtered.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
         }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        
+        // Set filtered data immediately
+        setFilteredData(filtered)
+        console.log(`✅ [Publications] Set ${filtered.length} filtered publications`)
+      } else {
+        setPublicationsData([])
+        setFilteredData([])
       }
+    } catch (error) {
+      console.error('Error fetching publications:', error)
+      setPublicationsData([])
+      setFilteredData([])
+    } finally {
+      setIsLoading(false)
     }
+  }, [searchTerm, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, sortBy])
 
+  // Fetch publications data from API on mount
+  useEffect(() => {
     fetchPublications()
-    
-    return () => {
-      isMounted = false
+  }, []) // Only run on mount
+
+
+  const getAuthToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token || ''
+  }
+
+  const handleCreateRecord = useCallback(async (formData: any) => {
+    setError('')
+    setSuccess('')
+
+    try {
+      // Generate UUID for _id
+      const generateUUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0
+          const v = c === 'x' ? r : (r & 0x3 | 0x8)
+          return v.toString(16)
+        })
+      }
+
+      // Validate and filter genres - only include genres with non-empty names
+      const validGenres = formData.genres 
+        ? formData.genres.filter((g: any) => g && g.name && g.name.trim() !== '')
+        : []
+      
+      // Validate and filter regions - only include regions with non-empty names
+      const validRegions = formData.regions
+        ? formData.regions.filter((r: any) => r && r.name && r.name.trim() !== '')
+        : []
+
+      // Transform camelCase to snake_case and prepare data for Supabase
+      const transformedData: any = {
+        _id: generateUUID(),
+        name: formData.name?.trim() || null,
+        domain_authority: formData.domain_authority ?? null,
+        domain_rating: formData.domain_rating ?? null,
+        estimated_time: formData.estimated_time?.trim() || null,
+        sponsored: formData.sponsored?.trim() || null,
+        indexed: formData.indexed?.trim() || null,
+        do_follow: formData.do_follow?.trim() || null,
+        image: formData.image?.trim() || null,
+        img_explain: formData.img_explain?.trim() || null,
+        health: formData.health || false,
+        health_multiplier: null,
+        cbd: formData.cbd || false,
+        cbd_multiplier: null,
+        crypto: formData.crypto || false,
+        crypto_multiplier: null,
+        gambling: formData.gambling || false,
+        gambling_multiplier: null,
+        erotic: formData.erotic || false,
+        erotic_multiplier: null,
+        erotic_price: null,
+        default_price: formData.defaultPrice && formData.defaultPrice.length > 0 ? formData.defaultPrice : null,
+        custom_price: null,
+        genres: validGenres.length > 0 ? validGenres : null,
+        regions: validRegions.length > 0 ? validRegions : null,
+        logo: formData.logo || null,
+        article_preview: formData.articlePreview?.trim() 
+          ? (formData.articlePreview.trim().startsWith('image-')
+              ? {
+                  _type: "image",
+                  asset: {
+                    _ref: formData.articlePreview.trim(),
+                    _type: "reference"
+                  }
+                }
+              : formData.articlePreview.trim() // Store as plain text if not an image reference
+            )
+          : null,
+      }
+
+      // Log logo and article preview before transformation
+      console.log('📸 Logo from formData:', JSON.stringify(formData.logo))
+      console.log('📸 Logo in transformedData:', JSON.stringify(transformedData.logo))
+      console.log('📄 ArticlePreview from formData:', formData.articlePreview)
+      console.log('📄 ArticlePreview in transformedData:', JSON.stringify(transformedData.article_preview))
+
+      // Convert all empty strings, undefined, and empty arrays to null (except logo, article_preview, and boolean fields)
+      Object.keys(transformedData).forEach(key => {
+        const value = transformedData[key]
+        
+        // Skip logo and article_preview - they are JSONB and should be preserved as objects or null
+        if (key === 'logo' || key === 'article_preview') {
+          return
+        }
+        
+        // Skip boolean fields - they should remain false if not true
+        if (key === 'health' || key === 'cbd' || key === 'crypto' || key === 'gambling' || key === 'erotic') {
+          return
+        }
+        
+        // Convert empty strings to null
+        if (value === '') {
+          transformedData[key] = null
+        }
+        
+        // Convert undefined to null
+        if (value === undefined) {
+          transformedData[key] = null
+        }
+        
+        // Convert empty arrays to null (except for specific fields that should be arrays)
+        if (Array.isArray(value) && value.length === 0) {
+          transformedData[key] = null
+        }
+      })
+      
+      // Final logo check - ensure it's in the correct format for JSONB
+      if (transformedData.logo && typeof transformedData.logo === 'object') {
+        // Verify logo has the correct structure
+        if (!transformedData.logo._type || !transformedData.logo.asset) {
+          console.warn('⚠️ Logo format is incorrect, setting to null')
+          transformedData.logo = null
+        } else {
+          console.log('✅ Logo format is correct:', JSON.stringify(transformedData.logo))
+        }
+      } else if (transformedData.logo === undefined || transformedData.logo === '') {
+        transformedData.logo = null
+      }
+      
+      // Ensure article_preview is properly formatted
+      if (transformedData.article_preview) {
+        if (typeof transformedData.article_preview === 'object') {
+          // If it's an object, it should have the image structure
+          if (!transformedData.article_preview.asset || !transformedData.article_preview.asset._ref) {
+            console.warn('⚠️ Article preview format is incorrect, setting to null')
+            transformedData.article_preview = null
+          } else {
+            console.log('✅ Article preview format is correct (image):', JSON.stringify(transformedData.article_preview))
+          }
+        } else if (typeof transformedData.article_preview === 'string') {
+          // If it's a string, it's plain text - that's valid
+          if (transformedData.article_preview.trim() === '') {
+            transformedData.article_preview = null
+          } else {
+            console.log('✅ Article preview is plain text:', transformedData.article_preview.substring(0, 50) + '...')
+          }
+        }
+      } else if (transformedData.article_preview === undefined || transformedData.article_preview === '') {
+        transformedData.article_preview = null
+      }
+      
+      console.log('📄 Final article_preview:', JSON.stringify(transformedData.article_preview))
+
+      console.log('🔑 Getting auth token...')
+      let token: string
+      try {
+        token = await getAuthToken()
+        console.log('🔑 Auth token received:', token ? 'Token exists' : 'No token')
+      } catch (tokenError: any) {
+        console.error('❌ Failed to get auth token:', tokenError)
+        throw new Error(`Authentication failed: ${tokenError.message || 'Please log in again'}`)
+      }
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.')
+      }
+      
+      console.log('📤 Sending data to API:', JSON.stringify(transformedData, null, 2))
+      console.log('📄 Article preview in final payload:', JSON.stringify(transformedData.article_preview))
+      
+      let response: Response
+      try {
+        response = await fetch('/api/admin/records/publications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(transformedData)
+        })
+      } catch (fetchError: any) {
+        console.error('❌ Network error:', fetchError)
+        throw new Error(`Network error: ${fetchError.message || 'Failed to connect to server'}`)
+      }
+
+      console.log('📡 API Response status:', response.status, response.statusText)
+      
+      let data: any
+      try {
+        const responseText = await response.text()
+        console.log('📥 API Response text:', responseText)
+        
+        if (!responseText) {
+          throw new Error('Empty response from server')
+        }
+        
+        try {
+          data = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('❌ Failed to parse JSON response:', responseText)
+          throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`)
+        }
+      } catch (parseError: any) {
+        console.error('❌ Error parsing response:', parseError)
+        throw new Error(`Failed to parse server response: ${parseError.message}`)
+      }
+
+      console.log('📥 API Response data:', data)
+
+      if (!response.ok) {
+        console.error('❌ API Error:', data)
+        const errorMessage = data?.error || data?.details?.message || data?.message || `Server error: ${response.status} ${response.statusText}`
+        throw new Error(errorMessage)
+      }
+
+      if (!data.success && !data.record) {
+        console.error('❌ Unexpected response format:', data)
+        throw new Error('Unexpected response from server')
+      }
+
+      console.log('✅ Record created successfully!')
+      setSuccess('Record created successfully!')
+      // Refresh data without reloading page
+      console.log('🔄 Refreshing data...')
+      await fetchPublications()
+      console.log('✅ Data refreshed')
+      // Close modal and clear messages after a short delay
+      setTimeout(() => {
+        setShowAddModal(false)
+        setSuccess('')
+        setError('')
+      }, 1500)
+    } catch (err: any) {
+      console.error('❌ Error creating record:', err)
+      console.error('❌ Error stack:', err?.stack)
+      const errorMessage = err?.message || err?.toString() || 'Failed to create record. Please try again.'
+      setError(errorMessage)
+      // Don't close modal on error so user can see the error message
     }
-  }, []) // Empty dependency array - fetch only once on mount
+  }, [fetchPublications])
+
+  const handleDeleteRecord = useCallback(async (recordId: string) => {
+    if (!confirm('Are you sure you want to delete this record?')) return
+
+    try {
+      setError('')
+      setSuccess('')
+      
+      const token = await getAuthToken()
+      const response = await fetch(`/api/admin/records/publications?id=${recordId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete record')
+      }
+
+      setSuccess('Record deleted successfully!')
+      // Refresh data without reloading page
+      console.log('🔄 Refreshing data after delete...')
+      await fetchPublications()
+      console.log('✅ Data refreshed after delete')
+      // Clear messages after a short delay
+      setTimeout(() => {
+        setSuccess('')
+        setError('')
+      }, 1500)
+    } catch (err: any) {
+      console.error('❌ Error deleting record:', err)
+      setError(err.message || 'Failed to delete record')
+    }
+  }, [fetchPublications])
+
 
   // Calculate max price from data safely
   const calculateMaxPrice = () => {
@@ -864,9 +1140,29 @@ export default function PublicationsTab() {
         </aside>
 
         <section className="w-full mt-2">
-          <p className="font-body text-sm mb-1">
-            SHOWING {filteredData.length} OF {publicationsData.length} PUBLICATIONS
-          </p>
+          <div className="flex justify-between items-center mb-1">
+            <p className="font-body text-sm">
+              SHOWING {filteredData.length} OF {publicationsData.length} PUBLICATIONS
+            </p>
+            {isAdmin && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Add Publication
+              </button>
+            )}
+          </div>
+          {error && (
+            <div className="mb-4 rounded-md bg-red-50 p-4">
+              <div className="text-sm text-red-800">{error}</div>
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 rounded-md bg-green-50 p-4">
+              <div className="text-sm text-green-800">{success}</div>
+            </div>
+          )}
           <div className="overflow-x-scroll lg:overflow-visible relative" style={{ overflow: 'visible' }}>
             <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white" style={{ overflow: 'visible' }}>
               <thead className="text-xs text-gray-700 bg-white sticky top-0 z-20 shadow-sm">
@@ -938,6 +1234,11 @@ export default function PublicationsTab() {
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex justify-center">Niches</div>
                   </th>
+                  {isAdmin && (
+                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                      <div className="flex justify-center">Actions</div>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 relative z-0">
@@ -954,11 +1255,21 @@ export default function PublicationsTab() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           {pub.logo && pub.logo.asset && (() => {
-                            // Parse Sanity image reference: image-{hash}-{width}x{height}-{ext}
-                            const ref = pub.logo.asset._ref.replace('image-', '')
-                            // Convert -png, -jpg, -webp to .png, .jpg, .webp
-                            // Use smaller size for thumbnails and WebP format when available
-                            const imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+                            // Check if this is a Supabase upload (has metadata with filename)
+                            const asset = pub.logo.asset as any
+                            let imageUrl: string
+                            
+                            if (asset._metadata && asset._metadata.isSupabaseUpload && asset._metadata.storagePath) {
+                              // Supabase storage upload - construct URL dynamically using Supabase client
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('publications')
+                                .getPublicUrl(asset._metadata.storagePath)
+                              imageUrl = publicUrl
+                            } else {
+                              // Legacy Sanity format - use Sanity CDN
+                              const ref = asset._ref.replace('image-', '')
+                              imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+                            }
                             return (
                               <div className="inline-flex w-10 h-10">
                                 <img
@@ -1430,7 +1741,16 @@ export default function PublicationsTab() {
                         })()}
                       </div>
                     </td>
-                    
+                    {isAdmin && (
+                      <td className="text-center border-l border-r">
+                        <button
+                          onClick={() => handleDeleteRecord(pub._id)}
+                          className="text-red-600 hover:text-red-900 text-sm font-medium"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 )
                 })}
@@ -1439,7 +1759,15 @@ export default function PublicationsTab() {
           </div>
         </section>
       </div>
+
+      {showAddModal && (
+        <AddPublicationForm
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleCreateRecord}
+          error={error}
+          success={success}
+        />
+      )}
     </div>
   )
 }
-

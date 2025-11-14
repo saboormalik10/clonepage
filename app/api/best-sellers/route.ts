@@ -31,6 +31,7 @@ export async function GET(request: Request) {
         console.log(`✅ [Best Sellers API] Loaded ${data.length} best sellers from Supabase`)
         // Transform snake_case to camelCase
         let transformedData = data.map((item: any) => ({
+          id: item.id, // Include id for delete functionality
           publication: item.publication,
           image: item.image,
           genres: item.genres,

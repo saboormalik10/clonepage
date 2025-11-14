@@ -1,12 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { createClient } from '@/lib/supabase-client'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
+import AddBestSellerForm from './AddBestSellerForm'
 
 interface BestSeller {
+  id?: string
   publication: string
-  image: string
+  image: string | any
   genres: string
   price: string
   da: string
@@ -30,69 +34,239 @@ export default function BestSellersTab() {
   const [hoveredColumn, setHoveredColumn] = useState<'example' | 'regions' | 'genres' | null>(null)
   const [hoveredNicheIcon, setHoveredNicheIcon] = useState<{index: number, niche: string} | null>(null)
   const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const userId = useUserId()
+  const isAdmin = useIsAdmin()
+  const supabase = createClient()
 
-  useEffect(() => {
-    let isMounted = true
-    
-    const fetchData = async () => {
-      try {
-        setIsLoading(true)
-        const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
-        const response = await authenticatedFetch('/api/best-sellers')
-        
-        if (!isMounted) return
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-          console.error('❌ [Best Sellers] API error:', response.status, errorData)
-          if (response.status === 401) {
-            console.error('❌ [Best Sellers] Authentication failed - redirecting to login')
-            window.location.href = '/login'
-            return
-          }
-          throw new Error(`API error: ${response.status}`)
+  // Refetch best sellers data (reusable function)
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/best-sellers')
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('❌ [Best Sellers] API error:', response.status, errorData)
+        if (response.status === 401) {
+          console.error('❌ [Best Sellers] Authentication failed - redirecting to login')
+          window.location.href = '/login'
+          return
         }
-        
-        const responseData = await response.json()
-        
-        if (!isMounted) return
-        
-        // Handle new response format with data and priceAdjustments
-        let data = responseData
-        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
-          data = responseData.data
-          setPriceAdjustments(responseData.priceAdjustments)
-        }
-        
-        if (Array.isArray(data)) {
-          setBestSellersData(data)
-          setFilteredData(data)
-        } else {
-          console.warn('⚠️ [Best Sellers] Unexpected data format:', data)
-          setBestSellersData([])
-          setFilteredData([])
-        }
-      } catch (error) {
-        console.error('Error fetching best sellers:', error)
-        if (isMounted) {
-          setBestSellersData([])
-          setFilteredData([])
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        throw new Error(`API error: ${response.status}`)
       }
+      
+      const responseData = await response.json()
+      
+      // Handle new response format with data and priceAdjustments
+      let data = responseData
+      if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+        data = responseData.data
+        setPriceAdjustments(responseData.priceAdjustments)
+      }
+      
+      if (Array.isArray(data)) {
+        setBestSellersData(data)
+        setFilteredData(data)
+      } else {
+        console.warn('⚠️ [Best Sellers] Unexpected data format:', data)
+        setBestSellersData([])
+        setFilteredData([])
+      }
+    } catch (error) {
+      console.error('Error fetching best sellers:', error)
+      setBestSellersData([])
+      setFilteredData([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Fetch best sellers data from API on mount
+  useEffect(() => {
+    fetchData()
+  }, []) // Only run on mount
+
+  const getAuthToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token || ''
+  }
+
+  const handleCreateRecord = useCallback(async (formData: any) => {
+    setError('')
+    setSuccess('')
+
+    try {
+      // Transform data from publications-style form to best_sellers table schema
+      // Convert arrays to comma-separated strings for best_sellers table
+      const genresString = formData.genres && formData.genres.length > 0
+        ? formData.genres.map((g: any) => g.name).filter(Boolean).join(', ')
+        : null
+
+      const regionsString = formData.regions && formData.regions.length > 0
+        ? formData.regions.map((r: any) => r.name).filter(Boolean).join(', ')
+        : null
+
+      // Convert price arrays to text format
+      // Use defaultPrice
+      // Format as comma-separated values
+      let priceString: string | null = null
+      if (formData.defaultPrice && formData.defaultPrice.length > 0) {
+        priceString = formData.defaultPrice.map((p: number) => `$${p}`).join(', ')
+      }
+
+      // Use logo as image
+      const imageValue = formData.logo || null
+
+      // Convert niches from boolean checkboxes to text format
+      // Format: "Health, Crypto" (just the names, no prices)
+      const nichesArray: string[] = []
+      if (formData.health) {
+        nichesArray.push('Health')
+      }
+      if (formData.cbd) {
+        nichesArray.push('CBD')
+      }
+      if (formData.crypto) {
+        nichesArray.push('Crypto')
+      }
+      if (formData.gambling) {
+        nichesArray.push('Gambling')
+      }
+      if (formData.erotic) {
+        nichesArray.push('Erotic')
+      }
+      const nichesString = nichesArray.length > 0 ? nichesArray.join(', ') : null
+
+      // Transform data for Supabase (snake_case)
+      const transformedData: any = {
+        publication: formData.name?.trim() || null,
+        image: imageValue,
+        genres: genresString,
+        price: priceString,
+        da: formData.domain_authority != null ? String(formData.domain_authority) : null,
+        dr: formData.domain_rating != null ? String(formData.domain_rating) : null,
+        tat: formData.estimated_time?.trim() || null,
+        region: regionsString,
+        sponsored: formData.sponsored?.trim() || null,
+        indexed: formData.indexed?.trim() || null,
+        dofollow: formData.do_follow?.trim() || null,
+        example_url: formData.example_url?.trim() || null,
+        niches: nichesString,
+      }
+
+      // Convert all empty strings, undefined, and falsy values to null
+      Object.keys(transformedData).forEach(key => {
+        const value = transformedData[key]
+        
+        // Convert empty strings to null
+        if (value === '') {
+          transformedData[key] = null
+        }
+        
+        // Convert undefined to null
+        if (value === undefined) {
+          transformedData[key] = null
+        }
+        
+        // Convert empty arrays to null
+        if (Array.isArray(value) && value.length === 0) {
+          transformedData[key] = null
+        }
+      })
+
+      // Ensure image/logo is properly formatted - if it's an object, stringify it for storage
+      if (transformedData.image && typeof transformedData.image === 'object') {
+        // Stringify the logo object so it can be parsed later
+        transformedData.image = JSON.stringify(transformedData.image)
+        console.log('📸 Image/Logo stringified:', transformedData.image)
+      } else if (!transformedData.image) {
+        transformedData.image = null
+      }
+
+      const token = await getAuthToken()
+      console.log('📤 Sending data to API:', transformedData)
+      
+      const response = await fetch('/api/admin/records/best-sellers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(transformedData)
+      })
+
+      const data = await response.json()
+      console.log('📥 API Response:', data)
+
+      if (!response.ok) {
+        console.error('❌ API Error:', data)
+        throw new Error(data.error || 'Failed to create record')
+      }
+
+      setSuccess('Record created successfully!')
+      // Refresh data without reloading page
+      await fetchData()
+      // Close modal and clear messages after a short delay
+      setTimeout(() => {
+        setShowAddModal(false)
+        setSuccess('')
+        setError('')
+      }, 1500)
+    } catch (err: any) {
+      console.error('Error creating record:', err)
+      setError(err.message || 'Failed to create record')
+    }
+  }, [supabase, fetchData])
+
+  const handleDeleteRecord = useCallback(async (recordId: string) => {
+    if (!recordId) {
+      console.error('❌ No record ID provided for deletion')
+      setError('No record ID found. Cannot delete.')
+      return
     }
 
-    fetchData()
-    
-    return () => {
-      isMounted = false
+    if (!confirm('Are you sure you want to delete this record?')) return
+
+    try {
+      setError('')
+      setSuccess('')
+      
+      console.log('🗑️ Deleting best seller with ID:', recordId)
+      const token = await getAuthToken()
+      const response = await fetch(`/api/admin/records/best-sellers?id=${recordId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        console.error('❌ Delete failed:', data)
+        throw new Error(data.error || 'Failed to delete record')
+      }
+
+      console.log('✅ Record deleted successfully')
+      setSuccess('Record deleted successfully!')
+      // Refresh data without reloading page
+      console.log('🔄 Refreshing data after delete...')
+      await fetchData()
+      console.log('✅ Data refreshed after delete')
+      // Clear messages after a short delay
+      setTimeout(() => {
+        setSuccess('')
+        setError('')
+      }, 1500)
+    } catch (err: any) {
+      console.error('❌ Error deleting record:', err)
+      setError(err.message || 'Failed to delete record')
     }
-  }, []) // Empty dependency array - fetch only once on mount
+  }, [fetchData])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase()
@@ -399,9 +573,19 @@ export default function BestSellersTab() {
     <div className="opacity-100">
       <div className="flex flex-col">
         <div className="mt-2">
-          <p className="font-body text-sm mb-1">
-            SHOWING {filteredData.length} OF {bestSellersData.length} PUBLICATIONS
-          </p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="font-body text-sm">
+              SHOWING {filteredData.length} OF {bestSellersData.length} PUBLICATIONS
+            </p>
+            {isAdmin && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Add Best Seller
+              </button>
+            )}
+          </div>
           <div className="overflow-x-scroll lg:overflow-visible relative">
             <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white">
               <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
@@ -477,6 +661,11 @@ export default function BestSellersTab() {
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex justify-center">Niches</div>
                   </th>
+                  {isAdmin && (
+                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                      <div className="flex justify-center">Actions</div>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -485,20 +674,69 @@ export default function BestSellersTab() {
                     <td className="py-2 px-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          {item.image && (
-                            <div className="inline-flex w-10 h-10">
-                              <img
-                                alt={`${item.publication || 'Publication'} image`}
-                                src={`https://pricing.ascendagency.com${item.image.replace(/&amp;/g, '&')}`}
-                                className="w-10 h-10 object-cover rounded-full"
-                                loading="lazy"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement
-                                  target.style.display = 'none'
-                                }}
-                              />
-                            </div>
-                          )}
+                          {item.image && (() => {
+                            let imageUrl: string
+                            
+                            // Check if image is a JSON stringified logo object
+                            if (typeof item.image === 'string') {
+                              try {
+                                const parsed = JSON.parse(item.image)
+                                // If it's a logo object with Supabase metadata
+                                if (parsed && parsed.asset?._metadata?.isSupabaseUpload && parsed.asset._metadata.storagePath) {
+                                  // Extract Supabase URL
+                                  const { data: { publicUrl } } = supabase.storage
+                                    .from('publications')
+                                    .getPublicUrl(parsed.asset._metadata.storagePath)
+                                  imageUrl = publicUrl
+                                } else if (parsed && parsed.asset?._ref) {
+                                  // Legacy Sanity format - use Sanity CDN
+                                  const ref = parsed.asset._ref.replace('image-', '')
+                                  imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+                                } else {
+                                  // Fallback to original string
+                                  imageUrl = `https://pricing.ascendagency.com${item.image.replace(/&amp;/g, '&')}`
+                                }
+                              } catch (e) {
+                                // Not JSON, treat as legacy string format
+                                imageUrl = `https://pricing.ascendagency.com${item.image.replace(/&amp;/g, '&')}`
+                              }
+                            } else if (typeof item.image === 'object' && item.image !== null) {
+                              // Already an object
+                              const imageData = item.image as any
+                              if (imageData.asset?._metadata?.isSupabaseUpload && imageData.asset._metadata.storagePath) {
+                                // Supabase storage upload - construct URL dynamically
+                                const { data: { publicUrl } } = supabase.storage
+                                  .from('publications')
+                                  .getPublicUrl(imageData.asset._metadata.storagePath)
+                                imageUrl = publicUrl
+                              } else if (imageData.asset?._ref) {
+                                // Legacy Sanity format
+                                const ref = imageData.asset._ref.replace('image-', '')
+                                imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+                              } else {
+                                // Fallback
+                                imageUrl = `https://pricing.ascendagency.com${(item.image as any).toString().replace(/&amp;/g, '&')}`
+                              }
+                            } else {
+                              // Legacy string format
+                              imageUrl = `https://pricing.ascendagency.com${item.image.replace(/&amp;/g, '&')}`
+                            }
+                            
+                            return (
+                              <div className="inline-flex w-10 h-10">
+                                <img
+                                  alt={`${item.publication || 'Publication'} image`}
+                                  src={imageUrl}
+                                  className="w-10 h-10 object-cover rounded-full"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement
+                                    target.style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            )
+                          })()}
                           <p>{item.publication || 'N/A'}</p>
                         </div>
                       </div>
@@ -506,7 +744,7 @@ export default function BestSellersTab() {
                     <td className="text-center border-l border-r">
                       {formatGenres(item.genres, index)}
                     </td>
-                    <td className="text-center border-l border-r">{item.price}</td>
+                    <td className="text-center border-l border-r">{item.price || '-'}</td>
                     <td className="text-center border-l border-r">{item.da}</td>
                     <td className="text-center border-l border-r">{item.dr}</td>
                     <td className="text-center border-l border-r">{item.tat}</td>
@@ -714,6 +952,24 @@ export default function BestSellersTab() {
                         })()}
                       </div>
                     </td>
+                    {isAdmin && (
+                      <td className="text-center border-l border-r">
+                        <button
+                          onClick={() => {
+                            if (item.id) {
+                              handleDeleteRecord(item.id)
+                            } else {
+                              console.error('❌ Best seller missing ID:', item)
+                              setError('Cannot delete: Record ID is missing')
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          disabled={!item.id}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -721,6 +977,15 @@ export default function BestSellersTab() {
           </div>
         </div>
       </div>
+
+      {showAddModal && (
+        <AddBestSellerForm
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleCreateRecord}
+          error={error}
+          success={success}
+        />
+      )}
     </div>
   )
 }
