@@ -9,6 +9,8 @@ const CACHE_DURATION = 30 * 1000 // Cache for 30 seconds
  * Get Supabase project ref from URL
  */
 function getProjectRef(): string {
+  // Next.js makes NEXT_PUBLIC_* env vars available on client
+  // @ts-ignore - process.env is available in Next.js client components
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   try {
     const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
@@ -104,12 +106,12 @@ async function getSessionFast(supabase: any): Promise<any> {
   try {
     const result = await Promise.race([
       supabase.auth.getSession(),
-      new Promise((_, reject) => 
+      new Promise<{ data: { session: null }, error: { message: string } }>((_, reject) => 
         setTimeout(() => reject(new Error('Session retrieval timeout')), 2000)
       )
-    ]) as Promise<{ data: { session: any }, error: any }>
+    ])
     
-    if (result.data?.session?.access_token) {
+    if (result?.data?.session?.access_token) {
       // Update cache
       cachedSession = result.data.session
       cacheTimestamp = now

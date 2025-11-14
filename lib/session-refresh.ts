@@ -79,6 +79,7 @@ async function getSessionWithTimeout(supabase: any, timeoutMs: number = 3000): P
   } catch (timeoutError: any) {
     // Try localStorage fallback
     try {
+      // @ts-ignore - process.env is available in Next.js client components
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
       let projectRef = 'default'
       try {

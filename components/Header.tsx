@@ -74,7 +74,8 @@ export default function Header() {
     
     // Clear localStorage manually (in case signOut hangs)
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+        // @ts-ignore - process.env is available in Next.js client components
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
       let projectRef = 'default'
       try {
         const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
