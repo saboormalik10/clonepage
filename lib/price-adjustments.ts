@@ -60,7 +60,7 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
 
 /**
  * Apply price adjustments to a value with price range support
- * Handles multiple adjustments applied sequentially
+ * Handles multiple adjustments by selecting the most specific matching range
  * If exact_amount is set, it replaces the price instead of applying percentage
  */
 export function applyPriceAdjustment(
@@ -72,6 +72,63 @@ export function applyPriceAdjustment(
 ): number {
   let adjustedPrice = basePrice;
   
+  // Helper function to check if price is within range
+  const isWithinRange = (
+    price: number,
+    min_price: number | null,
+    max_price: number | null
+  ): boolean => {
+    // Handle null as unlimited (no constraint)
+    // Handle 0 as a specific minimum value (not unlimited)
+    const minCheck = min_price === null || price >= min_price;
+    const maxCheck = max_price === null || price <= max_price;
+    return minCheck && maxCheck;
+  };
+  
+  // Helper function to calculate range specificity (smaller range = more specific)
+  const getRangeSpecificity = (
+    min_price: number | null,
+    max_price: number | null
+  ): number => {
+    // If both are null, it's the least specific (infinite range)
+    if (min_price === null && max_price === null) {
+      return Infinity;
+    }
+    // If one is null, use a very large number for specificity calculation
+    const min = min_price === null ? 0 : min_price;
+    const max = max_price === null ? Number.MAX_SAFE_INTEGER : max_price;
+    // Return range size (smaller = more specific)
+    return max - min;
+  };
+  
+  // Helper function to find the most specific matching adjustment
+  const findMostSpecificAdjustment = (
+    adjs: Array<{ adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }>,
+    currentPrice: number
+  ): { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | null => {
+    const matchingAdjs = adjs.filter(adj => {
+      if (!adj) return false;
+      const hasAdjustment = adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined);
+      return hasAdjustment && isWithinRange(currentPrice, adj.min_price, adj.max_price);
+    });
+    
+    if (matchingAdjs.length === 0) return null;
+    
+    // Find the most specific (smallest range)
+    let mostSpecific = matchingAdjs[0];
+    let mostSpecificRange = getRangeSpecificity(mostSpecific.min_price, mostSpecific.max_price);
+    
+    for (let i = 1; i < matchingAdjs.length; i++) {
+      const range = getRangeSpecificity(matchingAdjs[i].min_price, matchingAdjs[i].max_price);
+      if (range < mostSpecificRange) {
+        mostSpecific = matchingAdjs[i];
+        mostSpecificRange = range;
+      }
+    }
+    
+    return mostSpecific;
+  };
+  
   // Helper function to apply a single adjustment
   const applySingleAdjustment = (
     adj: { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null },
@@ -79,9 +136,7 @@ export function applyPriceAdjustment(
     type: 'global' | 'user'
   ): number => {
     // Check if price is within range
-    const withinRange = 
-      (adj.min_price === null || currentPrice >= adj.min_price) &&
-      (adj.max_price === null || currentPrice <= adj.max_price);
+    const withinRange = isWithinRange(currentPrice, adj.min_price, adj.max_price);
     
     if (withinRange) {
       // If exact_amount is set, replace the price
@@ -91,40 +146,42 @@ export function applyPriceAdjustment(
       } 
       // Otherwise apply percentage adjustment
       else if (adj.adjustment_percentage !== 0) {
-        console.log(`💵 Applying ${type} adjustment ${adj.adjustment_percentage}% to price $${currentPrice} (within range $${adj.min_price || '0'}-$${adj.max_price || 'unlimited'})`)
+        console.log(`💵 Applying ${type} adjustment ${adj.adjustment_percentage}% to price $${currentPrice} (within range $${adj.min_price ?? '0'}-$${adj.max_price ?? 'unlimited'})`)
         return currentPrice * (1 + adj.adjustment_percentage / 100);
       }
     } else if (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)) {
-      console.log(`⏭️ Skipping ${type} adjustment for price $${currentPrice} (outside range $${adj.min_price || '0'}-$${adj.max_price || 'unlimited'})`)
+      console.log(`⏭️ Skipping ${type} adjustment for price $${currentPrice} (outside range $${adj.min_price ?? '0'}-$${adj.max_price ?? 'unlimited'})`)
     }
     
     return currentPrice;
   };
   
-  // Handle global adjustments (apply all in order)
-  if (Array.isArray(adjustments.global)) {
-    // Multiple global adjustments - apply sequentially
-    for (const globalAdj of adjustments.global) {
-      adjustedPrice = applySingleAdjustment(globalAdj, adjustedPrice, 'global');
+  // Handle global adjustments (find most specific match)
+  if (Array.isArray(adjustments.global) && adjustments.global.length > 0) {
+    // Multiple global adjustments - find the most specific matching one
+    const mostSpecificGlobal = findMostSpecificAdjustment(adjustments.global, adjustedPrice);
+    if (mostSpecificGlobal) {
+      adjustedPrice = applySingleAdjustment(mostSpecificGlobal, adjustedPrice, 'global');
     }
-  } else if (typeof adjustments.global === 'object') {
+  } else if (typeof adjustments.global === 'object' && adjustments.global !== null) {
     // Single global adjustment (legacy support)
     adjustedPrice = applySingleAdjustment(adjustments.global, adjustedPrice, 'global');
-  } else {
+  } else if (typeof adjustments.global === 'number') {
     // Legacy support for number type
     adjustedPrice = adjustedPrice * (1 + adjustments.global / 100);
   }
   
-  // Handle user adjustments (apply all in order)
-  if (Array.isArray(adjustments.user)) {
-    // Multiple user adjustments - apply sequentially
-    for (const userAdj of adjustments.user) {
-      adjustedPrice = applySingleAdjustment(userAdj, adjustedPrice, 'user');
+  // Handle user adjustments (find most specific match)
+  if (Array.isArray(adjustments.user) && adjustments.user.length > 0) {
+    // Multiple user adjustments - find the most specific matching one
+    const mostSpecificUser = findMostSpecificAdjustment(adjustments.user, adjustedPrice);
+    if (mostSpecificUser) {
+      adjustedPrice = applySingleAdjustment(mostSpecificUser, adjustedPrice, 'user');
     }
-  } else if (typeof adjustments.user === 'object') {
+  } else if (typeof adjustments.user === 'object' && adjustments.user !== null) {
     // Single user adjustment (legacy support)
     adjustedPrice = applySingleAdjustment(adjustments.user, adjustedPrice, 'user');
-  } else {
+  } else if (typeof adjustments.user === 'number') {
     // Legacy support for number type
     adjustedPrice = adjustedPrice * (1 + adjustments.user / 100);
   }
