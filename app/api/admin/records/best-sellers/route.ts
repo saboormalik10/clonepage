@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminClient, retryWithBackoff } from '@/lib/admin-client'
+import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
 
 // Check if user is admin
 async function checkAdmin(request: Request) {
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { isAdmin } = await checkAdmin(request)
+    const { isAdmin, userId } = await checkAdmin(request)
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -85,7 +86,23 @@ export async function POST(request: Request) {
 
     if (error) throw error
 
-    return NextResponse.json({ success: true, record: data })
+    // Apply price adjustments to the newly created record
+    let adjustedRecord = data
+    try {
+      const adjustments = await getPriceAdjustments(userId, 'best_sellers')
+      if (adjustments) {
+        adjustedRecord = {
+          ...data,
+          price: adjustDollarPrice(data.price, adjustments)
+        }
+        console.log('✅ [Best Sellers API] Applied price adjustments to new record')
+      }
+    } catch (adjError) {
+      console.warn('⚠️ [Best Sellers API] Error applying price adjustments:', adjError)
+      // Continue without adjustments if there's an error
+    }
+
+    return NextResponse.json({ success: true, record: adjustedRecord })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

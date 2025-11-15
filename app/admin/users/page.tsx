@@ -86,7 +86,9 @@ export default function UsersPage() {
       setSuccess('User created successfully!')
       setFormData({ email: '', password: '', full_name: '', role: 'user' })
       setShowCreateModal(false)
-      fetchUsers()
+      
+      // Immediately refresh the list
+      await fetchUsers()
     } catch (err: any) {
       setError(err.message || 'Failed to create user')
     }
@@ -94,6 +96,13 @@ export default function UsersPage() {
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return
+
+    setError('')
+    setSuccess('')
+    
+    // Optimistic update - remove from UI immediately
+    const previousUsers = [...users]
+    setUsers((prev: User[]) => prev.filter((user: User) => user.id !== userId))
 
     try {
       const token = await getAuthToken()
@@ -107,11 +116,14 @@ export default function UsersPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Revert optimistic update on error
+        setUsers(previousUsers)
         throw new Error(data.error || 'Failed to delete user')
       }
 
       setSuccess('User deleted successfully!')
-      fetchUsers()
+      // Refresh to ensure consistency
+      await fetchUsers()
     } catch (err: any) {
       setError(err.message || 'Failed to delete user')
     }

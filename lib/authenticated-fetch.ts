@@ -308,3 +308,32 @@ export function clearSessionCache() {
   cacheTimestamp = 0
 }
 
+/**
+ * Check if we should redirect to login on 401 error
+ * Only redirect if localStorage doesn't have a valid session
+ */
+export function shouldRedirectToLogin(): boolean {
+  try {
+    const projectRef = getProjectRef()
+    const storageKey = `sb-${projectRef}-auth-token`
+    const stored = localStorage.getItem(storageKey)
+    
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed?.access_token && parsed?.expires_at) {
+        const expiresAt = parsed.expires_at * 1000
+        const now = Date.now()
+        if (expiresAt > now) {
+          console.log('✅ [AuthenticatedFetch] Valid session in localStorage, not redirecting to login')
+          return false
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore storage errors
+  }
+  
+  console.log('⚠️ [AuthenticatedFetch] No valid localStorage session, should redirect to login')
+  return true
+}
+

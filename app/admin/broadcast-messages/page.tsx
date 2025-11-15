@@ -91,6 +91,42 @@ export default function BroadcastMessagesPage() {
     setTimeout(() => setSuccess(''), 3000)
   }
 
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm('Are you sure you want to delete this broadcast message? This will also delete all recipient records associated with it.')) return
+
+    setError('')
+    setSuccess('')
+    
+    // Optimistic update - remove from UI immediately
+    const previousMessages = [...messages]
+    setMessages(prev => prev.filter(msg => msg.id !== messageId))
+
+    try {
+      const token = await getAuthToken()
+      const response = await fetch(`/api/admin/broadcast-messages?id=${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Revert optimistic update on error
+        setMessages(previousMessages)
+        throw new Error(data.error || 'Failed to delete message')
+      }
+
+      setSuccess('Message deleted successfully!')
+      // Refresh to ensure consistency
+      await fetchMessages()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete message')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -164,6 +200,17 @@ export default function BroadcastMessagesPage() {
                       <p className="mt-2 text-xs text-gray-500">
                         Sent on {new Date(message.created_at).toLocaleString()}
                       </p>
+                    </div>
+                    <div className="ml-4">
+                      <button
+                        onClick={() => handleDeleteMessage(message.id)}
+                        className="text-red-600 hover:text-red-900 text-sm font-medium"
+                        title="Delete message"
+                      >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>

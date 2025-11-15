@@ -111,6 +111,8 @@ export default function PublicationsTab() {
   const maxRangeRef = useRef<HTMLInputElement>(null)
   const isAdmin = useIsAdmin()
   const [showAddModal, setShowAddModal] = useState(false)
+  const hasFetchedRef = useRef(false)
+  const lastRefreshTriggerRef = useRef(0)
   const [editingRecord, setEditingRecord] = useState<Publication | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -213,9 +215,15 @@ export default function PublicationsTab() {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('❌ [Publications] API error:', response.status, errorData)
         if (response.status === 401) {
-          console.error('❌ [Publications] Authentication failed - redirecting to login')
-          window.location.href = '/login'
-          return
+          console.error('❌ [Publications] Authentication failed - checking localStorage...')
+          const { shouldRedirectToLogin } = await import('@/lib/authenticated-fetch')
+          if (shouldRedirectToLogin()) {
+            window.location.href = '/login'
+            return
+          } else {
+            console.log('✅ [Publications] Valid localStorage session, continuing...')
+            return // Don't throw error, just return
+          }
         }
         throw new Error(`API error: ${response.status}`)
       }
@@ -372,8 +380,26 @@ export default function PublicationsTab() {
 
   // Fetch publications data from API on mount and when tab becomes visible
   useEffect(() => {
-    fetchPublications()
-  }, [fetchPublications, refreshTrigger]) // Re-fetch when tab becomes visible
+    console.log('🔄 [Publications] useEffect triggered - refreshTrigger:', refreshTrigger)
+    
+    // Prevent duplicate fetches on initial load
+    if (!hasFetchedRef.current) {
+      console.log('📥 [Publications] Initial fetch')
+      hasFetchedRef.current = true
+      lastRefreshTriggerRef.current = refreshTrigger
+      fetchPublications()
+      return
+    }
+    
+    // Only fetch if refreshTrigger actually changed
+    if (refreshTrigger !== lastRefreshTriggerRef.current) {
+      console.log('📥 [Publications] Refetch due to visibility change')
+      lastRefreshTriggerRef.current = refreshTrigger
+      fetchPublications()
+    } else {
+      console.log('⏭️ [Publications] Skipping fetch - same refreshTrigger')
+    }
+  }, [refreshTrigger]) // Only depend on refreshTrigger, not fetchPublications
 
   // Apply filters when filter state changes or when data is loaded
   // Use debouncedSearchTerm - filter only applies after user stops typing for 300ms

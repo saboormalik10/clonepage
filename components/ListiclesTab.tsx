@@ -63,9 +63,15 @@ export default function ListiclesTab() {
         }
         console.error('❌ [Listicles] API error:', response.status, errorData)
         if (response.status === 401) {
-          console.error('❌ [Listicles] Authentication failed - redirecting to login')
-          window.location.href = '/login'
-          return
+          console.error('❌ [Listicles] Authentication failed - checking localStorage...')
+          const { shouldRedirectToLogin } = await import('@/lib/authenticated-fetch')
+          if (shouldRedirectToLogin()) {
+            window.location.href = '/login'
+            return
+          } else {
+            console.log('✅ [Listicles] Valid localStorage session, continuing...')
+            return // Don't throw error, just return
+          }
         }
         throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
       }

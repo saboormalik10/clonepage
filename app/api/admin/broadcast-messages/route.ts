@@ -173,3 +173,48 @@ export async function POST(request: Request) {
   }
 }
 
+// DELETE - Delete a broadcast message and its dependent records
+export async function DELETE(request: Request) {
+  try {
+    const { isAdmin } = await checkAdmin(request)
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const messageId = searchParams.get('id')
+
+    if (!messageId) {
+      return NextResponse.json({ error: 'Message ID is required' }, { status: 400 })
+    }
+
+    const adminClient = getAdminClient()
+
+    // Delete the message - CASCADE will automatically delete all dependent records
+    // (broadcast_message_recipients) due to ON DELETE CASCADE in the foreign key constraint
+    const { error: deleteError } = await retryWithBackoff(
+      async () => await adminClient
+        .from('broadcast_messages')
+        .delete()
+        .eq('id', messageId)
+    )
+
+    if (deleteError) {
+      console.error('Error deleting broadcast message:', deleteError)
+      throw deleteError
+    }
+
+    console.log(`✅ [Broadcast Messages API] Deleted message ${messageId} and all dependent recipient records (via CASCADE)`)
+
+    return NextResponse.json({ 
+      success: true, 
+      deletedId: messageId 
+    })
+  } catch (error: any) {
+    console.error('Error deleting broadcast message:', error)
+    return NextResponse.json({ 
+      error: error.message || 'Failed to delete broadcast message' 
+    }, { status: 500 })
+  }
+}
+

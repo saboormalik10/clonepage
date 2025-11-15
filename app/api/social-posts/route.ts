@@ -1,4 +1,6 @@
+import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getAdminClient } from '@/lib/admin-client'
 import socialPostData from '@/data/socialPostData.json'
 import { createFreshResponse, routeConfig } from '@/lib/api-helpers'
 import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
@@ -33,8 +35,9 @@ export async function GET(request: Request) {
 
       if (data && data.length > 0) {
         console.log(`✅ [Social Posts API] Loaded ${data.length} social posts from Supabase`)
-        // Transform snake_case to camelCase
+        // Transform snake_case to camelCase and include id
         let transformedData = data.map((item: any) => ({
+          id: item.id,
           publication: item.publication,
           image: item.image,
           url: item.url,
@@ -76,6 +79,96 @@ export async function GET(request: Request) {
     console.log(`⚠️ [Social Posts API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return createFreshResponse(socialPostData)
+  }
+}
+
+export async function POST(request: Request) {
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) return authResult
+  try {
+    const body = await request.json()
+    if (!body.publication) return NextResponse.json({ error: 'Publication is required' }, { status: 400 })
+    const recordData = {
+      publication: body.publication,
+      image: body.image || null,
+      url: body.url || null,
+      platforms: body.platforms || [],
+      price: body.price || null,
+      tat: body.tat || null,
+      example_url: body.exampleUrl || null
+    }
+    const { data, error } = await supabase.from('social_posts').insert([recordData]).select()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: Request) {
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) return authResult
+  try {
+    const body = await request.json()
+    if (!body.id) return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    if (!body.publication) return NextResponse.json({ error: 'Publication is required' }, { status: 400 })
+    const recordData = {
+      publication: body.publication,
+      image: body.image || null,
+      url: body.url || null,
+      platforms: body.platforms || [],
+      price: body.price || null,
+      tat: body.tat || null,
+      example_url: body.exampleUrl || null
+    }
+    const { data, error } = await supabase.from('social_posts').update(recordData).eq('id', body.id).select()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!data || data.length === 0) return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) return authResult
+  try {
+    const url = new URL(request.url)
+    const id = url.searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    }
+
+    console.log('🗑️ [Social Posts API] Deleting record with ID:', id)
+
+    // Use admin client to bypass RLS policies for delete operation
+    const adminClient = getAdminClient()
+
+    // Delete the record - Supabase will return the deleted row(s) if successful
+    const { data, error } = await adminClient
+      .from('social_posts')
+      .delete()
+      .eq('id', id)
+      .select()
+
+    if (error) {
+      console.error('❌ [Social Posts API] Error deleting record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // If no data is returned, the record didn't exist
+    if (!data || data.length === 0) {
+      console.warn('⚠️ [Social Posts API] No record found with ID:', id)
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    console.log('✅ [Social Posts API] Record deleted successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Social Posts API] Error in DELETE:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 

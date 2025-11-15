@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
+import AddDigitalTVForm from './AddDigitalTVForm'
 
 interface DigitalTV {
+  id?: string
   callSign: string
   station: string
   rate: string
@@ -27,13 +30,17 @@ export default function DigitalTelevisionTab() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<'example' | null>(null)
   const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<DigitalTV | null>(null)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
 
   const userId = useUserId()
+  const isAdmin = useIsAdmin()
   const { refreshTrigger } = useVisibilityChange()
 
   useEffect(() => {
-    let isMounted = true
-    
     const fetchData = async () => {
       try {
         setIsLoading(true)
@@ -52,17 +59,24 @@ export default function DigitalTelevisionTab() {
           }
           console.error('❌ [Digital TV] API error:', response.status, errorData)
           if (response.status === 401) {
-            console.error('❌ [Digital TV] Authentication failed - redirecting to login')
-            window.location.href = '/login'
-            return
+            console.error('❌ [Digital TV] Authentication failed - checking localStorage...')
+            const { shouldRedirectToLogin } = await import('@/lib/authenticated-fetch')
+            if (shouldRedirectToLogin()) {
+              window.location.href = '/login'
+              return
+            } else {
+              console.log('✅ [Digital TV] Valid localStorage session, continuing...')
+              setDigitalTvData([])
+              setFilteredData([])
+              setIsLoading(false)
+              return
+            }
           }
           throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
         }
         
         const responseData = await response.json()
         console.log('✅ [Digital TV] Data received:', responseData)
-        
-        if (!isMounted) return
         
         // Handle new response format with data and priceAdjustments
         let data = responseData
@@ -82,23 +96,14 @@ export default function DigitalTelevisionTab() {
       } catch (error: any) {
         console.error('❌ [Digital TV] Error fetching data:', error)
         console.error('   Error details:', error.message)
-        if (isMounted) {
-          setDigitalTvData([])
-          setFilteredData([])
-        }
+        setDigitalTvData([])
+        setFilteredData([])
       } finally {
-        if (isMounted) {
-          console.log('✅ [Digital TV] Setting isLoading to false')
-          setIsLoading(false)
-        }
+        setIsLoading(false)
       }
     }
 
     fetchData()
-    
-    return () => {
-      isMounted = false
-    }
   }, [refreshTrigger]) // Re-fetch when tab becomes visible
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +118,143 @@ export default function DigitalTelevisionTab() {
     setFilteredData(filtered)
   }
 
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError('')
+        setSuccess('')
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [error, success])
+
+  const refreshData = async () => {
+    try {
+      console.log('🔄 [Digital TV] Refreshing data...')
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/digital-tv')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to refresh data: ${response.status}`)
+      }
+      
+      const responseData = await response.json()
+      let data = responseData
+      if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+        data = responseData.data
+        setPriceAdjustments(responseData.priceAdjustments)
+      }
+      
+      if (Array.isArray(data)) {
+        setDigitalTvData(data)
+        setFilteredData(data.filter(
+          (tv) =>
+            tv.callSign.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            tv.station.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            tv.programName.toLowerCase().includes(searchTerm.toLowerCase())
+        ))
+      }
+    } catch (error: any) {
+      console.error('❌ [Digital TV] Error refreshing data:', error)
+      setError('Failed to refresh data')
+    }
+  }
+
+  const handleAddRecord = async (formData: any) => {
+    try {
+      console.log('➕ [Digital TV] Adding new record:', formData)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/digital-tv', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add record')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Digital TV] Record added successfully:', result)
+      
+      setSuccess('Record added successfully!')
+      setShowAddModal(false)
+      await refreshData()
+    } catch (error: any) {
+      console.error('❌ [Digital TV] Error adding record:', error)
+      setError(error.message || 'Failed to add record')
+    }
+  }
+
+  const handleEditRecord = async (formData: any) => {
+    if (!editingRecord?.id) {
+      setError('No record selected for editing')
+      return
+    }
+
+    try {
+      console.log('✏️ [Digital TV] Updating record:', formData)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/digital-tv', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...formData, id: editingRecord.id }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update record')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Digital TV] Record updated successfully:', result)
+      
+      setSuccess('Record updated successfully!')
+      setEditingRecord(null)
+      await refreshData()
+    } catch (error: any) {
+      console.error('❌ [Digital TV] Error updating record:', error)
+      setError(error.message || 'Failed to update record')
+    }
+  }
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (!confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setDeletingRecordId(recordId)
+      console.log('🗑️ [Digital TV] Deleting record:', recordId)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch(`/api/digital-tv?id=${recordId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete record')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Digital TV] Record deleted successfully:', result)
+      
+      setSuccess('Record deleted successfully!')
+      await refreshData()
+    } catch (error: any) {
+      console.error('❌ [Digital TV] Error deleting record:', error)
+      setError(error.message || 'Failed to delete record')
+    } finally {
+      setDeletingRecordId(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="opacity-100">
@@ -125,6 +267,18 @@ export default function DigitalTelevisionTab() {
 
   return (
     <div className="opacity-100">
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
         <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px]">
           <div className="sticky space-y-2 top-5">
@@ -138,6 +292,18 @@ export default function DigitalTelevisionTab() {
                 onChange={handleSearch}
               />
             </div>
+            
+            {/* Admin Controls */}
+            {isAdmin && (
+              <div className="pt-4 border-t space-y-2">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  Add New Record
+                </button>
+              </div>
+            )}
           </div>
         </aside>
 
@@ -189,14 +355,37 @@ export default function DigitalTelevisionTab() {
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                     <div className="flex justify-center">Example</div>
                   </th>
+                  {isAdmin && (
+                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                      <div className="flex justify-center">Actions</div>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredData.map((tv, index) => (
+                {filteredData.length === 0 && !isLoading ? (
+                  <tr>
+                    <td colSpan={isAdmin ? 12 : 11} className="text-center py-8 text-gray-500">
+                      No digital TV data available
+                    </td>
+                  </tr>
+                ) : (
+                  filteredData.map((tv, index) => (
                   <tr key={index} className="text-sm">
                     <td className="text-center border-l border-r">{tv.callSign}</td>
                     <td className="text-center border-l border-r">{tv.station}</td>
-                    <td className="text-center border-l border-r">{tv.rate}</td>
+                    <td className="text-center border-l border-r">
+                      {isPriceAdjusted(tv.rate, priceAdjustments) ? (
+                        <span className="relative group">
+                          <span className="text-blue-600 font-medium">{tv.rate || 'N/A'}</span>
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            {getAdjustmentInfo(priceAdjustments)}
+                          </span>
+                        </span>
+                      ) : (
+                        tv.rate || 'N/A'
+                      )}
+                    </td>
                     <td className="text-center border-l border-r">{tv.tat}</td>
                     <td className="text-center border-l border-r">{tv.sponsored}</td>
                     <td className="text-center border-l border-r">{tv.indexed}</td>
@@ -303,13 +492,57 @@ export default function DigitalTelevisionTab() {
                         </div>
                       )}
                     </td>
+                    {isAdmin && (
+                      <td className="text-center border-l border-r py-2 px-2">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => setEditingRecord(tv)}
+                            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                            title="Edit record"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => tv.id && handleDeleteRecord(tv.id)}
+                            disabled={deletingRecordId === tv.id || !tv.id}
+                            className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete record"
+                          >
+                            {deletingRecordId === tv.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
         </section>
       </div>
+
+      {/* Add Record Modal */}
+      {showAddModal && (
+        <AddDigitalTVForm
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleAddRecord}
+          error={error}
+          success={success}
+        />
+      )}
+
+      {/* Edit Record Modal */}
+      {editingRecord && (
+        <AddDigitalTVForm
+          onClose={() => setEditingRecord(null)}
+          onSubmit={handleEditRecord}
+          error={error}
+          success={success}
+          initialData={editingRecord}
+          isEditMode={true}
+        />
+      )}
     </div>
   )
 }

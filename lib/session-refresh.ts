@@ -65,10 +65,54 @@ export async function refreshSession(): Promise<boolean> {
 }
 
 /**
+ * Get session from localStorage instantly (synchronous)
+ */
+function getSessionFromStorage(): any {
+  try {
+    // @ts-ignore - process.env is available in Next.js client components
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    let projectRef = 'default'
+    try {
+      const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+      if (urlMatch && urlMatch[1]) {
+        projectRef = urlMatch[1]
+      } else {
+        const parts = supabaseUrl.split('//')
+        if (parts[1]) {
+          projectRef = parts[1].split('.')[0]
+        }
+      }
+    } catch (e) {
+      // Use default if extraction fails
+    }
+    const storageKey = `sb-${projectRef}-auth-token`
+    
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed?.access_token && parsed?.expires_at) {
+        const expiresAt = parsed.expires_at * 1000
+        if (expiresAt > Date.now()) {
+          return {
+            access_token: parsed.access_token,
+            refresh_token: parsed.refresh_token,
+            expires_at: parsed.expires_at,
+            user: parsed.user
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore storage errors
+  }
+  return null
+}
+
+/**
  * Get session with timeout and localStorage fallback
  * Uses shorter timeout for faster response
  */
-async function getSessionWithTimeout(supabase: any, timeoutMs: number = 3000): Promise<any> {
+export async function getSessionWithTimeout(supabase: any, timeoutMs: number = 3000): Promise<any> {
   try {
     return await Promise.race([
       supabase.auth.getSession(),
@@ -78,47 +122,14 @@ async function getSessionWithTimeout(supabase: any, timeoutMs: number = 3000): P
     ]) as Promise<{ data: { session: any }, error: any }>
   } catch (timeoutError: any) {
     // Try localStorage fallback
-    try {
-      // @ts-ignore - process.env is available in Next.js client components
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-      let projectRef = 'default'
-      try {
-        const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
-        if (urlMatch && urlMatch[1]) {
-          projectRef = urlMatch[1]
-        } else {
-          const parts = supabaseUrl.split('//')
-          if (parts[1]) {
-            projectRef = parts[1].split('.')[0]
-          }
-        }
-      } catch (e) {
-        // Use default if extraction fails
+    const storageSession = getSessionFromStorage()
+    if (storageSession) {
+      return {
+        data: {
+          session: storageSession
+        },
+        error: null
       }
-      const storageKey = `sb-${projectRef}-auth-token`
-      
-      const stored = localStorage.getItem(storageKey)
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed?.access_token && parsed?.expires_at) {
-          const expiresAt = parsed.expires_at * 1000
-          if (expiresAt > Date.now()) {
-            return {
-              data: {
-                session: {
-                  access_token: parsed.access_token,
-                  refresh_token: parsed.refresh_token,
-                  expires_at: parsed.expires_at,
-                  user: parsed.user
-                }
-              },
-              error: null
-            }
-          }
-        }
-      }
-    } catch (storageError) {
-      // Ignore storage errors
     }
     throw timeoutError
   }

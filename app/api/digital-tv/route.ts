@@ -1,4 +1,6 @@
+import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getAdminClient } from '@/lib/admin-client'
 import digitalTvData from '@/data/digitalTvData.json'
 import { createFreshResponse, routeConfig } from '@/lib/api-helpers'
 import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
@@ -33,8 +35,9 @@ export async function GET(request: Request) {
 
       if (data && data.length > 0) {
         console.log(`✅ [Digital TV API] Loaded ${data.length} digital TV entries from Supabase`)
-        // Transform snake_case to camelCase
+        // Transform snake_case to camelCase and include id
         let transformedData = data.map((item: any) => ({
+          id: item.id,
           callSign: item.call_sign,
           station: item.station,
           rate: item.rate,
@@ -80,6 +83,151 @@ export async function GET(request: Request) {
     console.log(`⚠️ [Digital TV API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return createFreshResponse(digitalTvData)
+  }
+}
+
+export async function POST(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const body = await request.json()
+    console.log('📝 [Digital TV API] Creating new record:', body)
+
+    // Validate required fields
+    if (!body.station) {
+      return NextResponse.json({ error: 'Station is required' }, { status: 400 })
+    }
+
+    // Transform camelCase to snake_case for database
+    const recordData = {
+      call_sign: body.callSign || null,
+      station: body.station,
+      rate: body.rate || null,
+      tat: body.tat || null,
+      sponsored: body.sponsored || null,
+      indexed: body.indexed || null,
+      segment_length: body.segmentLength || null,
+      location: body.location || null,
+      program_name: body.programName || null,
+      interview_type: body.interviewType || null,
+      example_url: body.exampleUrl || null
+    }
+
+    const { data, error } = await supabase
+      .from('digital_tv')
+      .insert([recordData])
+      .select()
+
+    if (error) {
+      console.error('❌ [Digital TV API] Error creating record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    console.log('✅ [Digital TV API] Record created successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Digital TV API] Error in POST:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const body = await request.json()
+    console.log('📝 [Digital TV API] Updating record:', body)
+
+    if (!body.id) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    }
+
+    // Transform camelCase to snake_case for database
+    const recordData = {
+      call_sign: body.callSign || null,
+      station: body.station,
+      rate: body.rate || null,
+      tat: body.tat || null,
+      sponsored: body.sponsored || null,
+      indexed: body.indexed || null,
+      segment_length: body.segmentLength || null,
+      location: body.location || null,
+      program_name: body.programName || null,
+      interview_type: body.interviewType || null,
+      example_url: body.exampleUrl || null
+    }
+
+    const { data, error } = await supabase
+      .from('digital_tv')
+      .update(recordData)
+      .eq('id', body.id)
+      .select()
+
+    if (error) {
+      console.error('❌ [Digital TV API] Error updating record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    console.log('✅ [Digital TV API] Record updated successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Digital TV API] Error in PUT:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const url = new URL(request.url)
+    const id = url.searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    }
+
+    console.log('🗑️ [Digital TV API] Deleting record with ID:', id)
+
+    // Use admin client to bypass RLS policies for delete operation
+    const adminClient = getAdminClient()
+
+    const { data, error } = await adminClient
+      .from('digital_tv')
+      .delete()
+      .eq('id', id)
+      .select()
+
+    if (error) {
+      console.error('❌ [Digital TV API] Error deleting record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    console.log('✅ [Digital TV API] Record deleted successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Digital TV API] Error in DELETE:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 

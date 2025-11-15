@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminClient, retryWithBackoff } from '@/lib/admin-client'
+import { getPriceAdjustments, applyAdjustmentsToPublications } from '@/lib/price-adjustments'
 
 // Check if user is admin
 async function checkAdmin(request: Request) {
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { isAdmin } = await checkAdmin(request)
+    const { isAdmin, userId } = await checkAdmin(request)
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -100,9 +101,22 @@ export async function POST(request: Request) {
       throw error
     }
 
-    console.log('✅ [Publications API] Record created:', data)
-    console.log('📄 [Publications API] Article preview in saved record:', JSON.stringify(data?.article_preview))
-    return NextResponse.json({ success: true, record: data })
+    // Apply price adjustments to the newly created record
+    let adjustedRecord = data
+    try {
+      const adjustments = await getPriceAdjustments(userId, 'publications')
+      if (adjustments) {
+        adjustedRecord = applyAdjustmentsToPublications([data], adjustments)[0]
+        console.log('✅ [Publications API] Applied price adjustments to new record')
+      }
+    } catch (adjError) {
+      console.warn('⚠️ [Publications API] Error applying price adjustments:', adjError)
+      // Continue without adjustments if there's an error
+    }
+
+    console.log('✅ [Publications API] Record created:', adjustedRecord)
+    console.log('📄 [Publications API] Article preview in saved record:', JSON.stringify(adjustedRecord?.article_preview))
+    return NextResponse.json({ success: true, record: adjustedRecord })
   } catch (error: any) {
     console.error('❌ [Publications API] Error:', error)
     const errorMessage = error.message || 'Failed to create record'

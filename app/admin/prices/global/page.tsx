@@ -112,7 +112,9 @@ export default function GlobalPricesPage() {
       setFormData({ table_name: 'publications', adjustment_percentage: '', exact_amount: '', min_price: '', max_price: '' })
       setAdjustmentType('percentage')
       setShowModal(false)
-      fetchAdjustments()
+      
+      // Immediately refresh the list
+      await fetchAdjustments()
     } catch (err: any) {
       setError(err.message || 'Failed to apply adjustment')
     } finally {
@@ -122,6 +124,13 @@ export default function GlobalPricesPage() {
 
   const handleRemoveAdjustment = async (adjustmentId: string) => {
     if (!confirm('Are you sure you want to remove this adjustment?')) return
+
+    setError('')
+    setSuccess('')
+    
+    // Optimistic update - remove from UI immediately
+    const previousAdjustments = [...adjustments]
+    setAdjustments(prev => prev.filter(adj => adj.id !== adjustmentId))
 
     try {
       const token = await getAuthToken()
@@ -135,11 +144,14 @@ export default function GlobalPricesPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Revert optimistic update on error
+        setAdjustments(previousAdjustments)
         throw new Error(data.error || 'Failed to remove adjustment')
       }
 
       setSuccess('Adjustment removed successfully!')
-      fetchAdjustments()
+      // Refresh to ensure consistency
+      await fetchAdjustments()
     } catch (err: any) {
       setError(err.message || 'Failed to remove adjustment')
     }

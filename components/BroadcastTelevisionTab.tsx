@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useUserId } from '@/hooks/useUserId'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
+import AddBroadcastTVForm from './AddBroadcastTVForm'
 
 interface TableRow {
+  id?: string
   affiliate: string
   calls: string
   state: string
@@ -24,13 +27,35 @@ export default function BroadcastTelevisionTab() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredData, setFilteredData] = useState<TableRow[]>([])
   const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<TableRow | null>(null)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
+  const hasFetchedRef = useRef(false)
+  const lastRefreshTriggerRef = useRef(0)
 
   const userId = useUserId()
+  const isAdmin = useIsAdmin()
   const { refreshTrigger } = useVisibilityChange()
 
   useEffect(() => {
-    let isMounted = true
+    console.log('🔄 [Broadcast TV] useEffect triggered - refreshTrigger:', refreshTrigger)
     
+    // Always fetch on initial load (when hasFetchedRef.current is false)
+    if (!hasFetchedRef.current) {
+      console.log('📥 [Broadcast TV] Initial fetch')
+      hasFetchedRef.current = true
+    } else if (lastRefreshTriggerRef.current === refreshTrigger) {
+      // Prevent duplicate fetches for same refreshTrigger (but allow initial fetch)
+      console.log('⏭️ [Broadcast TV] Skipping fetch - same refreshTrigger')
+      return
+    } else {
+      console.log('📥 [Broadcast TV] Refetch due to visibility change')
+    }
+
+    lastRefreshTriggerRef.current = refreshTrigger
+
     const fetchData = async () => {
       try {
         setIsLoading(true)
@@ -39,8 +64,6 @@ export default function BroadcastTelevisionTab() {
         const response = await authenticatedFetch('/api/broadcast-tv')
         
         console.log('📡 [Broadcast TV] Response status:', response.status, response.ok)
-        
-        if (!isMounted) return
         
         if (!response.ok) {
           let errorData
@@ -51,52 +74,81 @@ export default function BroadcastTelevisionTab() {
           }
           console.error('❌ [Broadcast TV] API error:', response.status, errorData)
           if (response.status === 401) {
-            console.error('❌ [Broadcast TV] Authentication failed - redirecting to login')
-            window.location.href = '/login'
-            return
+            console.error('❌ [Broadcast TV] Authentication failed - checking localStorage...')
+            const { shouldRedirectToLogin } = await import('@/lib/authenticated-fetch')
+            if (shouldRedirectToLogin()) {
+              window.location.href = '/login'
+              return
+            } else {
+              console.log('✅ [Broadcast TV] Valid localStorage session, continuing...')
+              // Set empty data and stop loading
+              setTableData([])
+              setFilteredData([])
+              setIsLoading(false)
+              return
+            }
           }
           throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
         }
         
         const responseData = await response.json()
         console.log('✅ [Broadcast TV] Data received:', responseData)
-        
-        if (!isMounted) return
+        console.log('✅ [Broadcast TV] Response data type:', typeof responseData)
+        console.log('✅ [Broadcast TV] Response has data property:', 'data' in responseData)
         
         // Handle new response format with data and priceAdjustments
         let data = responseData
         if (responseData && typeof responseData === 'object' && 'data' in responseData) {
           data = responseData.data
           setPriceAdjustments(responseData.priceAdjustments)
+          console.log('✅ [Broadcast TV] Extracted data from response.data:', data)
+          console.log('✅ [Broadcast TV] Data is array:', Array.isArray(data))
+          console.log('✅ [Broadcast TV] Data length:', data?.length)
+        } else {
+          console.log('✅ [Broadcast TV] Using responseData directly:', data)
+          console.log('✅ [Broadcast TV] Direct data is array:', Array.isArray(data))
+          console.log('✅ [Broadcast TV] Direct data length:', data?.length)
         }
         
         if (Array.isArray(data)) {
+          console.log('✅ [Broadcast TV] Setting tableData with', data.length, 'items')
           setTableData(data)
           setFilteredData(data)
+          setIsLoading(false)
+          console.log('✅ [Broadcast TV] State updated - tableData length:', data.length, 'isLoading set to false')
         } else {
           console.warn('⚠️ [Broadcast TV] Unexpected data format:', data)
           setTableData([])
           setFilteredData([])
+          setIsLoading(false)
         }
       } catch (error: any) {
         console.error('❌ [Broadcast TV] Error fetching data:', error)
         console.error('   Error details:', error.message)
-        if (isMounted) {
+        // Try to load fallback data from JSON file
+        try {
+          console.log('🔄 [Broadcast TV] Loading fallback data from JSON...')
+          const fallbackData = await import('@/data/tableData.json')
+          if (fallbackData.default && Array.isArray(fallbackData.default)) {
+            console.log('✅ [Broadcast TV] Loaded fallback data:', fallbackData.default.length, 'items')
+            setTableData(fallbackData.default)
+            setFilteredData(fallbackData.default)
+            setIsLoading(false)
+          } else {
+            setTableData([])
+            setFilteredData([])
+            setIsLoading(false)
+          }
+        } catch (fallbackError) {
+          console.error('❌ [Broadcast TV] Error loading fallback data:', fallbackError)
           setTableData([])
           setFilteredData([])
-        }
-      } finally {
-        if (isMounted) {
           setIsLoading(false)
         }
       }
     }
 
     fetchData()
-    
-    return () => {
-      isMounted = false
-    }
   }, [refreshTrigger]) // Re-fetch when tab becomes visible
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +163,143 @@ export default function BroadcastTelevisionTab() {
     setFilteredData(filtered)
   }
 
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError('')
+        setSuccess('')
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [error, success])
+
+  const refreshData = async () => {
+    try {
+      console.log('🔄 [Broadcast TV] Refreshing data...')
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/broadcast-tv')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to refresh data: ${response.status}`)
+      }
+      
+      const responseData = await response.json()
+      let data = responseData
+      if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+        data = responseData.data
+        setPriceAdjustments(responseData.priceAdjustments)
+      }
+      
+      if (Array.isArray(data)) {
+        setTableData(data)
+        setFilteredData(data.filter(
+          (row) =>
+            row.affiliate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            row.calls.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            row.market.toLowerCase().includes(searchTerm.toLowerCase())
+        ))
+      }
+    } catch (error: any) {
+      console.error('❌ [Broadcast TV] Error refreshing data:', error)
+      setError('Failed to refresh data')
+    }
+  }
+
+  const handleAddRecord = async (formData: any) => {
+    try {
+      console.log('➕ [Broadcast TV] Adding new record:', formData)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/broadcast-tv', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add record')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Broadcast TV] Record added successfully:', result)
+      
+      setSuccess('Record added successfully!')
+      setShowAddModal(false)
+      await refreshData()
+    } catch (error: any) {
+      console.error('❌ [Broadcast TV] Error adding record:', error)
+      setError(error.message || 'Failed to add record')
+    }
+  }
+
+  const handleEditRecord = async (formData: any) => {
+    if (!editingRecord?.id) {
+      setError('No record selected for editing')
+      return
+    }
+
+    try {
+      console.log('✏️ [Broadcast TV] Updating record:', formData)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch('/api/broadcast-tv', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...formData, id: editingRecord.id }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update record')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Broadcast TV] Record updated successfully:', result)
+      
+      setSuccess('Record updated successfully!')
+      setEditingRecord(null)
+      await refreshData()
+    } catch (error: any) {
+      console.error('❌ [Broadcast TV] Error updating record:', error)
+      setError(error.message || 'Failed to update record')
+    }
+  }
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (!confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setDeletingRecordId(recordId)
+      console.log('🗑️ [Broadcast TV] Deleting record:', recordId)
+      const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      const response = await authenticatedFetch(`/api/broadcast-tv?id=${recordId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete record')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Broadcast TV] Record deleted successfully:', result)
+      
+      setSuccess('Record deleted successfully!')
+      await refreshData()
+    } catch (error: any) {
+      console.error('❌ [Broadcast TV] Error deleting record:', error)
+      setError(error.message || 'Failed to delete record')
+    } finally {
+      setDeletingRecordId(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="opacity-100">
@@ -121,8 +310,39 @@ export default function BroadcastTelevisionTab() {
     )
   }
 
+  // Debug: Show current state
+  console.log('🔍 [Broadcast TV] RENDER - Current state:', {
+    isLoading,
+    tableDataLength: tableData.length,
+    filteredDataLength: filteredData.length,
+    refreshTrigger,
+    hasData: tableData.length > 0,
+    shouldShowTable: !isLoading && filteredData.length > 0
+  })
+  
+  // Additional debug for render decision
+  if (isLoading) {
+    console.log('🔍 [Broadcast TV] RENDER - Showing loading state')
+  } else if (filteredData.length === 0) {
+    console.log('🔍 [Broadcast TV] RENDER - Showing no data message')
+  } else {
+    console.log('🔍 [Broadcast TV] RENDER - Showing table with', filteredData.length, 'items')
+  }
+
   return (
     <div className="opacity-100">
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
         <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px]">
           <div className="sticky space-y-2 top-5">
@@ -136,6 +356,19 @@ export default function BroadcastTelevisionTab() {
                 onChange={handleSearch}
               />
             </div>
+            
+            {/* Admin Controls */}
+            {isAdmin && (
+              <div className="pt-4 border-t space-y-2">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  Add New Record
+                </button>
+              </div>
+            )}
+            
           </div>
           <ul className="text-sm text-gray-800 space-y-1">
             <li>Turn Around Time: 2-4 Weeks</li>
@@ -147,6 +380,7 @@ export default function BroadcastTelevisionTab() {
           <p className="font-body text-sm mb-1">
             Showing {filteredData.length} of {tableData.length} TVs
           </p>
+
           <div className="overflow-x-scroll lg:overflow-visible relative">
             <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white">
               <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
@@ -182,10 +416,22 @@ export default function BroadcastTelevisionTab() {
                       )}
                     </div>
                   </th>
+                  {isAdmin && (
+                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                      <div className="flex justify-center">Actions</div>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredData.map((row, index) => (
+                {filteredData.length === 0 && !isLoading ? (
+                  <tr>
+                    <td colSpan={isAdmin ? 9 : 8} className="text-center py-8 text-gray-500">
+                      No broadcast TV data available
+                    </td>
+                  </tr>
+                ) : (
+                  filteredData.map((row, index) => (
                   <tr key={index} className="text-sm">
                     <td className="py-2 px-2">
                       <div className="flex items-center space-x-3">
@@ -253,32 +499,69 @@ export default function BroadcastTelevisionTab() {
                       </span>
                     </td>
                     <td className="text-center border-l border-r">{row.time}</td>
-                    <td className="text-center border-l border-r w-8">
-                      <button className="inline-flex items-center justify-center" data-state="closed">
-                        <svg
-                          width="15"
-                          height="15"
-                          viewBox="0 0 15 15"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z"
-                            fill="currentColor"
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
+                    <td className="text-center border-l border-r">
+                      {isPriceAdjusted(row.rate, priceAdjustments) ? (
+                        <span className="relative group">
+                          <span className="text-blue-600 font-medium">{row.rate || 'N/A'}</span>
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            {getAdjustmentInfo(priceAdjustments)}
+                          </span>
+                        </span>
+                      ) : (
+                        row.rate || 'N/A'
+                      )}
                     </td>
-                    <td className="text-center border-l border-r">{row.rate || 'N/A'}</td>
+                    {isAdmin && (
+                      <td className="text-center border-l border-r py-2 px-2">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => setEditingRecord(row)}
+                            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                            title="Edit record"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => row.id && handleDeleteRecord(row.id)}
+                            disabled={deletingRecordId === row.id || !row.id}
+                            className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete record"
+                          >
+                            {deletingRecordId === row.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
         </section>
       </div>
+
+      {/* Add Record Modal */}
+      {showAddModal && (
+        <AddBroadcastTVForm
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleAddRecord}
+          error={error}
+          success={success}
+        />
+      )}
+
+      {/* Edit Record Modal */}
+      {editingRecord && (
+        <AddBroadcastTVForm
+          onClose={() => setEditingRecord(null)}
+          onSubmit={handleEditRecord}
+          error={error}
+          success={success}
+          initialData={editingRecord}
+          isEditMode={true}
+        />
+      )}
     </div>
   )
 }

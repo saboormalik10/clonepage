@@ -6,7 +6,7 @@ import Header from '@/components/Header'
 import PricingTabs from '@/components/PricingTabs'
 import BroadcastMessagePopup from '@/components/BroadcastMessagePopup'
 import { createClient } from '@/lib/supabase-client'
-import { refreshSession, hasValidSession } from '@/lib/session-refresh'
+import { refreshSession, hasValidSession, getSessionWithTimeout } from '@/lib/session-refresh'
 
 export default function Home() {
   const router = useRouter()
@@ -18,7 +18,84 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        // First try localStorage (instant, synchronous)
+        const getSessionFromStorage = (): any => {
+          try {
+            // @ts-ignore - process.env is available in Next.js client components
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+            let projectRef = 'default'
+            try {
+              const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+              if (urlMatch && urlMatch[1]) {
+                projectRef = urlMatch[1]
+              } else {
+                const parts = supabaseUrl.split('//')
+                if (parts[1]) {
+                  projectRef = parts[1].split('.')[0]
+                }
+              }
+            } catch (e) {
+              // Use default if extraction fails
+            }
+            const storageKey = `sb-${projectRef}-auth-token`
+            
+            const stored = localStorage.getItem(storageKey)
+            if (stored) {
+              const parsed = JSON.parse(stored)
+              if (parsed?.access_token && parsed?.expires_at) {
+                const expiresAt = parsed.expires_at * 1000
+                if (expiresAt > Date.now()) {
+                  return {
+                    access_token: parsed.access_token,
+                    refresh_token: parsed.refresh_token,
+                    expires_at: parsed.expires_at,
+                    user: parsed.user
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Ignore storage errors
+          }
+          return null
+        }
+
+        // Try localStorage first
+        const storageSession = getSessionFromStorage()
+        let session = storageSession
+
+        // If we got session from localStorage, set it in Supabase client
+        if (session) {
+          try {
+            // Set session with timeout to prevent blocking
+            await Promise.race([
+              supabase.auth.setSession({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token
+              }),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('setSession timeout')), 2000)
+              )
+            ])
+          } catch (setSessionError: any) {
+            // If setting session fails or times out, continue with the session we have
+            // The Supabase client should still work with localStorage
+            if (!setSessionError?.message?.includes('timeout')) {
+              console.warn('Failed to set session in Supabase client:', setSessionError)
+            }
+          }
+        }
+
+        // If no localStorage session, fallback to session API with timeout
+        if (!session) {
+          const { data: { session: apiSession }, error } = await getSessionWithTimeout(supabase, 3000)
+          if (error && !error.message?.includes('timeout')) {
+            console.error('Auth check error:', error)
+            router.push('/login')
+            return
+          }
+          session = apiSession
+        }
         
         if (!session) {
           router.push('/login')
@@ -28,9 +105,60 @@ export default function Home() {
         setUser(session.user)
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
           if (!session) {
-            router.push('/login')
+            // Before redirecting, check if we have a valid session in localStorage
+            const getSessionFromStorage = (): any => {
+              try {
+                // @ts-ignore - process.env is available in Next.js client components
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+                let projectRef = 'default'
+                try {
+                  const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+                  if (urlMatch && urlMatch[1]) {
+                    projectRef = urlMatch[1]
+                  } else {
+                    const parts = supabaseUrl.split('//')
+                    if (parts[1]) {
+                      projectRef = parts[1].split('.')[0]
+                    }
+                  }
+                } catch (e) {
+                  // Use default if extraction fails
+                }
+                const storageKey = `sb-${projectRef}-auth-token`
+                
+                const stored = localStorage.getItem(storageKey)
+                if (stored) {
+                  const parsed = JSON.parse(stored)
+                  if (parsed?.access_token && parsed?.expires_at) {
+                    const expiresAt = parsed.expires_at * 1000
+                    if (expiresAt > Date.now()) {
+                      return {
+                        access_token: parsed.access_token,
+                        refresh_token: parsed.refresh_token,
+                        expires_at: parsed.expires_at,
+                        user: parsed.user
+                      }
+                    }
+                  }
+                }
+              } catch (error) {
+                // Ignore storage errors
+              }
+              return null
+            }
+
+            const storageSession = getSessionFromStorage()
+            if (storageSession) {
+              // We have a valid localStorage session, don't redirect
+              console.log('✅ [Page] Auth state changed but localStorage session is valid')
+              setUser(storageSession.user)
+            } else {
+              // No valid localStorage session, redirect to login
+              console.log('⚠️ [Page] No valid session found, redirecting to login')
+              router.push('/login')
+            }
           } else {
             setUser(session.user)
           }
@@ -48,64 +176,90 @@ export default function Home() {
     checkAuth()
   }, [router, supabase])
 
-  // Handle visibility change - refresh session when tab becomes visible again
+  // Handle visibility change - check localStorage first, no redirects on timeout
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      // Only refresh when tab becomes visible (not when it becomes hidden)
+      // Only check when tab becomes visible (not when it becomes hidden)
       if (document.visibilityState === 'visible') {
         console.log('👁️ [Page] Tab became visible, checking session...')
         
-        // Check if we have a valid session
-        const hasSession = await hasValidSession()
-        
-        if (!hasSession) {
-          console.warn('⚠️ [Page] No valid session when tab became visible, redirecting to login')
-          router.push('/login')
+        // First check localStorage (instant, no timeout)
+        const getSessionFromStorage = (): any => {
+          try {
+            // @ts-ignore - process.env is available in Next.js client components
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+            let projectRef = 'default'
+            try {
+              const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+              if (urlMatch && urlMatch[1]) {
+                projectRef = urlMatch[1]
+              } else {
+                const parts = supabaseUrl.split('//')
+                if (parts[1]) {
+                  projectRef = parts[1].split('.')[0]
+                }
+              }
+            } catch (e) {
+              // Use default if extraction fails
+            }
+            const storageKey = `sb-${projectRef}-auth-token`
+            
+            const stored = localStorage.getItem(storageKey)
+            if (stored) {
+              const parsed = JSON.parse(stored)
+              if (parsed?.access_token && parsed?.expires_at) {
+                const expiresAt = parsed.expires_at * 1000
+                if (expiresAt > Date.now()) {
+                  return {
+                    access_token: parsed.access_token,
+                    refresh_token: parsed.refresh_token,
+                    expires_at: parsed.expires_at,
+                    user: parsed.user
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Ignore storage errors
+          }
+          return null
+        }
+
+        const storageSession = getSessionFromStorage()
+        if (storageSession) {
+          console.log('✅ [Page] Valid session found in localStorage')
+          // Update user state if needed
+          if (!user || user.id !== storageSession.user?.id) {
+            setUser(storageSession.user)
+          }
           return
         }
-        
-        // Refresh session to ensure it's up to date
-        const refreshed = await refreshSession()
-        
-        if (!refreshed) {
-          console.warn('⚠️ [Page] Failed to refresh session when tab became visible')
-          // Don't redirect immediately - let the auth state change handler deal with it
-        } else {
-          console.log('✅ [Page] Session refreshed after tab became visible')
+
+        // Only if no localStorage session, try API (but don't redirect on timeout)
+        try {
+          const { data: { session }, error } = await getSessionWithTimeout(supabase, 3000)
+          if (session?.access_token) {
+            console.log('✅ [Page] Valid session found via API')
+            setUser(session.user)
+          } else if (!error?.message?.includes('timeout')) {
+            // Only redirect if there's a real error (not timeout)
+            console.warn('⚠️ [Page] No valid session found, redirecting to login')
+            router.push('/login')
+          }
+        } catch (error) {
+          // Don't redirect on errors - user might still have valid localStorage session
+          console.log('⚠️ [Page] Session check failed, but continuing (localStorage might be valid)')
         }
       }
     }
 
-    // Listen for visibility changes
+    // Listen for visibility changes only (focus events are too aggressive)
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    
-    // Also listen for focus events as a backup
-    const handleFocus = async () => {
-      console.log('👁️ [Page] Window focused, checking session...')
-      // Don't redirect immediately on timeout - try to refresh first
-      const refreshed = await refreshSession()
-      
-      if (!refreshed) {
-        // Only check and redirect if refresh completely failed (not just timeout)
-        const hasSession = await hasValidSession()
-        
-        if (!hasSession) {
-          console.warn('⚠️ [Page] No valid session when window focused, redirecting to login')
-          router.push('/login')
-          return
-        } else {
-          console.log('✅ [Page] Session exists, continuing...')
-        }
-      }
-    }
-    
-    window.addEventListener('focus', handleFocus)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
     }
-  }, [router])
+  }, [router, supabase]) // Removed 'user' dependency as it's not used in the effect
 
   if (loading) {
     return (

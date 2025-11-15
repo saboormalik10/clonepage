@@ -139,8 +139,12 @@ function AddBestSellerForm({ onClose, onSubmit, error, success, initialData, isE
       }
 
       // Parse niches from comma-separated string to boolean flags
+      // Format: "Health: $75, Crypto: $100" -> extract niche names before the colon
       const nichesString = initialData.niches || ''
-      const nichesArray = nichesString.split(', ').map((n: string) => n.trim())
+      const nichesArray = nichesString.split(', ').map((n: string) => {
+        const colonIndex = n.indexOf(':')
+        return colonIndex > -1 ? n.substring(0, colonIndex).trim() : n.trim()
+      })
       
       return {
         name: initialData.publication || '',
@@ -230,8 +234,12 @@ function AddBestSellerForm({ onClose, onSubmit, error, success, initialData, isE
       }
 
       // Parse niches from comma-separated string to boolean flags
+      // Format: "Health: $75, Crypto: $100" -> extract niche names before the colon
       const nichesString = initialData.niches || ''
-      const nichesArray = nichesString.split(', ').map((n: string) => n.trim())
+      const nichesArray = nichesString.split(', ').map((n: string) => {
+        const colonIndex = n.indexOf(':')
+        return colonIndex > -1 ? n.substring(0, colonIndex).trim() : n.trim()
+      })
 
       const newFormData: FormData = {
         name: initialData.publication || '',

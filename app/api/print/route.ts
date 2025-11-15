@@ -29,8 +29,9 @@ export async function GET(request: Request) {
 
       if (data && data.length > 0) {
         console.log(`✅ [Print API] Loaded ${data.length} print categories from Supabase`)
-        // Transform to match expected format
+        // Transform to match expected format and include id
         let transformedData = data.map((item: any) => ({
+          id: item.id,
           category: item.category,
           magazines: item.magazines || []
         }))
@@ -67,6 +68,55 @@ export async function GET(request: Request) {
     console.log(`⚠️ [Print API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return NextResponse.json(printData)
+  }
+}
+
+export async function PUT(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const body = await request.json()
+    console.log('📝 [Print API] Updating record:', body)
+
+    if (!body.id) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    }
+
+    // Validate required fields
+    if (!body.category) {
+      return NextResponse.json({ error: 'Category is required' }, { status: 400 })
+    }
+
+    // Transform data for database
+    const recordData = {
+      category: body.category,
+      magazines: body.magazines || []
+    }
+
+    const { data, error } = await supabase
+      .from('print')
+      .update(recordData)
+      .eq('id', body.id)
+      .select()
+
+    if (error) {
+      console.error('❌ [Print API] Error updating record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    console.log('✅ [Print API] Record updated successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Print API] Error in PUT:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 

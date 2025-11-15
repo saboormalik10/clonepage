@@ -57,9 +57,15 @@ export default function BestSellersTab() {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('❌ [Best Sellers] API error:', response.status, errorData)
         if (response.status === 401) {
-          console.error('❌ [Best Sellers] Authentication failed - redirecting to login')
-          window.location.href = '/login'
-          return
+          console.error('❌ [Best Sellers] Authentication failed - checking localStorage...')
+          const { shouldRedirectToLogin } = await import('@/lib/authenticated-fetch')
+          if (shouldRedirectToLogin()) {
+            window.location.href = '/login'
+            return
+          } else {
+            console.log('✅ [Best Sellers] Valid localStorage session, continuing...')
+            return // Don't throw error, just return
+          }
         }
         throw new Error(`API error: ${response.status}`)
       }

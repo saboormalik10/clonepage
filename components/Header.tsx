@@ -4,32 +4,80 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { clearSessionCache } from '@/lib/authenticated-fetch'
 import { useEffect, useState, useMemo } from 'react'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 export default function Header() {
   const router = useRouter()
   // Use useMemo to ensure we get the same client instance
   const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<any>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const isAdmin = useIsAdmin() // Use AdminContext instead of local state
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   useEffect(() => {
-    // Check if user is logged in and if they are admin
+    // Check if user is logged in - try localStorage first, then API
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user || null)
-      
-      // Check if user is admin
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-        
-        setIsAdmin(profile?.role === 'admin')
-      } else {
-        setIsAdmin(false)
+      // First try localStorage (instant, synchronous)
+      const getSessionFromStorage = (): any => {
+        try {
+          // @ts-ignore - process.env is available in Next.js client components
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+          let projectRef = 'default'
+          try {
+            const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+            if (urlMatch && urlMatch[1]) {
+              projectRef = urlMatch[1]
+            } else {
+              const parts = supabaseUrl.split('//')
+              if (parts[1]) {
+                projectRef = parts[1].split('.')[0]
+              }
+            }
+          } catch (e) {
+            // Use default if extraction fails
+          }
+          const storageKey = `sb-${projectRef}-auth-token`
+          
+          const stored = localStorage.getItem(storageKey)
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (parsed?.access_token && parsed?.expires_at) {
+              const expiresAt = parsed.expires_at * 1000
+              if (expiresAt > Date.now()) {
+                return {
+                  access_token: parsed.access_token,
+                  refresh_token: parsed.refresh_token,
+                  expires_at: parsed.expires_at,
+                  user: parsed.user
+                }
+              }
+            }
+          }
+        } catch (error) {
+          // Ignore storage errors
+        }
+        return null
+      }
+
+      // Try localStorage first
+      const storageSession = getSessionFromStorage()
+      if (storageSession) {
+        setUser(storageSession.user || null)
+        return
+      }
+
+      // Fallback to API with timeout
+      try {
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<{ data: { session: null } }>((_, reject) => 
+            setTimeout(() => reject(new Error('Session timeout')), 3000)
+          )
+        ])
+        setUser(session?.user || null)
+      } catch (error) {
+        // On timeout or error, user stays null
+        setUser(null)
       }
     }
 
@@ -38,18 +86,6 @@ export default function Header() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user || null)
-      
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-        
-        setIsAdmin(profile?.role === 'admin')
-      } else {
-        setIsAdmin(false)
-      }
     })
 
     return () => subscription.unsubscribe()
@@ -98,7 +134,6 @@ export default function Header() {
     
     // Clear local user state immediately
     setUser(null)
-    setIsAdmin(false)
     
     // Redirect to login page IMMEDIATELY (don't wait for signOut)
     window.location.href = '/login'
