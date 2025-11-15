@@ -36,8 +36,10 @@ export default function BestSellersTab() {
   const [hoveredNicheIcon, setHoveredNicheIcon] = useState<{index: number, niche: string} | null>(null)
   const [priceAdjustments, setPriceAdjustments] = useState<any>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<BestSeller | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
 
   const userId = useUserId()
   const isAdmin = useIsAdmin()
@@ -93,9 +95,77 @@ export default function BestSellersTab() {
     fetchData()
   }, [fetchData, refreshTrigger]) // Re-fetch when tab becomes visible
 
-  const getAuthToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token || ''
+  const getAuthToken = () => {
+    try {
+      // Get Supabase project ref from URL
+      // @ts-ignore - process.env is available in Next.js client components
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      let projectRef = 'default'
+      try {
+        const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+        if (urlMatch && urlMatch[1]) {
+          projectRef = urlMatch[1]
+        } else {
+          const parts = supabaseUrl.split('//')
+          if (parts[1]) {
+            projectRef = parts[1].split('.')[0]
+          }
+        }
+      } catch (e) {
+        // Use default if extraction fails
+      }
+      
+      const storageKey = `sb-${projectRef}-auth-token`
+      const stored = localStorage.getItem(storageKey)
+      
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed?.access_token && parsed?.expires_at) {
+          const expiresAt = parsed.expires_at * 1000
+          const now = Date.now()
+          if (expiresAt > now) {
+            return parsed.access_token
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting token from localStorage:', error)
+    }
+    return ''
+  }
+
+  // Transform API response (snake_case) to BestSeller format (camelCase)
+  const transformApiRecordToBestSeller = (apiRecord: any): BestSeller => {
+    // Parse image if it's a stringified JSON
+    let image = apiRecord.image
+    if (typeof image === 'string') {
+      try {
+        const parsed = JSON.parse(image)
+        if (parsed && typeof parsed === 'object') {
+          image = parsed
+        }
+      } catch (e) {
+        // If parsing fails, keep as string
+      }
+    }
+
+    return {
+      id: apiRecord.id,
+      publication: apiRecord.publication,
+      image: image,
+      genres: apiRecord.genres || '',
+      price: apiRecord.price || '',
+      da: apiRecord.da || '',
+      dr: apiRecord.dr || '',
+      tat: apiRecord.tat || '',
+      region: apiRecord.region || '',
+      sponsored: apiRecord.sponsored || '',
+      indexed: apiRecord.indexed || '',
+      dofollow: apiRecord.dofollow || '',
+      exampleUrl: apiRecord.example_url || '',
+      hasImage: apiRecord.has_image || '',
+      niches: apiRecord.niches || '',
+    }
   }
 
   const handleCreateRecord = useCallback(async (formData: any) => {
@@ -124,23 +194,28 @@ export default function BestSellersTab() {
       // Use logo as image
       const imageValue = formData.logo || null
 
-      // Convert niches from boolean checkboxes to text format
-      // Format: "Health, Crypto" (just the names, no prices)
+      // Convert niches from boolean checkboxes to text format with default price
+      // Format: "Health: $75, Crypto: $100" (with prices from defaultPrice)
+      // Get the first price from defaultPrice array, or use 0 as fallback
+      const basePrice = formData.defaultPrice && formData.defaultPrice.length > 0 
+        ? formData.defaultPrice[0] 
+        : 0
+      
       const nichesArray: string[] = []
       if (formData.health) {
-        nichesArray.push('Health')
+        nichesArray.push(`Health: $${basePrice.toLocaleString()}`)
       }
       if (formData.cbd) {
-        nichesArray.push('CBD')
+        nichesArray.push(`CBD: $${basePrice.toLocaleString()}`)
       }
       if (formData.crypto) {
-        nichesArray.push('Crypto')
+        nichesArray.push(`Crypto: $${basePrice.toLocaleString()}`)
       }
       if (formData.gambling) {
-        nichesArray.push('Gambling')
+        nichesArray.push(`Gambling: $${basePrice.toLocaleString()}`)
       }
       if (formData.erotic) {
-        nichesArray.push('Erotic')
+        nichesArray.push(`Erotic: $${basePrice.toLocaleString()}`)
       }
       const nichesString = nichesArray.length > 0 ? nichesArray.join(', ') : null
 
@@ -190,7 +265,7 @@ export default function BestSellersTab() {
         transformedData.image = null
       }
 
-      const token = await getAuthToken()
+      const token = getAuthToken()
       console.log('📤 Sending data to API:', transformedData)
       
       const response = await fetch('/api/admin/records/best-sellers', {
@@ -210,9 +285,27 @@ export default function BestSellersTab() {
         throw new Error(data.error || 'Failed to create record')
       }
 
+      if (!data.success && !data.record) {
+        console.error('❌ Unexpected response format:', data)
+        throw new Error('Unexpected response from server')
+      }
+
+      // Transform API response to BestSeller format and add to state
+      const newBestSeller = transformApiRecordToBestSeller(data.record)
+      
+      // Add new record to bestSellersData
+      setBestSellersData(prev => [...prev, newBestSeller])
+      
+      // Update filtered data if it matches the search term
+      const term = searchTerm.toLowerCase()
+      if (!term || 
+          newBestSeller.publication.toLowerCase().includes(term) ||
+          newBestSeller.genres.toLowerCase().includes(term) ||
+          newBestSeller.region.toLowerCase().includes(term)) {
+        setFilteredData(prev => [...prev, newBestSeller])
+      }
+      
       setSuccess('Record created successfully!')
-      // Refresh data without reloading page
-      await fetchData()
       // Close modal and clear messages after a short delay
       setTimeout(() => {
         setShowAddModal(false)
@@ -223,7 +316,154 @@ export default function BestSellersTab() {
       console.error('Error creating record:', err)
       setError(err.message || 'Failed to create record')
     }
-  }, [supabase, fetchData])
+  }, [searchTerm])
+
+  const handleUpdateRecord = useCallback(async (formData: any) => {
+    if (!editingRecord || !editingRecord.id) return
+
+    setError('')
+    setSuccess('')
+
+    try {
+      // Transform data from publications-style form to best_sellers table schema
+      const genresString = formData.genres && formData.genres.length > 0
+        ? formData.genres.map((g: any) => g.name).filter(Boolean).join(', ')
+        : null
+
+      const regionsString = formData.regions && formData.regions.length > 0
+        ? formData.regions.map((r: any) => r.name).filter(Boolean).join(', ')
+        : null
+
+      // Convert price arrays to text format
+      let priceString: string | null = null
+      if (formData.defaultPrice && formData.defaultPrice.length > 0) {
+        priceString = formData.defaultPrice.map((p: number) => `$${p}`).join(', ')
+      }
+
+      // Use logo as image
+      const imageValue = formData.logo || null
+
+      // Convert niches from boolean checkboxes to text format with default price
+      // Format: "Health: $75, Crypto: $100" (with prices from defaultPrice)
+      // Get the first price from defaultPrice array, or use 0 as fallback
+      const basePrice = formData.defaultPrice && formData.defaultPrice.length > 0 
+        ? formData.defaultPrice[0] 
+        : 0
+      
+      const nichesArray: string[] = []
+      if (formData.health) {
+        nichesArray.push(`Health: $${basePrice.toLocaleString()}`)
+      }
+      if (formData.cbd) {
+        nichesArray.push(`CBD: $${basePrice.toLocaleString()}`)
+      }
+      if (formData.crypto) {
+        nichesArray.push(`Crypto: $${basePrice.toLocaleString()}`)
+      }
+      if (formData.gambling) {
+        nichesArray.push(`Gambling: $${basePrice.toLocaleString()}`)
+      }
+      if (formData.erotic) {
+        nichesArray.push(`Erotic: $${basePrice.toLocaleString()}`)
+      }
+      const nichesString = nichesArray.length > 0 ? nichesArray.join(', ') : null
+
+      // Transform data for Supabase (snake_case)
+      const transformedData: any = {
+        id: editingRecord.id, // Keep existing id
+        publication: formData.name?.trim() || null,
+        image: imageValue,
+        genres: genresString,
+        price: priceString,
+        da: formData.domain_authority != null ? String(formData.domain_authority) : null,
+        dr: formData.domain_rating != null ? String(formData.domain_rating) : null,
+        tat: formData.estimated_time?.trim() || null,
+        region: regionsString,
+        sponsored: formData.sponsored?.trim() || null,
+        indexed: formData.indexed?.trim() || null,
+        dofollow: formData.do_follow?.trim() || null,
+        example_url: formData.example_url?.trim() || null,
+        niches: nichesString,
+      }
+
+      // Convert all empty strings, undefined, and falsy values to null
+      Object.keys(transformedData).forEach(key => {
+        const value = transformedData[key]
+        
+        if (key === 'id' || key === 'image') {
+          return
+        }
+        
+        if (value === '') {
+          transformedData[key] = null
+        }
+        
+        if (value === undefined) {
+          transformedData[key] = null
+        }
+        
+        if (Array.isArray(value) && value.length === 0) {
+          transformedData[key] = null
+        }
+      })
+
+      // Ensure image/logo is properly formatted
+      if (transformedData.image && typeof transformedData.image === 'object') {
+        transformedData.image = JSON.stringify(transformedData.image)
+      } else if (!transformedData.image) {
+        transformedData.image = null
+      }
+
+      const token = getAuthToken()
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.')
+      }
+
+      const response = await fetch(`/api/admin/records/best-sellers?id=${editingRecord.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(transformedData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update record')
+      }
+
+      if (!data.success && !data.record) {
+        throw new Error('Unexpected response from server')
+      }
+
+      // Transform API response to BestSeller format and update state
+      const updatedBestSeller = transformApiRecordToBestSeller(data.record)
+      
+      // Update record in bestSellersData
+      setBestSellersData(prev => prev.map(item => 
+        item.id === editingRecord.id ? updatedBestSeller : item
+      ))
+      
+      // Update filtered data as well
+      setFilteredData(prev => prev.map(item => 
+        item.id === editingRecord.id ? updatedBestSeller : item
+      ))
+      
+      setSuccess('Record updated successfully!')
+      setTimeout(() => {
+        setShowAddModal(false)
+        setEditingRecord(null)
+        setSuccess('')
+        setError('')
+      }, 1500)
+    } catch (err: any) {
+      console.error('❌ Error updating record:', err)
+      setError(err.message || 'Failed to update record')
+    }
+  }, [editingRecord])
 
   const handleDeleteRecord = useCallback(async (recordId: string) => {
     if (!recordId) {
@@ -235,11 +475,12 @@ export default function BestSellersTab() {
     if (!confirm('Are you sure you want to delete this record?')) return
 
     try {
+      setDeletingRecordId(recordId)
       setError('')
       setSuccess('')
       
       console.log('🗑️ Deleting best seller with ID:', recordId)
-      const token = await getAuthToken()
+      const token = getAuthToken()
       const response = await fetch(`/api/admin/records/best-sellers?id=${recordId}`, {
         method: 'DELETE',
         headers: {
@@ -247,18 +488,19 @@ export default function BestSellersTab() {
         }
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const data = await response.json()
         console.error('❌ Delete failed:', data)
         throw new Error(data.error || 'Failed to delete record')
       }
 
+      // Remove record from state instead of refetching
+      setBestSellersData(prev => prev.filter(item => item.id !== recordId))
+      setFilteredData(prev => prev.filter(item => item.id !== recordId))
+      
       console.log('✅ Record deleted successfully')
       setSuccess('Record deleted successfully!')
-      // Refresh data without reloading page
-      console.log('🔄 Refreshing data after delete...')
-      await fetchData()
-      console.log('✅ Data refreshed after delete')
       // Clear messages after a short delay
       setTimeout(() => {
         setSuccess('')
@@ -267,8 +509,10 @@ export default function BestSellersTab() {
     } catch (err: any) {
       console.error('❌ Error deleting record:', err)
       setError(err.message || 'Failed to delete record')
+    } finally {
+      setDeletingRecordId(null)
     }
-  }, [fetchData])
+  }, [])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase()
@@ -301,27 +545,49 @@ export default function BestSellersTab() {
       'Erotic': { displayName: 'erotic', icon: 'erotic' }
     }
     
-    // Parse string like "Health: $75, CBD: $75, Crypto: $75"
+    // Parse string - handle both formats:
+    // With prices: "Health: $75, CBD: $75, Crypto: $75"
+    // Without prices: "Health, CBD, Crypto"
     const parts = nichesString.split(', ')
+    const acceptedNiches: string[] = []
+    
     parts.forEach(part => {
-      const [nicheName, priceStr] = part.split(': ')
-      if (nicheName && priceStr) {
+      if (part.includes(': ')) {
+        // Format with price: "Health: $75"
+        const [nicheName, priceStr] = part.split(': ')
+        if (nicheName && priceStr) {
+          const nicheInfo = nicheMap[nicheName]
+          if (nicheInfo) {
+            nicheData.push({
+              name: nicheName,
+              displayName: nicheInfo.displayName,
+              icon: nicheInfo.icon,
+              price: priceStr,
+              accepted: true
+            })
+            acceptedNiches.push(nicheName)
+          }
+        }
+      } else {
+        // Format without price: "Health"
+        const nicheName = part.trim()
         const nicheInfo = nicheMap[nicheName]
         if (nicheInfo) {
           nicheData.push({
             name: nicheName,
             displayName: nicheInfo.displayName,
             icon: nicheInfo.icon,
-            price: priceStr,
+            price: null,
             accepted: true
           })
+          acceptedNiches.push(nicheName)
         }
       }
     })
     
     // Add non-accepted niches (those not in the string)
     Object.keys(nicheMap).forEach(nicheName => {
-      if (!nicheData.find(n => n.name === nicheName)) {
+      if (!acceptedNiches.includes(nicheName)) {
         nicheData.push({
           name: nicheName,
           displayName: nicheMap[nicheName].displayName,
@@ -581,7 +847,10 @@ export default function BestSellersTab() {
             </p>
             {isAdmin && (
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setEditingRecord(null)
+                  setShowAddModal(true)
+                }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Add Best Seller
@@ -956,20 +1225,44 @@ export default function BestSellersTab() {
                     </td>
                     {isAdmin && (
                       <td className="text-center border-l border-r">
-                        <button
-                          onClick={() => {
-                            if (item.id) {
-                              handleDeleteRecord(item.id)
-                            } else {
-                              console.error('❌ Best seller missing ID:', item)
-                              setError('Cannot delete: Record ID is missing')
-                            }
-                          }}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          disabled={!item.id}
-                        >
-                          Remove
-                        </button>
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => {
+                              setEditingRecord(item)
+                              setShowAddModal(true)
+                            }}
+                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (item.id) {
+                                handleDeleteRecord(item.id)
+                              } else {
+                                console.error('❌ Best seller missing ID:', item)
+                                setError('Cannot delete: Record ID is missing')
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[80px]"
+                            disabled={!item.id || deletingRecordId === item.id}
+                          >
+                            {deletingRecordId === item.id ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Removing...</span>
+                              </>
+                            ) : (
+                              'Remove'
+                            )}
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -982,10 +1275,15 @@ export default function BestSellersTab() {
 
       {showAddModal && (
         <AddBestSellerForm
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleCreateRecord}
+          onClose={() => {
+            setShowAddModal(false)
+            setEditingRecord(null)
+          }}
+          onSubmit={editingRecord ? handleUpdateRecord : handleCreateRecord}
           error={error}
           success={success}
+          initialData={editingRecord || undefined}
+          isEditMode={!!editingRecord}
         />
       )}
     </div>

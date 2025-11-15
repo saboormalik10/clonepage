@@ -91,6 +91,43 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { isAdmin } = await checkAdmin(request)
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    }
+
+    const body = await request.json()
+    const adminClient = getAdminClient()
+
+    // Remove id from update body as it shouldn't be updated
+    const { id: _, ...updateData } = body
+
+    const { data, error } = await retryWithBackoff(
+      async () => await adminClient
+        .from('listicles')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+    )
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true, record: data })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { isAdmin } = await checkAdmin(request)
@@ -106,6 +143,7 @@ export async function DELETE(request: Request) {
     }
 
     const adminClient = getAdminClient()
+    // Return the deleted record ID so client can update state without refetching
     const { error } = await retryWithBackoff(
       async () => await adminClient
         .from('listicles')
@@ -115,7 +153,7 @@ export async function DELETE(request: Request) {
 
     if (error) throw error
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, deletedId: id })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

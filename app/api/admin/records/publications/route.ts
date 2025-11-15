@@ -115,6 +115,61 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { isAdmin } = await checkAdmin(request)
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    }
+
+    const body = await request.json()
+    console.log('📥 [Publications API] Update data:', JSON.stringify(body, null, 2))
+    
+    // Validate required fields
+    if (!body.name || body.name.trim() === '') {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    }
+    
+    const adminClient = getAdminClient()
+
+    // Remove _id from update body as it shouldn't be updated
+    const { _id, ...updateData } = body
+
+    const { data, error } = await retryWithBackoff(
+      async () => await adminClient
+        .from('publications')
+        .update(updateData)
+        .eq('_id', id)
+        .select()
+        .single()
+    )
+
+    if (error) {
+      console.error('❌ [Publications API] Update error:', error)
+      throw error
+    }
+
+    console.log('✅ [Publications API] Record updated:', data)
+    return NextResponse.json({ success: true, record: data })
+  } catch (error: any) {
+    console.error('❌ [Publications API] Update error:', error)
+    const errorMessage = error.message || 'Failed to update record'
+    const errorDetails = error.details || error.hint || null
+    return NextResponse.json({ 
+      error: errorMessage, 
+      details: errorDetails,
+      code: error.code 
+    }, { status: 500 })
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { isAdmin } = await checkAdmin(request)
@@ -131,6 +186,7 @@ export async function DELETE(request: Request) {
 
     const adminClient = getAdminClient()
     // Publications table uses _id as primary key
+    // Return the deleted record ID so client can update state without refetching
     const { error } = await retryWithBackoff(
       async () => await adminClient
         .from('publications')
@@ -140,7 +196,7 @@ export async function DELETE(request: Request) {
 
     if (error) throw error
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, deletedId: id })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

@@ -33,6 +33,8 @@ interface AddListicleFormProps {
   onSubmit: (data: FormData) => Promise<void>
   error?: string
   success?: string
+  initialData?: any // Listicle data for edit mode
+  isEditMode?: boolean
 }
 
 // Debounce hook
@@ -98,30 +100,197 @@ const DebouncedInput = memo(({
 
 DebouncedInput.displayName = 'DebouncedInput'
 
-function AddListicleForm({ onClose, onSubmit, error, success }: AddListicleFormProps) {
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    domain_authority: null,
-    domain_rating: null,
-    estimated_time: '',
-    sponsored: '',
-    indexed: '',
-    do_follow: '',
-    price: '',
-    defaultPrice: [],
-    genres: [],
-    regions: [],
-        logo: null,
+function AddListicleForm({ onClose, onSubmit, error, success, initialData, isEditMode = false }: AddListicleFormProps) {
+  // Transform Listicle data to FormData format
+  const getInitialFormData = (): FormData => {
+    if (initialData) {
+      // Parse genres from comma-separated string
+      const genres: Genre[] = initialData.genres
+        ? initialData.genres.split(', ').map((g: string) => ({ name: g.trim() })).filter((g: Genre) => g.name)
+        : []
+      
+      // Parse regions from comma-separated string
+      const regions: Region[] = initialData.region
+        ? initialData.region.split(', ').map((r: string) => ({ name: r.trim() })).filter((r: Region) => r.name)
+        : []
+
+      // Parse image if it's a stringified JSON
+      let logo = initialData.image
+      if (typeof logo === 'string') {
+        try {
+          const parsed = JSON.parse(logo)
+          if (parsed && typeof parsed === 'object') {
+            logo = parsed
+          }
+        } catch (e) {
+          // If parsing fails, keep as string
+        }
+      }
+
+      return {
+        name: initialData.publication || '',
+        domain_authority: initialData.da ? parseFloat(initialData.da) : null,
+        domain_rating: initialData.dr ? parseFloat(initialData.dr) : null,
+        estimated_time: initialData.tat || '',
+        sponsored: initialData.sponsored || '',
+        indexed: initialData.indexed || '',
+        do_follow: initialData.dofollow || '',
+        price: initialData.price || '',
+        defaultPrice: [],
+        genres: genres,
+        regions: regions,
+        logo: logo,
         articlePreview: null,
-        example_url: '',
-      })
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+        example_url: initialData.exampleUrl || initialData.example_url || '',
+      }
+    }
+    return {
+      name: '',
+      domain_authority: null,
+      domain_rating: null,
+      estimated_time: '',
+      sponsored: '',
+      indexed: '',
+      do_follow: '',
+      price: '',
+      defaultPrice: [],
+      genres: [],
+      regions: [],
+      logo: null,
+      articlePreview: null,
+      example_url: '',
+    }
+  }
+
+  const [formData, setFormData] = useState<FormData>(getInitialFormData())
+  const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.image ? (typeof initialData.image === 'object' ? null : initialData.image) : null)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const [logoError, setLogoError] = useState('')
   const [fileInputKey, setFileInputKey] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
+
+  // Update form data when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      // Parse genres from comma-separated string
+      const genres: Genre[] = initialData.genres
+        ? initialData.genres.split(', ').map((g: string) => ({ name: g.trim() })).filter((g: Genre) => g.name)
+        : []
+      
+      // Parse regions from comma-separated string
+      const regions: Region[] = initialData.region
+        ? initialData.region.split(', ').map((r: string) => ({ name: r.trim() })).filter((r: Region) => r.name)
+        : []
+
+      // Parse image if it's a stringified JSON
+      let logo = initialData.image
+      if (typeof logo === 'string') {
+        try {
+          const parsed = JSON.parse(logo)
+          if (parsed && typeof parsed === 'object') {
+            logo = parsed
+          }
+        } catch (e) {
+          // If parsing fails, keep as string
+        }
+      }
+
+      const newFormData: FormData = {
+        name: initialData.publication || '',
+        domain_authority: initialData.da ? parseFloat(initialData.da) : null,
+        domain_rating: initialData.dr ? parseFloat(initialData.dr) : null,
+        estimated_time: initialData.tat || '',
+        sponsored: initialData.sponsored || '',
+        indexed: initialData.indexed || '',
+        do_follow: initialData.dofollow || '',
+        price: initialData.price || '',
+        defaultPrice: [],
+        genres: genres,
+        regions: regions,
+        logo: logo,
+        articlePreview: null,
+        example_url: initialData.exampleUrl || initialData.example_url || '',
+      }
+      setFormData(newFormData)
+      
+      // Set logo preview
+      if (initialData.image) {
+        if (typeof initialData.image === 'string') {
+          try {
+            // Try parsing as JSON string
+            const parsed = JSON.parse(initialData.image)
+            if (parsed && typeof parsed === 'object') {
+              // It's a stringified object
+              if (parsed.asset?._metadata?.isSupabaseUpload && parsed.asset._metadata.storagePath) {
+                // Supabase upload - get public URL
+                const { data: { publicUrl } } = supabase.storage
+                  .from('publications')
+                  .getPublicUrl(parsed.asset._metadata.storagePath)
+                setLogoPreview(publicUrl)
+              } else if (parsed.asset?._ref) {
+                // Legacy Sanity format - use Sanity CDN
+                const ref = parsed.asset._ref.replace('image-', '')
+                const imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+                setLogoPreview(imageUrl)
+              } else {
+                // Fallback to original string
+                setLogoPreview(`https://pricing.ascendagency.com${initialData.image.replace(/&amp;/g, '&')}`)
+              }
+            } else {
+              // Not an object, use as URL
+              setLogoPreview(`https://pricing.ascendagency.com${initialData.image.replace(/&amp;/g, '&')}`)
+            }
+          } catch (e) {
+            // Not JSON, treat as legacy string format
+            setLogoPreview(`https://pricing.ascendagency.com${initialData.image.replace(/&amp;/g, '&')}`)
+          }
+        } else if (typeof initialData.image === 'object' && initialData.image !== null) {
+          // Already an object
+          const imageData = initialData.image as any
+          if (imageData.asset?._metadata?.isSupabaseUpload && imageData.asset._metadata.storagePath) {
+            // Supabase upload - get public URL
+            const { data: { publicUrl } } = supabase.storage
+              .from('publications')
+              .getPublicUrl(imageData.asset._metadata.storagePath)
+            setLogoPreview(publicUrl)
+          } else if (imageData.asset?._ref) {
+            // Legacy Sanity format - use Sanity CDN
+            const ref = imageData.asset._ref.replace('image-', '')
+            const imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+            setLogoPreview(imageUrl)
+          } else {
+            setLogoPreview(null)
+          }
+        } else {
+          setLogoPreview(null)
+        }
+      } else {
+        setLogoPreview(null)
+      }
+    } else {
+      // Reset form for add mode
+      setFormData({
+        name: '',
+        domain_authority: null,
+        domain_rating: null,
+        estimated_time: '',
+        sponsored: '',
+        indexed: '',
+        do_follow: '',
+        price: '',
+        defaultPrice: [],
+        genres: [],
+        regions: [],
+        logo: null,
+        articlePreview: null,
+        example_url: '',
+      })
+      setLogoPreview(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData])
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -236,8 +405,47 @@ function AddListicleForm({ onClose, onSubmit, error, success }: AddListicleFormP
       }
       reader.readAsDataURL(file)
 
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token || ''
+      // Get auth token directly from localStorage to avoid session refresh timeout
+      const getAuthToken = () => {
+        try {
+          // Get Supabase project ref from URL
+          // @ts-ignore - process.env is available in Next.js client components
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+          let projectRef = 'default'
+          try {
+            const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+            if (urlMatch && urlMatch[1]) {
+              projectRef = urlMatch[1]
+            } else {
+              const parts = supabaseUrl.split('//')
+              if (parts[1]) {
+                projectRef = parts[1].split('.')[0]
+              }
+            }
+          } catch (e) {
+            // Use default if extraction fails
+          }
+          
+          const storageKey = `sb-${projectRef}-auth-token`
+          const stored = localStorage.getItem(storageKey)
+          
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (parsed?.access_token && parsed?.expires_at) {
+              const expiresAt = parsed.expires_at * 1000
+              const now = Date.now()
+              if (expiresAt > now) {
+                return parsed.access_token
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error getting token from localStorage:', error)
+        }
+        return ''
+      }
+
+      const token = getAuthToken()
 
       if (!token) {
         throw new Error('No authentication token found. Please log in again.')
@@ -310,7 +518,7 @@ function AddListicleForm({ onClose, onSubmit, error, success }: AddListicleFormP
     } finally {
       setIsUploadingLogo(false)
     }
-  }, [supabase])
+  }, [])
 
   const handleRemoveLogo = useCallback(() => {
     setFormData(prev => ({ ...prev, logo: null }))
@@ -352,7 +560,9 @@ function AddListicleForm({ onClose, onSubmit, error, success }: AddListicleFormP
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full z-[9999] relative">
           <form onSubmit={handleSubmit}>
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[70vh] overflow-y-auto">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Add New Listicle</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                {isEditMode ? 'Edit Listicle' : 'Add New Listicle'}
+              </h3>
               {error && (
                 <div className="mb-4 rounded-md bg-red-50 p-4">
                   <div className="text-sm text-red-800">{error}</div>
@@ -615,10 +825,10 @@ function AddListicleForm({ onClose, onSubmit, error, success }: AddListicleFormP
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Adding...
+                    {isEditMode ? 'Updating...' : 'Adding...'}
                   </>
                 ) : (
-                  'Add'
+                  isEditMode ? 'Update' : 'Add'
                 )}
               </button>
               <button

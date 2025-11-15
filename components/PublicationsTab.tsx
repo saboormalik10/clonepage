@@ -1,11 +1,28 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useTransition, useMemo } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { createClient } from '@/lib/supabase-client'
 import AddPublicationForm from './AddPublicationForm'
+
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 interface Genre {
   name: string
@@ -72,7 +89,11 @@ const niches = ['Health', 'Crypto', 'Cbd', 'Gambling', 'Erotic']
 export default function PublicationsTab() {
   const [publicationsData, setPublicationsData] = useState<Publication[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  // Debounce search input - only apply filter after user stops typing for 300ms
+  // This ensures smooth typing without lag
+  const debouncedSearchTerm = useDebounce(searchInput, 300)
+  const [isPending, startTransition] = useTransition()
   const [priceRange, setPriceRange] = useState([0, 0])
   const [sortBy, setSortBy] = useState('Price (Asc)')
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
@@ -90,8 +111,10 @@ export default function PublicationsTab() {
   const maxRangeRef = useRef<HTMLInputElement>(null)
   const isAdmin = useIsAdmin()
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<Publication | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
   const supabase = createClient()
 
   const getPrice = (pub: Publication): number => {
@@ -102,6 +125,40 @@ export default function PublicationsTab() {
       return pub.defaultPrice[0]
     }
     return 0
+  }
+
+  // Transform API response (snake_case) to Publication format (camelCase)
+  const transformApiRecordToPublication = (apiRecord: any): Publication => {
+    return {
+      _id: apiRecord._id,
+      name: apiRecord.name,
+      logo: apiRecord.logo,
+      genres: apiRecord.genres || [],
+      defaultPrice: apiRecord.default_price || [],
+      customPrice: apiRecord.custom_price || [],
+      domain_authority: apiRecord.domain_authority,
+      domain_rating: apiRecord.domain_rating,
+      estimated_time: apiRecord.estimated_time,
+      regions: apiRecord.regions || [],
+      sponsored: apiRecord.sponsored,
+      indexed: apiRecord.indexed,
+      do_follow: apiRecord.do_follow,
+      articlePreview: apiRecord.article_preview,
+      image: apiRecord.image,
+      img_explain: apiRecord.img_explain,
+      url: apiRecord.url,
+      health: apiRecord.health,
+      healthMultiplier: apiRecord.health_multiplier,
+      cbd: apiRecord.cbd,
+      cbdMultiplier: apiRecord.cbd_multiplier,
+      crypto: apiRecord.crypto,
+      cryptoMultiplier: apiRecord.crypto_multiplier,
+      gambling: apiRecord.gambling,
+      gamblingMultiplier: apiRecord.gambling_multiplier,
+      erotic: apiRecord.erotic,
+      eroticMultiplier: apiRecord.erotic_multiplier,
+      eroticPrice: apiRecord.erotic_price,
+    }
   }
 
   // Convert Sanity image reference to CDN URL
@@ -140,6 +197,7 @@ export default function PublicationsTab() {
   const { refreshTrigger } = useVisibilityChange()
 
   // Refetch publications data (reusable function)
+  // This only fetches data from API, doesn't apply filters
   const fetchPublications = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -201,88 +259,7 @@ export default function PublicationsTab() {
         setPublicationsData(publications)
         setPriceRange(initialPriceRange)
         
-        // Apply filters immediately with the correct price range
-        let filtered = [...publications] as Publication[]
-        
-        // Apply price filter with the calculated range
-        filtered = filtered.filter(pub => {
-          const priceNum = getPrice(pub)
-          return priceNum >= initialPriceRange[0] && priceNum <= initialPriceRange[1]
-        })
-        
-        // Apply other filters
-        if (searchTerm) {
-          filtered = filtered.filter(pub =>
-            pub.name && pub.name.toLowerCase().includes(searchTerm)
-          )
-        }
-        
-        if (selectedGenres.length > 0) {
-          filtered = filtered.filter(pub =>
-            selectedGenres.some(genre => 
-              pub.genres?.some(g => g.name.toLowerCase() === genre.toLowerCase()) || false
-            )
-          )
-        }
-        
-        if (selectedTypes.length > 0) {
-          filtered = filtered.filter(pub =>
-            selectedTypes.some(type => 
-              pub.name?.toLowerCase().includes(type.toLowerCase()) || false
-            ) || false
-          )
-        }
-        
-        if (selectedSponsored) {
-          filtered = filtered.filter(pub =>
-            pub.sponsored?.toLowerCase() === selectedSponsored.toLowerCase()
-          )
-        }
-        
-        if (selectedDofollow) {
-          filtered = filtered.filter(pub =>
-            pub.do_follow?.toLowerCase() === selectedDofollow.toLowerCase()
-          )
-        }
-        
-        if (selectedIndexed) {
-          filtered = filtered.filter(pub =>
-            pub.indexed?.toLowerCase() === selectedIndexed.toLowerCase()
-          )
-        }
-        
-        if (selectedImage) {
-          filtered = filtered.filter(pub =>
-            pub.image?.toLowerCase() === selectedImage.toLowerCase()
-          )
-        }
-        
-        if (selectedNiches.length > 0) {
-          filtered = filtered.filter(pub => {
-            const nichesList: string[] = []
-            if (pub.health === true) nichesList.push('Health')
-            if (pub.cbd === true) nichesList.push('CBD')
-            if (pub.crypto === true) nichesList.push('Crypto')
-            if (pub.gambling === true) nichesList.push('Gambling')
-            if (pub.erotic === true) nichesList.push('Erotic')
-            return selectedNiches.some(niche => nichesList.includes(niche))
-          })
-        }
-        
-        // Sort
-        if (sortBy === 'Price (Asc)') {
-          filtered.sort((a, b) => getPrice(a) - getPrice(b))
-        } else if (sortBy === 'Price (Desc)') {
-          filtered.sort((a, b) => getPrice(b) - getPrice(a))
-        } else if (sortBy === 'Name (A-Z)') {
-          filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-        } else if (sortBy === 'Name (Z-A)') {
-          filtered.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
-        }
-        
-        // Set filtered data immediately
-        setFilteredData(filtered)
-        console.log(`✅ [Publications] Set ${filtered.length} filtered publications`)
+        // Filters will be applied automatically by the useEffect that watches filter changes
       } else {
         setPublicationsData([])
         setFilteredData([])
@@ -294,17 +271,163 @@ export default function PublicationsTab() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchTerm, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, sortBy])
+  }, []) // Remove all filter dependencies - only fetch data, filtering is handled separately
+
+  // Define applyFilters before using it in useEffect
+  // Optimized to do all filtering in a single pass for better performance
+  const applyFilters = useCallback((
+    search: string,
+    price: number[],
+    sort: string,
+    genres: string[],
+    types: string[],
+    sponsored: string,
+    dofollow: string,
+    indexed: string,
+    image: string,
+    niches: string[]
+  ) => {
+    if (!publicationsData || publicationsData.length === 0) {
+      setFilteredData([])
+      return
+    }
+    
+    // Pre-compute lowercase search term once
+    const searchLower = search ? search.toLowerCase() : ''
+    
+    // Single pass filtering - much more efficient than multiple filter calls
+    let filtered = publicationsData.filter(pub => {
+      // Search filter
+      if (searchLower && (!pub.name || !pub.name.toLowerCase().includes(searchLower))) {
+        return false
+      }
+
+      // Price filter
+      const priceNum = getPrice(pub)
+      if (priceNum < price[0] || priceNum > price[1]) {
+        return false
+      }
+
+      // Genre filter
+      if (genres.length > 0) {
+        const hasGenre = genres.some(genre => 
+          pub.genres?.some(g => g.name.toLowerCase() === genre.toLowerCase()) || false
+        )
+        if (!hasGenre) return false
+      }
+
+      // Type filter
+      if (types.length > 0) {
+        const hasType = types.some(type => 
+          pub.name?.toLowerCase().includes(type.toLowerCase()) || 
+          getGenresArray(pub).some(g => g.toLowerCase().includes(type.toLowerCase()))
+        )
+        if (!hasType) return false
+      }
+
+      // Sponsored filter
+      if (sponsored && pub.sponsored?.toLowerCase() !== sponsored.toLowerCase()) {
+        return false
+      }
+
+      // Do follow filter
+      if (dofollow && pub.do_follow?.toLowerCase() !== dofollow.toLowerCase()) {
+        return false
+      }
+
+      // Indexed filter
+      if (indexed && pub.indexed?.toLowerCase() !== indexed.toLowerCase()) {
+        return false
+      }
+
+      // Image filter
+      if (image && pub.image?.toLowerCase() !== image.toLowerCase()) {
+        return false
+      }
+
+      // Niche filter
+      if (niches.length > 0) {
+        const pubNiches = getNichesArray(pub)
+        const hasNiche = niches.some(niche => 
+          pubNiches.some(pn => pn.toLowerCase() === niche.toLowerCase())
+        )
+        if (!hasNiche) return false
+      }
+
+      return true
+    }) as Publication[]
+
+    // Sort only if needed
+    if (sort.includes('Price')) {
+      const isAsc = sort.includes('Asc')
+      filtered.sort((a, b) => {
+        const priceA = getPrice(a)
+        const priceB = getPrice(b)
+        return isAsc ? priceA - priceB : priceB - priceA
+      })
+    }
+
+    setFilteredData(filtered)
+  }, [publicationsData])
 
   // Fetch publications data from API on mount and when tab becomes visible
   useEffect(() => {
     fetchPublications()
   }, [fetchPublications, refreshTrigger]) // Re-fetch when tab becomes visible
 
+  // Apply filters when filter state changes or when data is loaded
+  // Use debouncedSearchTerm - filter only applies after user stops typing for 300ms
+  // This ensures smooth typing without lag
+  useEffect(() => {
+    if (publicationsData.length > 0 && priceRange[1] > 0) {
+      const searchLower = debouncedSearchTerm.trim().toLowerCase()
+      // Use startTransition to mark filtering as non-urgent, preventing input lag
+      // This ensures the input remains responsive even when filtering operation starts
+      startTransition(() => {
+        applyFilters(searchLower, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, publicationsData.length, applyFilters, startTransition]) // Apply filters when they change or data loads
 
-  const getAuthToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token || ''
+
+  const getAuthToken = () => {
+    try {
+      // Get Supabase project ref from URL
+      // @ts-ignore - process.env is available in Next.js client components
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      let projectRef = 'default'
+      try {
+        const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+        if (urlMatch && urlMatch[1]) {
+          projectRef = urlMatch[1]
+        } else {
+          const parts = supabaseUrl.split('//')
+          if (parts[1]) {
+            projectRef = parts[1].split('.')[0]
+          }
+        }
+      } catch (e) {
+        // Use default if extraction fails
+      }
+      
+      const storageKey = `sb-${projectRef}-auth-token`
+      const stored = localStorage.getItem(storageKey)
+      
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed?.access_token && parsed?.expires_at) {
+          const expiresAt = parsed.expires_at * 1000
+          const now = Date.now()
+          if (expiresAt > now) {
+            return parsed.access_token
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting token from localStorage:', error)
+    }
+    return ''
   }
 
   const handleCreateRecord = useCallback(async (formData: any) => {
@@ -449,7 +572,7 @@ export default function PublicationsTab() {
       console.log('🔑 Getting auth token...')
       let token: string
       try {
-        token = await getAuthToken()
+        token = getAuthToken()
         console.log('🔑 Auth token received:', token ? 'Token exists' : 'No token')
       } catch (tokenError: any) {
         console.error('❌ Failed to get auth token:', tokenError)
@@ -514,11 +637,21 @@ export default function PublicationsTab() {
       }
 
       console.log('✅ Record created successfully!')
+      
+      // Transform API response to Publication format and add to state
+      const newPublication = transformApiRecordToPublication(data.record)
+      
+      // Update max price if needed
+      const newPrice = getPrice(newPublication)
+      if (newPrice > 0 && priceRange[1] < newPrice) {
+        setPriceRange([priceRange[0], newPrice])
+      }
+      
+      // Add new record to publicationsData
+      // The useEffect watching publicationsData will automatically apply filters
+      setPublicationsData(prev => [...prev, newPublication])
+      
       setSuccess('Record created successfully!')
-      // Refresh data without reloading page
-      console.log('🔄 Refreshing data...')
-      await fetchPublications()
-      console.log('✅ Data refreshed')
       // Close modal and clear messages after a short delay
       setTimeout(() => {
         setShowAddModal(false)
@@ -532,16 +665,189 @@ export default function PublicationsTab() {
       setError(errorMessage)
       // Don't close modal on error so user can see the error message
     }
-  }, [fetchPublications])
+  }, [priceRange])
+
+  const handleUpdateRecord = useCallback(async (formData: any) => {
+    if (!editingRecord) return
+
+    setError('')
+    setSuccess('')
+
+    try {
+      // Validate and filter genres - only include genres with non-empty names
+      const validGenres = formData.genres 
+        ? formData.genres.filter((g: any) => g && g.name && g.name.trim() !== '')
+        : []
+      
+      // Validate and filter regions - only include regions with non-empty names
+      const validRegions = formData.regions
+        ? formData.regions.filter((r: any) => r && r.name && r.name.trim() !== '')
+        : []
+
+      // Transform camelCase to snake_case and prepare data for Supabase
+      const transformedData: any = {
+        _id: editingRecord._id, // Keep existing _id
+        name: formData.name?.trim() || null,
+        domain_authority: formData.domain_authority ?? null,
+        domain_rating: formData.domain_rating ?? null,
+        estimated_time: formData.estimated_time?.trim() || null,
+        sponsored: formData.sponsored?.trim() || null,
+        indexed: formData.indexed?.trim() || null,
+        do_follow: formData.do_follow?.trim() || null,
+        image: formData.image?.trim() || null,
+        img_explain: formData.img_explain?.trim() || null,
+        health: formData.health || false,
+        health_multiplier: null,
+        cbd: formData.cbd || false,
+        cbd_multiplier: null,
+        crypto: formData.crypto || false,
+        crypto_multiplier: null,
+        gambling: formData.gambling || false,
+        gambling_multiplier: null,
+        erotic: formData.erotic || false,
+        erotic_multiplier: null,
+        erotic_price: null,
+        default_price: formData.defaultPrice && formData.defaultPrice.length > 0 ? formData.defaultPrice : null,
+        custom_price: null,
+        genres: validGenres.length > 0 ? validGenres : null,
+        regions: validRegions.length > 0 ? validRegions : null,
+        logo: formData.logo || null,
+        article_preview: formData.articlePreview?.trim() 
+          ? (formData.articlePreview.trim().startsWith('image-')
+              ? {
+                  _type: "image",
+                  asset: {
+                    _ref: formData.articlePreview.trim(),
+                    _type: "reference"
+                  }
+                }
+              : formData.articlePreview.trim()
+            )
+          : null,
+      }
+
+      // Convert all empty strings, undefined, and empty arrays to null
+      Object.keys(transformedData).forEach(key => {
+        const value = transformedData[key]
+        
+        if (key === 'logo' || key === 'article_preview' || key === '_id') {
+          return
+        }
+        
+        if (key === 'health' || key === 'cbd' || key === 'crypto' || key === 'gambling' || key === 'erotic') {
+          return
+        }
+        
+        if (value === '') {
+          transformedData[key] = null
+        }
+        
+        if (value === undefined) {
+          transformedData[key] = null
+        }
+        
+        if (Array.isArray(value) && value.length === 0) {
+          transformedData[key] = null
+        }
+      })
+
+      // Final logo check
+      if (transformedData.logo && typeof transformedData.logo === 'object') {
+        if (!transformedData.logo._type || !transformedData.logo.asset) {
+          console.warn('⚠️ Logo format is incorrect, setting to null')
+          transformedData.logo = null
+        }
+      } else if (transformedData.logo === undefined || transformedData.logo === '') {
+        transformedData.logo = null
+      }
+      
+      // Ensure article_preview is properly formatted
+      if (transformedData.article_preview) {
+        if (typeof transformedData.article_preview === 'object') {
+          if (!transformedData.article_preview.asset || !transformedData.article_preview.asset._ref) {
+            console.warn('⚠️ Article preview format is incorrect, setting to null')
+            transformedData.article_preview = null
+          }
+        } else if (typeof transformedData.article_preview === 'string') {
+          if (transformedData.article_preview.trim() === '') {
+            transformedData.article_preview = null
+          }
+        }
+      } else if (transformedData.article_preview === undefined || transformedData.article_preview === '') {
+        transformedData.article_preview = null
+      }
+
+      const token = getAuthToken()
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.')
+      }
+
+      const response = await fetch(`/api/admin/records/publications?id=${editingRecord._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(transformedData)
+      })
+
+      let data: any
+      try {
+        const responseText = await response.text()
+        if (!responseText) {
+          throw new Error('Empty response from server')
+        }
+        data = JSON.parse(responseText)
+      } catch (parseError: any) {
+        throw new Error(`Failed to parse server response: ${parseError.message}`)
+      }
+
+      if (!response.ok) {
+        const errorMessage = data?.error || data?.details?.message || data?.message || `Server error: ${response.status} ${response.statusText}`
+        throw new Error(errorMessage)
+      }
+
+      if (!data.success && !data.record) {
+        throw new Error('Unexpected response from server')
+      }
+
+      // Transform API response to Publication format and update state
+      const updatedPublication = transformApiRecordToPublication(data.record)
+      
+      // Update record in publicationsData
+      setPublicationsData(prev => prev.map(pub => 
+        pub._id === editingRecord._id ? updatedPublication : pub
+      ))
+      
+      // Update filtered data as well
+      setFilteredData(prev => prev.map(pub => 
+        pub._id === editingRecord._id ? updatedPublication : pub
+      ))
+      
+      setSuccess('Record updated successfully!')
+      setTimeout(() => {
+        setShowAddModal(false)
+        setEditingRecord(null)
+        setSuccess('')
+        setError('')
+      }, 1500)
+    } catch (err: any) {
+      console.error('❌ Error updating record:', err)
+      const errorMessage = err?.message || err?.toString() || 'Failed to update record. Please try again.'
+      setError(errorMessage)
+    }
+  }, [editingRecord])
 
   const handleDeleteRecord = useCallback(async (recordId: string) => {
     if (!confirm('Are you sure you want to delete this record?')) return
 
     try {
+      setDeletingRecordId(recordId)
       setError('')
       setSuccess('')
       
-      const token = await getAuthToken()
+      const token = getAuthToken()
       const response = await fetch(`/api/admin/records/publications?id=${recordId}`, {
         method: 'DELETE',
         headers: {
@@ -555,11 +861,11 @@ export default function PublicationsTab() {
         throw new Error(data.error || 'Failed to delete record')
       }
 
+      // Remove record from state instead of refetching
+      setPublicationsData(prev => prev.filter(pub => pub._id !== recordId))
+      setFilteredData(prev => prev.filter(pub => pub._id !== recordId))
+      
       setSuccess('Record deleted successfully!')
-      // Refresh data without reloading page
-      console.log('🔄 Refreshing data after delete...')
-      await fetchPublications()
-      console.log('✅ Data refreshed after delete')
       // Clear messages after a short delay
       setTimeout(() => {
         setSuccess('')
@@ -568,12 +874,14 @@ export default function PublicationsTab() {
     } catch (err: any) {
       console.error('❌ Error deleting record:', err)
       setError(err.message || 'Failed to delete record')
+    } finally {
+      setDeletingRecordId(null)
     }
-  }, [fetchPublications])
+  }, [])
 
 
-  // Calculate max price from data safely
-  const calculateMaxPrice = () => {
+  // Calculate max price from data safely - memoized to prevent recalculation on every render
+  const maxPrice = useMemo(() => {
     const prices = publicationsData.map(pub => getPrice(pub as Publication)).filter(price => price > 0)
     if (prices.length === 0) {
       return 0
@@ -581,10 +889,7 @@ export default function PublicationsTab() {
     const maxPrice = Math.max(...prices)
     // Return the actual max price, or 85000 as fallback if somehow all prices are invalid
     return maxPrice > 0 ? maxPrice : 0
-  }
-  
-  const maxPrice = calculateMaxPrice()
-  console.log({maxPrice})
+  }, [publicationsData])
   
   // Update price range only when maxPrice changes and priceRange hasn't been set yet
   useEffect(() => {
@@ -598,16 +903,16 @@ export default function PublicationsTab() {
   useEffect(() => {
     // Only re-apply if we have data, price range is set, but filteredData is still empty
     // This handles edge cases where the initial filter application didn't work
-    if (publicationsData.length > 0 && priceRange[1] > 0 && filteredData.length === 0 && !searchTerm && selectedGenres.length === 0 && selectedTypes.length === 0) {
+    if (publicationsData.length > 0 && priceRange[1] > 0 && filteredData.length === 0 && !debouncedSearchTerm && selectedGenres.length === 0 && selectedTypes.length === 0) {
       console.log(`🔄 [Publications] Re-applying filters (filteredData was empty): ${publicationsData.length} items, price range [${priceRange[0]}, ${priceRange[1]}]`)
-      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+      applyFilters('', priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
     }
-  }, [publicationsData.length]) // Only re-run when data length changes, not price range
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value.toLowerCase()
-    setSearchTerm(term)
-    applyFilters(term, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-  }
+  }, [publicationsData.length, debouncedSearchTerm]) // Only re-run when data length changes, not price range
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Update input immediately - this must be synchronous for responsive typing
+    // The expensive filtering is debounced and happens in useEffect via debouncedSearchTerm
+    setSearchInput(e.target.value)
+  }, [])
 
   const toggleFilter = (
     filterArray: string[],
@@ -672,109 +977,8 @@ export default function PublicationsTab() {
     })
   }
 
-  const applyFilters = (
-    search: string,
-    price: number[],
-    sort: string,
-    genres: string[],
-    types: string[],
-    sponsored: string,
-    dofollow: string,
-    indexed: string,
-    image: string,
-    niches: string[]
-  ) => {
-    if (!publicationsData || publicationsData.length === 0) {
-      setFilteredData([])
-      return
-    }
-    
-    let filtered = [...publicationsData] as Publication[]
-
-    // Search filter
-    if (search) {
-      filtered = filtered.filter(pub =>
-        pub.name && pub.name.toLowerCase().includes(search)
-      )
-    }
-
-    // Price filter
-    filtered = filtered.filter(pub => {
-      const priceNum = getPrice(pub)
-      return priceNum >= price[0] && priceNum <= price[1]
-    })
-
-    // Genre filter
-    if (genres.length > 0) {
-      filtered = filtered.filter(pub =>
-        genres.some(genre => 
-          pub.genres?.some(g => g.name.toLowerCase() === genre.toLowerCase()) || false
-        )
-      )
-    }
-
-    // Type filter (keeping as is for now, may need adjustment based on actual data)
-    if (types.length > 0) {
-      filtered = filtered.filter(pub =>
-        types.some(type => 
-          pub.name?.toLowerCase().includes(type.toLowerCase()) || 
-          getGenresArray(pub).some(g => g.toLowerCase().includes(type.toLowerCase()))
-        ) || false
-      )
-    }
-
-    // Sponsored filter
-    if (sponsored) {
-      filtered = filtered.filter(pub =>
-        pub.sponsored?.toLowerCase() === sponsored.toLowerCase()
-      )
-    }
-
-    // Do follow filter
-    if (dofollow) {
-      filtered = filtered.filter(pub =>
-        pub.do_follow?.toLowerCase() === dofollow.toLowerCase()
-      )
-    }
-
-    // Indexed filter
-    if (indexed) {
-      filtered = filtered.filter(pub =>
-        pub.indexed?.toLowerCase() === indexed.toLowerCase()
-      )
-    }
-
-    // Image filter
-    if (image) {
-      filtered = filtered.filter(pub =>
-        pub.image?.toLowerCase() === image.toLowerCase()
-      )
-    }
-
-    // Niche filter
-    if (niches.length > 0) {
-      filtered = filtered.filter(pub => {
-        const pubNiches = getNichesArray(pub)
-        return niches.some(niche => 
-          pubNiches.some(pn => pn.toLowerCase() === niche.toLowerCase())
-        )
-      })
-    }
-
-    // Sort
-    if (sort.includes('Price')) {
-      filtered.sort((a, b) => {
-        const priceA = getPrice(a)
-        const priceB = getPrice(b)
-        return sort.includes('Asc') ? priceA - priceB : priceB - priceA
-      })
-    }
-
-    setFilteredData(filtered)
-  }
-
   const resetFilters = () => {
-    setSearchTerm('')
+    setSearchInput('')
     setPriceRange([0, maxPrice])
     setSortBy('Price (Asc)')
     setSelectedGenres([])
@@ -787,13 +991,6 @@ export default function PublicationsTab() {
     applyFilters('', [0, maxPrice], 'Price (Asc)', [], [], '', '', '', '', [])
   }
 
-  // Apply filters only when publicationsData is first loaded
-  useEffect(() => {
-    if (publicationsData.length > 0 && filteredData.length === 0) {
-      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicationsData.length]) // Only trigger on data length change, not every render
 
   if (isLoading) {
     return (
@@ -816,7 +1013,7 @@ export default function PublicationsTab() {
                 type="text"
                 className="text-sm w-full p-2 placeholder:text-gray-400 placeholder:font-base border-2 bg-white"
                 placeholder="Search publication name"
-                value={searchTerm}
+                value={searchInput}
                 onChange={handleSearch}
               />
             </div>
@@ -885,7 +1082,7 @@ export default function PublicationsTab() {
                       // Ensure min doesn't exceed max
                     const newRange = [Math.min(newValue, priceRange[1] - 1), priceRange[1]] as [number, number]
                     setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
                   }}
                     className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
                   style={{ 
@@ -907,7 +1104,7 @@ export default function PublicationsTab() {
                       // Ensure max doesn't go below min
                     const newRange = [priceRange[0], Math.max(newValue, priceRange[0] + 1)] as [number, number]
                     setPriceRange(newRange)
-                    applyFilters(searchTerm, newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
                   }}
                     className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
                   style={{ 
@@ -937,7 +1134,7 @@ export default function PublicationsTab() {
                   value={sortBy}
                   onChange={(e) => {
                     setSortBy(e.target.value)
-                    applyFilters(searchTerm, priceRange, e.target.value, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, e.target.value, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
                   }}
                 >
                   <option>Price (Asc)</option>
@@ -970,7 +1167,7 @@ export default function PublicationsTab() {
                         ? selectedGenres.filter(g => g !== genre)
                         : [...selectedGenres, genre]
                       setSelectedGenres(newGenres)
-                      applyFilters(searchTerm, priceRange, sortBy, newGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, newGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedGenres.includes(genre)
@@ -996,7 +1193,7 @@ export default function PublicationsTab() {
                         ? selectedTypes.filter(t => t !== type)
                         : [...selectedTypes, type]
                       setSelectedTypes(newTypes)
-                      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, newTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, newTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedTypes.includes(type)
@@ -1020,7 +1217,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedSponsored === val ? '' : val
                       setSelectedSponsored(newVal)
-                      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, newVal, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, newVal, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedSponsored === val
@@ -1044,7 +1241,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedDofollow === val ? '' : val
                       setSelectedDofollow(newVal)
-                      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, newVal, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, newVal, selectedIndexed, selectedImage, selectedNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedDofollow === val
@@ -1068,7 +1265,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedIndexed === val ? '' : val
                       setSelectedIndexed(newVal)
-                      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, newVal, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, newVal, selectedImage, selectedNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedIndexed === val
@@ -1092,7 +1289,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedImage === val ? '' : val
                       setSelectedImage(newVal)
-                      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, newVal, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, newVal, selectedNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedImage === val
@@ -1118,7 +1315,7 @@ export default function PublicationsTab() {
                         ? selectedNiches.filter(n => n !== niche)
                         : [...selectedNiches, niche]
                       setSelectedNiches(newNiches)
-                      applyFilters(searchTerm, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, newNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, newNiches)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedNiches.includes(niche)
@@ -1148,7 +1345,10 @@ export default function PublicationsTab() {
             </p>
             {isAdmin && (
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setEditingRecord(null)
+                  setShowAddModal(true)
+                }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Add Publication
@@ -1745,12 +1945,37 @@ export default function PublicationsTab() {
                     </td>
                     {isAdmin && (
                       <td className="text-center border-l border-r">
-                        <button
-                          onClick={() => handleDeleteRecord(pub._id)}
-                          className="text-red-600 hover:text-red-900 text-sm font-medium"
-                        >
-                          Remove
-                        </button>
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => {
+                              setEditingRecord(pub)
+                              setShowAddModal(true)
+                            }}
+                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecord(pub._id)}
+                            disabled={deletingRecordId === pub._id}
+                            className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[80px]"
+                          >
+                            {deletingRecordId === pub._id ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Removing...</span>
+                              </>
+                            ) : (
+                              'Remove'
+                            )}
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -1764,10 +1989,15 @@ export default function PublicationsTab() {
 
       {showAddModal && (
         <AddPublicationForm
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleCreateRecord}
+          onClose={() => {
+            setShowAddModal(false)
+            setEditingRecord(null)
+          }}
+          onSubmit={editingRecord ? handleUpdateRecord : handleCreateRecord}
           error={error}
           success={success}
+          initialData={editingRecord || undefined}
+          isEditMode={!!editingRecord}
         />
       )}
     </div>

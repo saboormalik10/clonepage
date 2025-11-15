@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Oswald } from 'next/font/google'
 import './globals.css'
+import { AdminProvider } from '@/contexts/AdminContext'
 
 const oswald = Oswald({
   subsets: ['latin'],
@@ -45,7 +46,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${oswald.variable} font-body`}>
-        {children}
+        <AdminProvider>
+          {children}
+        </AdminProvider>
       </body>
     </html>
   )

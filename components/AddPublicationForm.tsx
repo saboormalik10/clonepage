@@ -38,6 +38,8 @@ interface AddPublicationFormProps {
   onSubmit: (data: FormData) => Promise<void>
   error?: string
   success?: string
+  initialData?: any // Publication data for edit mode
+  isEditMode?: boolean
 }
 
 // Debounce hook
@@ -103,34 +105,180 @@ const DebouncedInput = memo(({
 
 DebouncedInput.displayName = 'DebouncedInput'
 
-function AddPublicationForm({ onClose, onSubmit, error, success }: AddPublicationFormProps) {
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    domain_authority: null,
-    domain_rating: null,
-    estimated_time: '',
-    sponsored: '',
-    indexed: '',
-    do_follow: '',
-    image: '',
-    img_explain: '',
-    health: false,
-    cbd: false,
-    crypto: false,
-    gambling: false,
-    erotic: false,
-    defaultPrice: [],
-    genres: [],
-    regions: [],
-    logo: null,
-    articlePreview: '',
+function AddPublicationForm({ onClose, onSubmit, error, success, initialData, isEditMode = false }: AddPublicationFormProps) {
+  // Transform Publication data to FormData format
+  const getInitialFormData = (): FormData => {
+    if (initialData) {
+      // Extract article preview - handle both object and string formats
+      let articlePreview = ''
+      if (initialData.articlePreview) {
+        if (typeof initialData.articlePreview === 'object' && initialData.articlePreview.asset) {
+          articlePreview = initialData.articlePreview.asset._ref || ''
+        } else if (typeof initialData.articlePreview === 'string') {
+          articlePreview = initialData.articlePreview
+        }
+      }
+
+      return {
+        name: initialData.name || '',
+        domain_authority: initialData.domain_authority ?? null,
+        domain_rating: initialData.domain_rating ?? null,
+        estimated_time: initialData.estimated_time || '',
+        sponsored: initialData.sponsored || '',
+        indexed: initialData.indexed || '',
+        do_follow: initialData.do_follow || '',
+        image: initialData.image || '',
+        img_explain: initialData.img_explain || '',
+        health: initialData.health || false,
+        cbd: initialData.cbd || false,
+        crypto: initialData.crypto || false,
+        gambling: initialData.gambling || false,
+        erotic: initialData.erotic || false,
+        defaultPrice: initialData.defaultPrice || [],
+        genres: initialData.genres || [],
+        regions: initialData.regions || [],
+        logo: initialData.logo || null,
+        articlePreview: articlePreview,
+      }
+    }
+    return {
+      name: '',
+      domain_authority: null,
+      domain_rating: null,
+      estimated_time: '',
+      sponsored: '',
+      indexed: '',
+      do_follow: '',
+      image: '',
+      img_explain: '',
+      health: false,
+      cbd: false,
+      crypto: false,
+      gambling: false,
+      erotic: false,
+      defaultPrice: [],
+      genres: [],
+      regions: [],
+      logo: null,
+      articlePreview: '',
+    }
+  }
+
+  const [formData, setFormData] = useState<FormData>(getInitialFormData())
+  const [logoPreview, setLogoPreview] = useState<string | null>(() => {
+    if (initialData?.logo) {
+      if (typeof initialData.logo === 'object' && initialData.logo !== null) {
+        const logoObj = initialData.logo as any
+        if (logoObj.asset?._metadata?.isSupabaseUpload && logoObj.asset._metadata.storagePath) {
+          // Will be set in useEffect since we need supabase client
+          return null
+        } else if (logoObj.asset?._ref) {
+          // Legacy Sanity format
+          const ref = logoObj.asset._ref.replace('image-', '')
+          return `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+        }
+        return null
+      } else if (typeof initialData.logo === 'string') {
+        return initialData.logo
+      }
+    }
+    return null
   })
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const [logoError, setLogoError] = useState('')
   const [fileInputKey, setFileInputKey] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Update form data when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      // Extract article preview - handle both object and string formats
+      let articlePreview = ''
+      if (initialData.articlePreview) {
+        if (typeof initialData.articlePreview === 'object' && initialData.articlePreview.asset) {
+          articlePreview = initialData.articlePreview.asset._ref || ''
+        } else if (typeof initialData.articlePreview === 'string') {
+          articlePreview = initialData.articlePreview
+        }
+      }
+
+      const newFormData: FormData = {
+        name: initialData.name || '',
+        domain_authority: initialData.domain_authority ?? null,
+        domain_rating: initialData.domain_rating ?? null,
+        estimated_time: initialData.estimated_time || '',
+        sponsored: initialData.sponsored || '',
+        indexed: initialData.indexed || '',
+        do_follow: initialData.do_follow || '',
+        image: initialData.image || '',
+        img_explain: initialData.img_explain || '',
+        health: initialData.health || false,
+        cbd: initialData.cbd || false,
+        crypto: initialData.crypto || false,
+        gambling: initialData.gambling || false,
+        erotic: initialData.erotic || false,
+        defaultPrice: initialData.defaultPrice || [],
+        genres: initialData.genres || [],
+        regions: initialData.regions || [],
+        logo: initialData.logo || null,
+        articlePreview: articlePreview,
+      }
+      setFormData(newFormData)
+      // Set logo preview if logo exists
+      if (initialData.logo) {
+        if (typeof initialData.logo === 'object' && initialData.logo !== null) {
+          // Handle object logo (Supabase or Sanity format)
+          const logoObj = initialData.logo as any
+          if (logoObj.asset?._metadata?.isSupabaseUpload && logoObj.asset._metadata.storagePath) {
+            // Supabase upload - get public URL
+            const { data: { publicUrl } } = supabase.storage
+              .from('publications')
+              .getPublicUrl(logoObj.asset._metadata.storagePath)
+            setLogoPreview(publicUrl)
+          } else if (logoObj.asset?._ref) {
+            // Legacy Sanity format - use Sanity CDN
+            const ref = logoObj.asset._ref.replace('image-', '')
+            const imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
+            setLogoPreview(imageUrl)
+          } else {
+            setLogoPreview(null)
+          }
+        } else if (typeof initialData.logo === 'string') {
+          setLogoPreview(initialData.logo)
+        } else {
+          setLogoPreview(null)
+        }
+      } else {
+        setLogoPreview(null)
+      }
+    } else {
+      // Reset form for add mode
+      setFormData({
+        name: '',
+        domain_authority: null,
+        domain_rating: null,
+        estimated_time: '',
+        sponsored: '',
+        indexed: '',
+        do_follow: '',
+        image: '',
+        img_explain: '',
+        health: false,
+        cbd: false,
+        crypto: false,
+        gambling: false,
+        erotic: false,
+        defaultPrice: [],
+        genres: [],
+        regions: [],
+        logo: null,
+        articlePreview: '',
+      })
+      setLogoPreview(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData])
   const supabase = createClient()
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -262,9 +410,47 @@ function AddPublicationForm({ onClose, onSubmit, error, success }: AddPublicatio
       }
       reader.readAsDataURL(file)
 
-      // Get auth token
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token || ''
+      // Get auth token directly from localStorage to avoid session refresh timeout
+      const getAuthToken = () => {
+        try {
+          // Get Supabase project ref from URL
+          // @ts-ignore - process.env is available in Next.js client components
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+          let projectRef = 'default'
+          try {
+            const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+            if (urlMatch && urlMatch[1]) {
+              projectRef = urlMatch[1]
+            } else {
+              const parts = supabaseUrl.split('//')
+              if (parts[1]) {
+                projectRef = parts[1].split('.')[0]
+              }
+            }
+          } catch (e) {
+            // Use default if extraction fails
+          }
+          
+          const storageKey = `sb-${projectRef}-auth-token`
+          const stored = localStorage.getItem(storageKey)
+          
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (parsed?.access_token && parsed?.expires_at) {
+              const expiresAt = parsed.expires_at * 1000
+              const now = Date.now()
+              if (expiresAt > now) {
+                return parsed.access_token
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error getting token from localStorage:', error)
+        }
+        return ''
+      }
+
+      const token = getAuthToken()
 
       if (!token) {
         throw new Error('No authentication token found. Please log in again.')
@@ -388,7 +574,9 @@ function AddPublicationForm({ onClose, onSubmit, error, success }: AddPublicatio
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full z-[9999] relative">
           <form onSubmit={handleSubmit}>
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[70vh] overflow-y-auto">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Add New Publication</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                {isEditMode ? 'Edit Publication' : 'Add New Publication'}
+              </h3>
               {error && (
                 <div className="mb-4 rounded-md bg-red-50 p-4">
                   <div className="text-sm text-red-800">{error}</div>
@@ -735,7 +923,9 @@ function AddPublicationForm({ onClose, onSubmit, error, success }: AddPublicatio
                 disabled={isSubmitting}
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Adding...' : 'Add'}
+                {isSubmitting 
+                  ? (isEditMode ? 'Updating...' : 'Adding...') 
+                  : (isEditMode ? 'Update' : 'Add')}
               </button>
               <button
                 type="button"
