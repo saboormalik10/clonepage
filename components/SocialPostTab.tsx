@@ -324,7 +324,7 @@ export default function SocialPostTab() {
                     <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                       <div className="flex flex-col items-center">
                         <span>Price</span>
-                        {hasActiveAdjustments(priceAdjustments) && (
+                        {hasActiveAdjustments(priceAdjustments) && !userId && (
                           <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
                             (Adjusted)
                           </span>
@@ -625,7 +625,7 @@ export default function SocialPostTab() {
                     <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
                       <div className="flex flex-col items-center">
                         <span>Price</span>
-                        {hasActiveAdjustments(priceAdjustments) && (
+                        {hasActiveAdjustments(priceAdjustments) && !userId && (
                           <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
                             (Adjusted)
                           </span>
