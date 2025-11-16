@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
-import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
+import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments, getUserAdjustmentInfo } from '@/lib/price-adjustment-utils'
 import AddBroadcastTVForm from './AddBroadcastTVForm'
 
 interface TableRow {
@@ -500,7 +500,18 @@ export default function BroadcastTelevisionTab() {
                     </td>
                     <td className="text-center border-l border-r">{row.time}</td>
                     <td className="text-center border-l border-r">
-                      {row.rate || 'N/A'}
+                      {isPriceAdjusted(row.rate, priceAdjustments) ? (
+                        <span className="relative group">
+                          <span>{row.rate || 'N/A'}</span>
+                          {getUserAdjustmentInfo(priceAdjustments) && !userId && (
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              {getUserAdjustmentInfo(priceAdjustments)}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        row.rate || 'N/A'
+                      )}
                     </td>
                     {isAdmin && (
                       <td className="text-center border-l border-r py-2 px-2">
