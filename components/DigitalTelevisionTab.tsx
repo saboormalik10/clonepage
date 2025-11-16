@@ -375,11 +375,7 @@ export default function DigitalTelevisionTab() {
                     <td className="text-center border-l border-r">{tv.callSign}</td>
                     <td className="text-center border-l border-r">{tv.station}</td>
                     <td className="text-center border-l border-r">
-                      {isPriceAdjusted(tv.rate, priceAdjustments) ? (
-                        <span className="text-blue-600 font-medium">{tv.rate || 'N/A'}</span>
-                      ) : (
-                        tv.rate || 'N/A'
-                      )}
+                      {tv.rate || 'N/A'}
                     </td>
                     <td className="text-center border-l border-r">{tv.tat}</td>
                     <td className="text-center border-l border-r">{tv.sponsored}</td>

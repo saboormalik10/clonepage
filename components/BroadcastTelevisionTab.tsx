@@ -500,11 +500,7 @@ export default function BroadcastTelevisionTab() {
                     </td>
                     <td className="text-center border-l border-r">{row.time}</td>
                     <td className="text-center border-l border-r">
-                      {isPriceAdjusted(row.rate, priceAdjustments) ? (
-                        <span className="text-blue-600 font-medium">{row.rate || 'N/A'}</span>
-                      ) : (
-                        row.rate || 'N/A'
-                      )}
+                      {row.rate || 'N/A'}
                     </td>
                     {isAdmin && (
                       <td className="text-center border-l border-r py-2 px-2">

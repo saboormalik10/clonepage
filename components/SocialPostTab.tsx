@@ -471,11 +471,7 @@ export default function SocialPostTab() {
                         </div>
                       </td>
                       <td className="text-center border-l border-r">
-                        {isPriceAdjusted(item.price, priceAdjustments) ? (
-                          <span className="text-blue-600 font-medium">{item.price || 'N/A'}</span>
-                        ) : (
-                          item.price || 'N/A'
-                        )}
+                        {item.price || 'N/A'}
                       </td>
                       <td className="text-center border-l border-r">{item.tat}</td>
                       <td className="text-center border-l border-r relative">
