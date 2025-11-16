@@ -37,7 +37,6 @@ export default function PricingTabs() {
             }
           >
             <span className="relative">
-              {tab.icon && tab.icon}
               {tab.name}
             </span>
           </Tab>
