@@ -33,7 +33,7 @@ const tabs = [
   },
   { name: 'LISTICLES', id: 'listicles' },
   { name: 'BEST SELLERS', id: 'bestsellers' },
-  { name: 'PR BUNDLES', id: 'prbundles' },
+  // { name: 'PR BUNDLES', id: 'prbundles' },
   { name: 'PRINT', id: 'print' },
   { name: 'SOCIAL POST', id: 'socialpost' },
 ]
