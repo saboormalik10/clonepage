@@ -60,7 +60,7 @@ export function isPriceAdjusted(priceStr: string | number, priceAdjustments: any
 }
 
 /**
- * Get adjustment details for display
+ * Get adjustment details for display (includes both global and user)
  */
 export function getAdjustmentInfo(priceAdjustments: any): string {
   if (!priceAdjustments) return ''
@@ -93,6 +93,38 @@ export function getAdjustmentInfo(priceAdjustments: any): string {
     userAdjs.forEach((adj: any) => {
       if (adj && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined))) {
         let text = 'User: '
+        if (adj.exact_amount !== null && adj.exact_amount !== undefined) {
+          text += `$${adj.exact_amount}`
+        } else {
+          text += `${adj.adjustment_percentage > 0 ? '+' : ''}${adj.adjustment_percentage}%`
+        }
+        if (adj.min_price || adj.max_price) {
+          text += ` ($${adj.min_price || '0'}-$${adj.max_price || '∞'})`
+        }
+        parts.push(text)
+      }
+    })
+  }
+  
+  return parts.join(', ')
+}
+
+/**
+ * Get user-specific adjustment details only (hides global/wholesale margins)
+ * This should be used for hover tooltips when displaying to users
+ */
+export function getUserAdjustmentInfo(priceAdjustments: any): string {
+  if (!priceAdjustments) return ''
+  
+  const { user } = priceAdjustments
+  const parts: string[] = []
+  
+  // Handle user adjustments only (array or single)
+  if (user) {
+    const userAdjs = Array.isArray(user) ? user : [user]
+    userAdjs.forEach((adj: any) => {
+      if (adj && (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined))) {
+        let text = ''
         if (adj.exact_amount !== null && adj.exact_amount !== undefined) {
           text += `$${adj.exact_amount}`
         } else {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
-import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments } from '@/lib/price-adjustment-utils'
+import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments, getUserAdjustmentInfo } from '@/lib/price-adjustment-utils'
 import { createClient } from '@/lib/supabase-client'
 import AddSocialPostForm from './AddSocialPostForm'
 
@@ -474,7 +474,9 @@ export default function SocialPostTab() {
                         {isPriceAdjusted(item.price, priceAdjustments) ? (
                           <span className="relative group">
                             <span className="text-blue-600 font-medium">{item.price || 'N/A'}</span>
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{getAdjustmentInfo(priceAdjustments)}</span>
+                            {getUserAdjustmentInfo(priceAdjustments) && (
+                              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{getUserAdjustmentInfo(priceAdjustments)}</span>
+                            )}
                           </span>
                         ) : (
                           item.price || 'N/A'
