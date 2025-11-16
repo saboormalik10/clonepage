@@ -5,6 +5,8 @@ import { getPriceAdjustments, adjustPrintMagazines } from '@/lib/price-adjustmen
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   // Require authentication
   const authResult = await requireAuth(request)

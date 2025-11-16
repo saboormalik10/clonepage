@@ -1,0 +1,239 @@
+import { NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
+import { getAdminClient } from '@/lib/admin-client'
+import { getPriceAdjustments, adjustPRBundles } from '@/lib/price-adjustments'
+import { requireAuth } from '@/lib/auth-middleware'
+import { fetchAllRecords } from '@/lib/supabase-helpers'
+
+export async function GET(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+  
+  const userId = authResult.userId // Get userId from authenticated user
+  
+  try {
+    // Try to fetch from Supabase first
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      let data: any[] = []
+      try {
+        data = await fetchAllRecords(supabase, 'others', {
+          orderBy: 'category',
+          ascending: true
+        })
+      } catch (error) {
+        console.error('❌ [Others API] Supabase query error:', error)
+      }
+
+      if (data && data.length > 0) {
+        console.log(`✅ [Others API] Loaded ${data.length} others categories from Supabase`)
+        // Transform to match expected format and include id
+        // Handle migration from old format (bundles) to new format (items)
+        let transformedData = data.map((item: any) => {
+          // If items exist, use them; otherwise migrate from bundles
+          if (item.items) {
+            return {
+              id: item.id,
+              category: item.category,
+              items: item.items || []
+            }
+          } else if (item.bundles) {
+            // Migrate old bundles format to new items format
+            const items = item.bundles.map((bundle: any) => ({
+              name: bundle.name && bundle.retailValue 
+                ? `${bundle.name} — ${bundle.retailValue}`
+                : bundle.name || bundle.retailValue || '',
+              description: bundle.publications?.join(', ') || ''
+            }))
+            return {
+              id: item.id,
+              category: item.category,
+              items: items
+            }
+          } else {
+            return {
+              id: item.id,
+              category: item.category,
+              items: []
+            }
+          }
+        })
+
+        // Apply price adjustments (adjustPRBundles works on the name field which may contain prices)
+        let adjustments: any = null
+        try {
+          adjustments = await getPriceAdjustments(userId, 'others')
+          console.log(`💰 [Others API] Price adjustments fetched:`, adjustments)
+          // Apply adjustments to items (similar to PR bundles format)
+          transformedData = transformedData.map((item: any) => ({
+            ...item,
+            items: item.items.map((itemData: any) => {
+              // If the name contains a price (format: "Name — $Price"), adjust it
+              const priceMatch = itemData.name.match(/—\s*\$([\d,]+)/)
+              if (priceMatch) {
+                const priceStr = `$${priceMatch[1]}`
+                const adjustedPrice = adjustPRBundles([{ name: priceStr }], adjustments)
+                if (adjustedPrice && adjustedPrice[0]?.name) {
+                  const newPrice = adjustedPrice[0].name
+                  return {
+                    ...itemData,
+                    name: itemData.name.replace(/—\s*\$[\d,]+/, `— ${newPrice}`)
+                  }
+                }
+              }
+              return itemData
+            })
+          }))
+          console.log(`✅ [Others API] Applied price adjustments to ${transformedData.length} categories`)
+        } catch (adjError) {
+          console.warn('⚠️ [Others API] Error applying price adjustments:', adjError)
+        }
+
+        // Include adjustments in response
+        const result = {
+          data: transformedData,
+          priceAdjustments: adjustments
+        }
+        return NextResponse.json(result)
+      }
+    }
+
+    // Return empty array if Supabase is not configured or query failed
+    console.log(`⚠️ [Others API] No data found (Supabase not configured or query failed)`)
+    return NextResponse.json({ data: [], priceAdjustments: null })
+  } catch (error) {
+    console.error('❌ [Others API] Error fetching others:', error)
+    return NextResponse.json({ data: [], priceAdjustments: null })
+  }
+}
+
+export async function POST(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const body = await request.json()
+    console.log('📝 [Others API] Creating new record:', body)
+
+    // Validate required fields
+    if (!body.category) {
+      return NextResponse.json({ error: 'Category is required' }, { status: 400 })
+    }
+
+    // Transform data for database
+    const recordData = {
+      category: body.category,
+      items: body.items || []
+    }
+
+    const { data, error } = await supabase
+      .from('others')
+      .insert([recordData])
+      .select()
+
+    if (error) {
+      console.error('❌ [Others API] Error creating record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    console.log('✅ [Others API] Record created successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Others API] Error in POST:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const body = await request.json()
+    console.log('📝 [Others API] Updating record:', body)
+
+    if (!body.id) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    }
+
+    // Transform data for database
+    const recordData = {
+      category: body.category,
+      items: body.items || []
+    }
+
+    const { data, error } = await supabase
+      .from('others')
+      .update(recordData)
+      .eq('id', body.id)
+      .select()
+
+    if (error) {
+      console.error('❌ [Others API] Error updating record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    console.log('✅ [Others API] Record updated successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Others API] Error in PUT:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof Response) {
+    return authResult // Return 401 if not authenticated
+  }
+
+  try {
+    const url = new URL(request.url)
+    const id = url.searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
+    }
+
+    console.log('🗑️ [Others API] Deleting record with ID:', id)
+
+    // Use admin client to bypass RLS policies for delete operation
+    const adminClient = getAdminClient()
+
+    const { data, error } = await adminClient
+      .from('others')
+      .delete()
+      .eq('id', id)
+      .select()
+
+    if (error) {
+      console.error('❌ [Others API] Error deleting record:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    console.log('✅ [Others API] Record deleted successfully:', data[0])
+    return NextResponse.json({ success: true, data: data[0] })
+  } catch (error: any) {
+    console.error('❌ [Others API] Error in DELETE:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  }
+}
+
+

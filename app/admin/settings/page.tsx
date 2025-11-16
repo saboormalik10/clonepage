@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 
+interface TabVisibility {
+  id: string
+  tab_id: string
+  tab_name: string
+  is_visible: boolean
+}
+
 export default function AdminSettings() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -18,6 +25,13 @@ export default function AdminSettings() {
   const [emailLoading, setEmailLoading] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
   const [emailSuccess, setEmailSuccess] = useState(false)
+  
+  // Tab visibility state
+  const [tabVisibility, setTabVisibility] = useState<TabVisibility[]>([])
+  const [tabVisibilityLoading, setTabVisibilityLoading] = useState(false)
+  const [tabVisibilitySaving, setTabVisibilitySaving] = useState(false)
+  const [tabVisibilityError, setTabVisibilityError] = useState<string | null>(null)
+  const [tabVisibilitySuccess, setTabVisibilitySuccess] = useState(false)
   
   const supabase = createClient()
   const router = useRouter()
@@ -45,6 +59,130 @@ export default function AdminSettings() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Fetch tab visibility settings
+  useEffect(() => {
+    const fetchTabVisibility = async () => {
+      try {
+        setTabVisibilityLoading(true)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
+
+        const token = session.access_token
+        const response = await fetch('/api/admin/tab-visibility', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch tab visibility settings')
+        }
+
+        const result = await response.json()
+        setTabVisibility(result.data || [])
+      } catch (error: any) {
+        console.error('Error fetching tab visibility:', error)
+        setTabVisibilityError(error.message || 'Failed to load tab visibility settings')
+      } finally {
+        setTabVisibilityLoading(false)
+      }
+    }
+
+    fetchTabVisibility()
+  }, [supabase])
+
+  const handleTabVisibilityChange = async (tabId: string, isVisible: boolean) => {
+    try {
+      setTabVisibilitySaving(true)
+      setTabVisibilityError(null)
+      setTabVisibilitySuccess(false)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setTabVisibilityError('You must be logged in')
+        return
+      }
+
+      const token = session.access_token
+      const response = await fetch('/api/admin/tab-visibility', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ tab_id: tabId, is_visible: isVisible })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update tab visibility')
+      }
+
+      // Update local state
+      setTabVisibility(prev => 
+        prev.map(tab => 
+          tab.tab_id === tabId ? { ...tab, is_visible: isVisible } : tab
+        )
+      )
+
+      setTabVisibilitySuccess(true)
+      setTimeout(() => setTabVisibilitySuccess(false), 3000)
+    } catch (error: any) {
+      console.error('Error updating tab visibility:', error)
+      setTabVisibilityError(error.message || 'Failed to update tab visibility')
+    } finally {
+      setTabVisibilitySaving(false)
+    }
+  }
+
+  const handleSaveAllTabVisibility = async () => {
+    try {
+      setTabVisibilitySaving(true)
+      setTabVisibilityError(null)
+      setTabVisibilitySuccess(false)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setTabVisibilityError('You must be logged in')
+        return
+      }
+
+      const token = session.access_token
+      const updates = tabVisibility.map(tab => ({
+        tab_id: tab.tab_id,
+        is_visible: tab.is_visible
+      }))
+
+      console.log('💾 [Admin Settings] Saving tab visibility:', updates)
+
+      const response = await fetch('/api/admin/tab-visibility', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ updates })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('❌ [Admin Settings] Save failed:', errorData)
+        throw new Error(errorData.error || 'Failed to save tab visibility settings')
+      }
+
+      const result = await response.json()
+      console.log('✅ [Admin Settings] Tab visibility saved successfully:', result)
+
+      setTabVisibilitySuccess(true)
+      setTimeout(() => setTabVisibilitySuccess(false), 3000)
+    } catch (error: any) {
+      console.error('❌ [Admin Settings] Error saving tab visibility:', error)
+      setTabVisibilityError(error.message || 'Failed to save tab visibility settings')
+    } finally {
+      setTabVisibilitySaving(false)
+    }
+  }
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -331,6 +469,101 @@ export default function AdminSettings() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+
+        {/* Tab Visibility Management Section */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Tab Visibility Management</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Control which tabs are visible to users on the pricing page
+            </p>
+
+            {tabVisibilityError && (
+              <div className="mb-4 rounded-md bg-red-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-red-800">{tabVisibilityError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tabVisibilitySuccess && (
+              <div className="mb-4 rounded-md bg-green-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-green-800">
+                      Tab visibility settings saved successfully!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tabVisibilityLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-gray-500">Loading tab visibility settings...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {tabVisibility.map((tab) => (
+                  <div key={tab.tab_id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-900">{tab.tab_name}</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={tab.is_visible}
+                        onChange={(e) => {
+                          const newVisibility = tabVisibility.map(t => 
+                            t.tab_id === tab.tab_id ? { ...t, is_visible: e.target.checked } : t
+                          )
+                          setTabVisibility(newVisibility)
+                        }}
+                        className="sr-only peer"
+                        disabled={tabVisibilitySaving}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                ))}
+                
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={handleSaveAllTabVisibility}
+                    disabled={tabVisibilitySaving}
+                    className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                      tabVisibilitySaving ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {tabVisibilitySaving ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

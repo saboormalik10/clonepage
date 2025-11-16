@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSupabaseClient } from '@/lib/supabase'
 import { getAdminClient, retryWithBackoff } from '@/lib/admin-client'
 
-const TABLES = ['publications', 'social_posts', 'digital_tv', 'best_sellers', 'listicles', 'pr_bundles', 'print', 'broadcast_tv']
+const TABLES = ['publications', 'social_posts', 'digital_tv', 'best_sellers', 'listicles', 'pr_bundles', 'print', 'broadcast_tv', 'others']
 
 async function checkAdmin(request: Request) {
   const authHeader = request.headers.get('authorization')

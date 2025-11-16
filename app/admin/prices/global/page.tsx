@@ -12,6 +12,7 @@ const TABLES = [
   { value: 'pr_bundles', label: 'PR Bundles' },
   { value: 'print', label: 'Print' },
   { value: 'broadcast_tv', label: 'Broadcast TV' },
+  { value: 'others', label: 'Others' },
 ]
 
 interface Adjustment {
