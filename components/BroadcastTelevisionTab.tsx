@@ -58,7 +58,10 @@ export default function BroadcastTelevisionTab() {
 
     const fetchData = async () => {
       try {
-        setIsLoading(true)
+        // Only show loading on initial load, not on refreshes
+        if (!hasFetchedRef.current || refreshTrigger === 0) {
+          setIsLoading(true)
+        }
         console.log('🔍 [Broadcast TV] Starting fetch...')
         const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
         const response = await authenticatedFetch('/api/broadcast-tv')

@@ -21,6 +21,7 @@ interface Category {
 export default function PrintTab() {
   const [data, setData] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [editingRecord, setEditingRecord] = useState<Category | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -32,7 +33,10 @@ export default function PrintTab() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true)
+        // Only show loading on initial load, not on refreshes
+        if (!hasLoaded) {
+          setIsLoading(true)
+        }
         const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
         const response = await authenticatedFetch('/api/print')
         
@@ -65,20 +69,23 @@ export default function PrintTab() {
         
         if (Array.isArray(printData)) {
           setData(printData)
+          setHasLoaded(true)
         } else {
           console.warn('⚠️ [Print] Unexpected data format:', printData)
           setData([])
+          setHasLoaded(true)
         }
       } catch (error) {
         console.error('Error fetching print data:', error)
         setData([])
+        setHasLoaded(true)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchData()
-  }, [refreshTrigger]) // Re-fetch when tab becomes visible
+  }, [refreshTrigger, hasLoaded]) // Re-fetch when tab becomes visible
 
   // Clear messages after 3 seconds
   useEffect(() => {

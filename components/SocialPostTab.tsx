@@ -24,6 +24,7 @@ const genres = ['News', 'Lifestyle', 'Luxury', 'Fashion', 'Entertainment', 'Tech
 export default function SocialPostTab() {
   const [socialPostData, setSocialPostData] = useState<SocialPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [filteredData, setFilteredData] = useState<SocialPost[]>([])
@@ -44,7 +45,10 @@ export default function SocialPostTab() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true)
+        // Only show loading on initial load, not on refreshes
+        if (!hasLoaded) {
+          setIsLoading(true)
+        }
         const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
         const response = await authenticatedFetch('/api/social-posts')
         
@@ -85,22 +89,25 @@ export default function SocialPostTab() {
         if (Array.isArray(data)) {
           setSocialPostData(data)
           setFilteredData(data)
+          setHasLoaded(true)
         } else {
           console.warn('⚠️ [Social Posts] Unexpected data format:', data)
           setSocialPostData([])
           setFilteredData([])
+          setHasLoaded(true)
         }
       } catch (error: any) {
         console.error('❌ [Social Posts] Error fetching data:', error)
         setSocialPostData([])
         setFilteredData([])
+        setHasLoaded(true)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchData()
-  }, [refreshTrigger])
+  }, [refreshTrigger, hasLoaded])
 
   useEffect(() => {
     if (error || success) {

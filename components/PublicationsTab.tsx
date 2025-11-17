@@ -202,7 +202,10 @@ export default function PublicationsTab() {
   // This only fetches data from API, doesn't apply filters
   const fetchPublications = useCallback(async () => {
     try {
-      setIsLoading(true)
+      // Only show loading on initial load, not on refreshes
+      if (!hasFetchedRef.current) {
+        setIsLoading(true)
+      }
       const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
       const response = await authenticatedFetch('/api/publications', {
         cache: 'no-store',

@@ -25,6 +25,7 @@ interface DigitalTV {
 export default function DigitalTelevisionTab() {
   const [digitalTvData, setDigitalTvData] = useState<DigitalTV[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredData, setFilteredData] = useState<DigitalTV[]>([])
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -43,7 +44,10 @@ export default function DigitalTelevisionTab() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true)
+        // Only show loading on initial load, not on refreshes
+        if (!hasLoaded) {
+          setIsLoading(true)
+        }
         console.log('🔍 [Digital TV] Starting fetch...')
         const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
         const response = await authenticatedFetch('/api/digital-tv')
@@ -88,23 +92,26 @@ export default function DigitalTelevisionTab() {
         if (Array.isArray(data)) {
           setDigitalTvData(data)
           setFilteredData(data)
+          setHasLoaded(true)
         } else {
           console.warn('⚠️ [Digital TV] Unexpected data format:', data)
           setDigitalTvData([])
           setFilteredData([])
+          setHasLoaded(true)
         }
       } catch (error: any) {
         console.error('❌ [Digital TV] Error fetching data:', error)
         console.error('   Error details:', error.message)
         setDigitalTvData([])
         setFilteredData([])
+        setHasLoaded(true)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchData()
-  }, [refreshTrigger]) // Re-fetch when tab becomes visible
+  }, [refreshTrigger, hasLoaded]) // Re-fetch when tab becomes visible
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase()

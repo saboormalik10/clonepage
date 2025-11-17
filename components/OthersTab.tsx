@@ -20,6 +20,7 @@ interface Category {
 export default function OthersTab() {
   const [data, setData] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingRecord, setEditingRecord] = useState<Category | null>(null)
   const [error, setError] = useState('')
@@ -33,7 +34,10 @@ export default function OthersTab() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true)
+        // Only show loading on initial load, not on refreshes
+        if (!hasLoaded) {
+          setIsLoading(true)
+        }
         const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
         const response = await authenticatedFetch('/api/others')
         
@@ -66,20 +70,23 @@ export default function OthersTab() {
         
         if (Array.isArray(othersData)) {
           setData(othersData)
+          setHasLoaded(true)
         } else {
           console.warn('⚠️ [Others] Unexpected data format:', othersData)
           setData([])
+          setHasLoaded(true)
         }
       } catch (error) {
         console.error('Error fetching others:', error)
         setData([])
+        setHasLoaded(true)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchData()
-  }, [refreshTrigger]) // Re-fetch when tab becomes visible
+  }, [refreshTrigger, hasLoaded]) // Re-fetch when tab becomes visible
 
   // Clear messages after 3 seconds
   useEffect(() => {

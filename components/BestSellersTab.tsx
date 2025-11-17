@@ -29,6 +29,7 @@ interface BestSeller {
 export default function BestSellersTab() {
   const [bestSellersData, setBestSellersData] = useState<BestSeller[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredData, setFilteredData] = useState<BestSeller[]>([])
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -49,7 +50,10 @@ export default function BestSellersTab() {
   // Refetch best sellers data (reusable function)
   const fetchData = useCallback(async () => {
     try {
-      setIsLoading(true)
+      // Only show loading on initial load, not on refreshes
+      if (!hasLoaded) {
+        setIsLoading(true)
+      }
       const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
       const response = await authenticatedFetch('/api/best-sellers')
       
@@ -82,19 +86,22 @@ export default function BestSellersTab() {
       if (Array.isArray(data)) {
         setBestSellersData(data)
         setFilteredData(data)
+        setHasLoaded(true)
       } else {
         console.warn('⚠️ [Best Sellers] Unexpected data format:', data)
         setBestSellersData([])
         setFilteredData([])
+        setHasLoaded(true)
       }
     } catch (error) {
       console.error('Error fetching best sellers:', error)
       setBestSellersData([])
       setFilteredData([])
+      setHasLoaded(true)
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [hasLoaded])
 
   // Fetch best sellers data from API on mount and when tab becomes visible
   useEffect(() => {

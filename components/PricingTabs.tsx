@@ -42,6 +42,11 @@ export default function PricingTabs() {
       return
     }
 
+    // Only show loading on initial load, not on refreshes
+    if (!hasLoaded) {
+      setLoading(true)
+    }
+
     try {
       // Add cache-busting timestamp to prevent browser caching
       const response = await fetch(`/api/tab-visibility?t=${Date.now()}`, {

@@ -44,10 +44,15 @@ export default function ListiclesTab() {
   const { refreshTrigger } = useVisibilityChange()
   const supabase = createClient()
 
+  const [hasLoaded, setHasLoaded] = useState(false)
+
   // Refetch listicles data (reusable function)
   const fetchData = useCallback(async () => {
     try {
-      setIsLoading(true)
+      // Only show loading on initial load, not on refreshes
+      if (!hasLoaded) {
+        setIsLoading(true)
+      }
       console.log('🔍 [Listicles] Starting fetch...')
       const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
       const response = await authenticatedFetch('/api/listicles')
@@ -89,20 +94,23 @@ export default function ListiclesTab() {
       if (Array.isArray(data)) {
         setListiclesData(data)
         setFilteredData(data)
+        setHasLoaded(true)
       } else {
         console.warn('⚠️ [Listicles] Unexpected data format:', data)
         setListiclesData([])
         setFilteredData([])
+        setHasLoaded(true)
       }
     } catch (error: any) {
       console.error('❌ [Listicles] Error fetching data:', error)
       console.error('   Error details:', error.message)
       setListiclesData([])
       setFilteredData([])
+      setHasLoaded(true)
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [hasLoaded])
 
   // Fetch listicles data from API on mount and when tab becomes visible
   useEffect(() => {
