@@ -25,6 +25,14 @@ export const metadata: Metadata = {
     ],
     apple: [
       { url: '/logo.jpeg', sizes: '180x180', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '152x152', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '144x144', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '120x120', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '114x114', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '76x76', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '72x72', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '60x60', type: 'image/png' },
+      { url: '/logo.jpeg', sizes: '57x57', type: 'image/png' },
     ],
   },
   manifest: '/manifest.json',
@@ -36,6 +44,10 @@ export const metadata: Metadata = {
     userScalable: false,
     viewportFit: 'cover',
   },
+  other: {
+    'apple-touch-icon': '/logo.jpeg',
+    'apple-touch-icon-precomposed': '/logo.jpeg',
+  },
 }
 
 export default function RootLayout({
@@ -45,6 +57,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="60x60" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="57x57" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" href="/logo.jpeg" />
+      </head>
       <body className={`${oswald.variable} font-body`}>
         <AdminProvider>
           {children}
