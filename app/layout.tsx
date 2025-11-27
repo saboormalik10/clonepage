@@ -44,10 +44,6 @@ export const metadata: Metadata = {
     userScalable: false,
     viewportFit: 'cover',
   },
-  other: {
-    'apple-touch-icon': '/logo.jpeg',
-    'apple-touch-icon-precomposed': '/logo.jpeg',
-  },
 }
 
 export default function RootLayout({
