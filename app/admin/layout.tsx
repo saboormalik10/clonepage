@@ -1,11 +1,53 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import { refreshSession, hasValidSession } from '@/lib/session-refresh'
+import { refreshSession } from '@/lib/session-refresh'
 import { clearSessionCache } from '@/lib/authenticated-fetch'
 import Link from 'next/link'
+
+// Get session from localStorage instantly (synchronous)
+function getSessionFromStorage(): any {
+  try {
+    // @ts-ignore - process.env is available in Next.js client components
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    let projectRef = 'default'
+    try {
+      const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+      if (urlMatch && urlMatch[1]) {
+        projectRef = urlMatch[1]
+      } else {
+        const parts = supabaseUrl.split('//')
+        if (parts[1]) {
+          projectRef = parts[1].split('.')[0]
+        }
+      }
+    } catch (e) {
+      // Use default if extraction fails
+    }
+    const storageKey = `sb-${projectRef}-auth-token`
+    
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed?.access_token && parsed?.expires_at) {
+        const expiresAt = parsed.expires_at * 1000
+        if (expiresAt > Date.now()) {
+          return {
+            access_token: parsed.access_token,
+            refresh_token: parsed.refresh_token,
+            expires_at: parsed.expires_at,
+            user: parsed.user
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore storage errors
+  }
+  return null
+}
 
 export default function AdminLayout({
   children,
@@ -18,7 +60,8 @@ export default function AdminLayout({
   const [user, setUser] = useState<any>(null)
   const [viewMode, setViewMode] = useState<'admin' | 'portal'>('admin')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const supabase = createClient()
+  // Use useMemo to ensure we get the same client instance
+  const supabase = useMemo(() => createClient(), [])
   
   // Check if we're on admin routes or main portal
   useEffect(() => {
@@ -40,7 +83,39 @@ export default function AdminLayout({
 
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        // First try localStorage (instant, synchronous)
+        let session = null
+        const storageSession = getSessionFromStorage()
+        
+        if (storageSession) {
+          // Set session in Supabase client for database queries
+          try {
+            await Promise.race([
+              supabase.auth.setSession({
+                access_token: storageSession.access_token,
+                refresh_token: storageSession.refresh_token
+              }),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('setSession timeout')), 2000)
+              )
+            ])
+            session = storageSession
+          } catch (setSessionError) {
+            // Continue with storage session even if setSession fails
+            session = storageSession
+          }
+        }
+        
+        // If no localStorage session, fallback to API
+        if (!session) {
+          const { data: { session: apiSession } } = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise<{ data: { session: null } }>((_, reject) => 
+              setTimeout(() => reject(new Error('Session timeout')), 3000)
+            )
+          ])
+          session = apiSession
+        }
         
         if (!mounted) return
 
@@ -50,10 +125,11 @@ export default function AdminLayout({
         }
 
         // Check if user is admin - only select role field for better performance
+        const userId = session.user?.id || storageSession?.user?.id
         const { data: profile, error } = await supabase
           .from('user_profiles')
           .select('id, email, role')
-          .eq('id', session.user.id)
+          .eq('id', userId)
           .single()
 
         if (!mounted) return
@@ -67,7 +143,11 @@ export default function AdminLayout({
       } catch (error) {
         console.error('Auth check error:', error)
         if (mounted) {
-          router.push('/login')
+          // Before redirecting on error, check localStorage one more time
+          const storageSession = getSessionFromStorage()
+          if (!storageSession) {
+            router.push('/login')
+          }
         }
       } finally {
         if (mounted) {
@@ -82,6 +162,13 @@ export default function AdminLayout({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return
       if (!session && pathname !== '/admin/login') {
+        // Before redirecting, check if we have a valid session in localStorage
+        // This prevents false redirects during portal switching
+        const storageSession = getSessionFromStorage()
+        if (storageSession) {
+          console.log('✅ [AdminLayout] Auth state changed but localStorage session is valid')
+          return
+        }
         router.push('/login')
       }
     })
@@ -93,7 +180,7 @@ export default function AdminLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, router])
 
-  // Handle visibility change - refresh session when tab becomes visible again
+  // Handle visibility change - check localStorage first, refresh session when tab becomes visible
   useEffect(() => {
     // Skip for login page
     if (pathname === '/admin/login') {
@@ -105,51 +192,49 @@ export default function AdminLayout({
       if (document.visibilityState === 'visible') {
         console.log('👁️ [AdminLayout] Tab became visible, checking session...')
         
-        // Check if we have a valid session
-        const hasSession = await hasValidSession()
-        
-        if (!hasSession) {
-          console.warn('⚠️ [AdminLayout] No valid session when tab became visible, redirecting to login')
-          router.push('/login')
+        // First check localStorage (instant, no timeout) - this prevents false redirects
+        const storageSession = getSessionFromStorage()
+        if (storageSession) {
+          console.log('✅ [AdminLayout] Valid session found in localStorage')
+          // Try to refresh session in the background (don't wait/block)
+          refreshSession().catch(() => {
+            // Ignore refresh errors - localStorage session is still valid
+          })
           return
         }
         
-        // Refresh session to ensure it's up to date
-        const refreshed = await refreshSession()
-        
-        if (!refreshed) {
-          console.warn('⚠️ [AdminLayout] Failed to refresh session when tab became visible')
-          // Don't redirect immediately - let the auth state change handler deal with it
-        } else {
-          console.log('✅ [AdminLayout] Session refreshed after tab became visible')
+        // Only if no localStorage session, we might need to redirect
+        // But give the API a chance to respond
+        try {
+          const { data: { session } } = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise<{ data: { session: null } }>((_, reject) => 
+              setTimeout(() => reject(new Error('Session timeout')), 3000)
+            )
+          ])
+          
+          if (session?.access_token) {
+            console.log('✅ [AdminLayout] Valid session found via API')
+            return
+          }
+          
+          // No session found via API either - redirect to login
+          console.warn('⚠️ [AdminLayout] No valid session found, redirecting to login')
+          router.push('/login')
+        } catch (error) {
+          // On timeout, don't redirect - localStorage might still be syncing
+          console.log('⚠️ [AdminLayout] Session check timed out, but not redirecting (may still be valid)')
         }
       }
     }
 
-    // Listen for visibility changes
+    // Listen for visibility changes only (removed focus handler as it was too aggressive)
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    
-    // Also listen for focus events as a backup
-    const handleFocus = async () => {
-      console.log('👁️ [AdminLayout] Window focused, checking session...')
-      const hasSession = await hasValidSession()
-      
-      if (!hasSession) {
-        console.warn('⚠️ [AdminLayout] No valid session when window focused, redirecting to login')
-        router.push('/login')
-        return
-      }
-      
-      await refreshSession()
-    }
-    
-    window.addEventListener('focus', handleFocus)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
     }
-  }, [pathname, router])
+  }, [pathname, router, supabase])
 
   const handleLogout = async (e?: React.MouseEvent) => {
     // Prevent double-clicks and event bubbling
