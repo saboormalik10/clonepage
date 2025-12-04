@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { email, password, full_name, role } = body
+    const { email, password, full_name, role, brand_name, brand_logo } = body
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
@@ -120,6 +120,8 @@ export async function POST(request: Request) {
           .update({
             role: role || 'user',
             full_name: full_name || null,
+            brand_name: brand_name || null,
+            brand_logo: brand_logo || null,
           })
           .eq('id', authData.user.id)
       )
@@ -135,6 +137,8 @@ export async function POST(request: Request) {
             email: email,
             role: role || 'user',
             full_name: full_name || null,
+            brand_name: brand_name || null,
+            brand_logo: brand_logo || null,
           })
       )
 
@@ -144,6 +148,58 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true, 
       user: { id: authData.user.id, email, role: role || 'user' } 
+    })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const { isAdmin } = await checkAdmin(request)
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { userId, password, full_name, role, brand_name, brand_logo } = body
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+    }
+
+    const adminClient = getAdminClient()
+
+    // Update password if provided
+    if (password && password.trim() !== '') {
+      const { error: passwordError } = await retryWithBackoff(
+        () => adminClient.auth.admin.updateUserById(userId, {
+          password: password
+        })
+      )
+
+      if (passwordError) throw passwordError
+    }
+
+    // Update profile with retry
+    const updateData: any = {}
+    if (full_name !== undefined) updateData.full_name = full_name || null
+    if (role !== undefined) updateData.role = role || 'user'
+    if (brand_name !== undefined) updateData.brand_name = brand_name || null
+    if (brand_logo !== undefined) updateData.brand_logo = brand_logo || null
+
+    const { error: profileError } = await retryWithBackoff(
+      async () => await adminClient
+        .from('user_profiles')
+        .update(updateData)
+        .eq('id', userId)
+    )
+
+    if (profileError) throw profileError
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'User updated successfully' 
     })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })

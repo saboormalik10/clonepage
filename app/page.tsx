@@ -7,6 +7,7 @@ import PricingTabs from '@/components/PricingTabs'
 import BroadcastMessagePopup from '@/components/BroadcastMessagePopup'
 import { createClient } from '@/lib/supabase-client'
 import { refreshSession, hasValidSession, getSessionWithTimeout } from '@/lib/session-refresh'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 export default function Home() {
   const router = useRouter()
@@ -14,6 +15,11 @@ export default function Home() {
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const { profile, loading: profileLoading } = useUserProfile()
+  
+  // Get brand name from profile, fallback to default
+  // Only use default if profile is loaded and doesn't have brand info
+  const brandName = profile?.brand_name || 'Hotshot Social'
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -261,7 +267,8 @@ export default function Home() {
     }
   }, [router, supabase]) // Removed 'user' dependency as it's not used in the effect
 
-  if (loading) {
+  // Show loading if auth is loading OR profile is loading
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -290,12 +297,12 @@ export default function Home() {
       <main className="w-full p-2 lg:w-full lg:p-4 lg:mx-auto xl:p-[2] 2xl:w-[1650px]">
         <section className="mt-2 mb-4 flex-col font-body space-y-3 flex lg:space-y-0 lg:items-center lg:flex-row justify-between">
           <div className="flex flex-col">
-            <h1 className="text-2xl uppercase bold">Pricing (Hotshot Social)</h1>
+            <h1 className="text-2xl uppercase bold">Pricing ({brandName})</h1>
             <p className="text-sm">
               Once we have published the article for you, any further edits may include an extra charge.
             </p>
             <p className="text-sm">
-              Hotshot Social Agency will use reasonable good faith efforts to ensure that such article will remain publicly available in the applicable publication for at least 12 months.
+              We will use reasonable good faith efforts to ensure that such article will remain publicly available in the applicable publication for at least 12 months.
             </p>
           </div>
           <div className="flex space-x-2">

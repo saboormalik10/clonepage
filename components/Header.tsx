@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-client'
 import { clearSessionCache } from '@/lib/authenticated-fetch'
 import { useEffect, useState, useMemo } from 'react'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 export default function Header() {
   const router = useRouter()
@@ -13,6 +14,12 @@ export default function Header() {
   const [user, setUser] = useState<any>(null)
   const isAdmin = useIsAdmin() // Use AdminContext instead of local state
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { profile, loading: profileLoading } = useUserProfile()
+  
+  // Get brand name and logo from profile, fallback to defaults
+  // Only use defaults if profile is loaded and doesn't have brand info
+  const brandName = profile?.brand_name || 'Hotshot Social'
+  const brandLogo = profile?.brand_logo || '/logo.jpeg'
 
   useEffect(() => {
     // Check if user is logged in - try localStorage first, then API
@@ -148,12 +155,28 @@ export default function Header() {
     <div className="bg-white mb-2 xl:mb-8">
       <div className="flex justify-between w-full lg:w-full lg:mx-auto xl:p-[2] 2xl:w-[1400px]">
         <div className="flex items-center gap-3 p-3 -ml-2 xl:-ml-6">
-          <img
-            src="/logo.jpeg"
-            alt="Logo"
-            className="w-16 h-16 object-contain ml-5"
-          />
-          <span className="text-2xl font-bold text-gray-800">Hotshot Social</span>
+          {profileLoading ? (
+            <>
+              <div className="w-16 h-16 bg-gray-200 animate-pulse rounded ml-5"></div>
+              <div className="h-8 w-48 bg-gray-200 animate-pulse rounded"></div>
+            </>
+          ) : (
+            <>
+              <img
+                src={brandLogo}
+                alt={brandName}
+                className="w-16 h-16 object-contain ml-5"
+                onError={(e) => {
+                  // Fallback to default logo if brand logo fails to load
+                  const target = e.target as HTMLImageElement
+                  if (target.src !== '/logo.jpeg') {
+                    target.src = '/logo.jpeg'
+                  }
+                }}
+              />
+              <span className="text-2xl font-bold text-gray-800">{brandName}</span>
+            </>
+          )}
         </div>
         {user && (
           <div className="flex items-center gap-3 mr-2">
