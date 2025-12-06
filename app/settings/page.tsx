@@ -55,6 +55,7 @@ export default function UserSettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [removingAdjustmentId, setRemovingAdjustmentId] = useState<string | null>(null)
   
   const supabase = createClient()
 
@@ -189,11 +190,7 @@ export default function UserSettingsPage() {
 
     setError('')
     setSuccess('')
-    
-    // Optimistic update - remove from UI immediately
-    const previousAdjustments = [...adjustments]
-    const removedAdjustment = adjustments.find(adj => adj.id === adjustmentId)
-    setAdjustments(prev => prev.filter(adj => adj.id !== adjustmentId))
+    setRemovingAdjustmentId(adjustmentId)
 
     try {
       const token = await getAuthToken()
@@ -207,15 +204,16 @@ export default function UserSettingsPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        // Revert optimistic update on error
-        setAdjustments(previousAdjustments)
         throw new Error(data.error || 'Failed to remove adjustment')
       }
 
+      // Remove from UI only after successful deletion
+      setAdjustments(prev => prev.filter(adj => adj.id !== adjustmentId))
       setSuccess('Adjustment removed successfully!')
-      // No need to refresh - optimistic update already handled it
     } catch (err: any) {
       setError(err.message || 'Failed to remove adjustment')
+    } finally {
+      setRemovingAdjustmentId(null)
     }
   }
 
@@ -308,7 +306,7 @@ export default function UserSettingsPage() {
     <div className="__variable_a59c88">
       <Header />
       <main className="w-full p-2 lg:w-full lg:p-4 lg:mx-auto xl:p-[2] 2xl:w-[1650px]">
-        <div className="px-4 py-6 sm:px-0">
+        <div className="px-2 sm:px-4 py-4 sm:py-6">
           <div className="mb-4">
             <button
               onClick={() => router.push('/')}
@@ -321,16 +319,16 @@ export default function UserSettingsPage() {
             </button>
           </div>
           
-          <div className="flex gap-6">
-            {/* Sidebar Navigation */}
-            <div className="w-64 flex-shrink-0">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            {/* Sidebar Navigation - Mobile: Horizontal tabs, Desktop: Vertical sidebar */}
+            <div className="w-full lg:w-64 lg:flex-shrink-0">
               <div className="bg-white shadow rounded-lg">
-                <nav className="p-2">
+                <nav className="p-2 flex lg:flex-col">
                   <button
                     onClick={() => setActiveTab('price-adjustment')}
-                    className={`w-full text-left px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-colors ${
                       activeTab === 'price-adjustment'
-                        ? 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600'
+                        ? 'bg-indigo-50 text-indigo-700 border-b-2 lg:border-b-0 lg:border-l-4 border-indigo-600'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -338,9 +336,9 @@ export default function UserSettingsPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab('password-reset')}
-                    className={`w-full text-left px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-colors ${
                       activeTab === 'password-reset'
-                        ? 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600'
+                        ? 'bg-indigo-50 text-indigo-700 border-b-2 lg:border-b-0 lg:border-l-4 border-indigo-600'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -351,7 +349,7 @@ export default function UserSettingsPage() {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {activeTab === 'price-adjustment' && (
                 <div>
                   <div className="mb-8 flex justify-between items-center">
@@ -410,9 +408,20 @@ export default function UserSettingsPage() {
                               </div>
                               <button
                                 onClick={() => handleRemoveAdjustment(adjustment.id)}
-                                className="ml-4 text-red-600 hover:text-red-900 text-sm font-medium"
+                                disabled={removingAdjustmentId === adjustment.id}
+                                className="ml-4 text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
                               >
-                                Remove
+                                {removingAdjustmentId === adjustment.id ? (
+                                  <>
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Removing...
+                                  </>
+                                ) : (
+                                  'Remove'
+                                )}
                               </button>
                             </div>
                           </li>
@@ -634,7 +643,7 @@ export default function UserSettingsPage() {
                               </div>
                             </div>
                             <p className="mt-2 text-sm text-gray-500">
-                              Only positive percentages are allowed. This adjustment will be applied on top of global adjustments (if any)
+                              Only positive percentages are allowed. 
                             </p>
                           </div>
                         ) : (
