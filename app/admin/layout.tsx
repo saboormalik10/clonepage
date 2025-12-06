@@ -350,7 +350,7 @@ export default function AdminLayout({
                 >
                   Global Prices
                 </Link>
-                <Link
+                {/* <Link
                   href="/admin/prices/users"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     pathname === '/admin/prices/users'
@@ -359,7 +359,7 @@ export default function AdminLayout({
                   }`}
                 >
                   User Prices
-                </Link>
+                </Link> */}
                 <Link
                   href="/admin/settings"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${

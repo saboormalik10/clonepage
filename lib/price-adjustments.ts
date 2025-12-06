@@ -141,6 +141,12 @@ export function applyPriceAdjustment(
     if (withinRange) {
       // If exact_amount is set, replace the price
       if (adj.exact_amount !== null && adj.exact_amount !== undefined) {
+        // For user adjustments with exact_amount, only apply if it's >= current price (which already has global adjustments)
+        // This ensures user exact amounts don't reduce prices below global adjustment levels
+        if (type === 'user' && adj.exact_amount < currentPrice) {
+          console.log(`⏭️ Ignoring user exact amount $${adj.exact_amount} (less than global-adjusted price $${currentPrice})`)
+          return currentPrice;
+        }
         console.log(`💵 Replacing price $${currentPrice} with exact amount $${adj.exact_amount} (${type})`)
         return adj.exact_amount;
       } 

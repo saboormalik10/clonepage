@@ -53,10 +53,11 @@ export default function UserPricesPage() {
   const [processing, setProcessing] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // User price adjustment data fetching is disabled - users manage their own adjustments
+  // useEffect(() => {
+  //   fetchData()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -187,13 +188,14 @@ export default function UserPricesPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    )
-  }
+  // Loading state disabled since data fetching is commented out
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-64">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="px-4 py-6 sm:px-0">
@@ -201,18 +203,20 @@ export default function UserPricesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">User-Specific Price Management</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Adjust prices for specific users. You can add multiple adjustments per user and table combination.
+            User price adjustments are now managed by users themselves in their settings page.
           </p>
         </div>
-        <button
+        {/* Admin can no longer set user price adjustments - users manage their own adjustments now */}
+        {/* <button
           onClick={() => setShowModal(true)}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Apply User Adjustment
-        </button>
+        </button> */}
       </div>
 
-      {error && (
+      {/* User price adjustment viewing and management is now disabled - users manage their own adjustments */}
+      {/* {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="text-sm text-red-800">{error}</div>
         </div>
@@ -269,9 +273,16 @@ export default function UserPricesPage() {
             </li>
           )}
         </ul>
+      </div> */}
+      
+      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="px-4 py-8 text-center text-sm text-gray-500">
+          User price adjustments are now managed by users in their settings page. Admins can no longer view or manage user adjustments.
+        </div>
       </div>
 
-      {showModal && (
+      {/* Admin can no longer set user price adjustments - users manage their own adjustments now */}
+      {/* {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowModal(false)}></div>
@@ -469,7 +480,7 @@ export default function UserPricesPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   )
 }
