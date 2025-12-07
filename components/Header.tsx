@@ -7,6 +7,9 @@ import { useEffect, useState, useMemo } from 'react'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserProfile } from '@/hooks/useUserProfile'
 
+// Email that should not see user settings on navbar
+const RESTRICTED_EMAIL = 'wholesale@hotshot.press'
+
 export default function Header() {
   const router = useRouter()
   // Use useMemo to ensure we get the same client instance
@@ -197,7 +200,7 @@ export default function Header() {
                 Admin Panel
               </button>
             )}
-            {!isAdmin && (
+            {!isAdmin && (user?.email?.toLowerCase() !== RESTRICTED_EMAIL.toLowerCase() && profile?.email?.toLowerCase() !== RESTRICTED_EMAIL.toLowerCase()) && (
               <button
                 onClick={() => router.push('/settings')}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

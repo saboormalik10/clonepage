@@ -28,7 +28,6 @@ export async function GET(request: Request) {
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [Others API] Loaded ${data.length} others categories from Supabase`)
         // Transform to match expected format and include id
         // Handle migration from old format (bundles) to new format (items)
         let transformedData = data.map((item: any) => {
@@ -65,7 +64,6 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'others')
-          console.log(`💰 [Others API] Price adjustments fetched:`, adjustments)
           // Apply adjustments to items (similar to PR bundles format)
           transformedData = transformedData.map((item: any) => ({
             ...item,
@@ -86,7 +84,6 @@ export async function GET(request: Request) {
               return itemData
             })
           }))
-          console.log(`✅ [Others API] Applied price adjustments to ${transformedData.length} categories`)
         } catch (adjError) {
           console.warn('⚠️ [Others API] Error applying price adjustments:', adjError)
         }
@@ -101,7 +98,6 @@ export async function GET(request: Request) {
     }
 
     // Return empty array if Supabase is not configured or query failed
-    console.log(`⚠️ [Others API] No data found (Supabase not configured or query failed)`)
     return NextResponse.json({ data: [], priceAdjustments: null })
   } catch (error) {
     console.error('❌ [Others API] Error fetching others:', error)

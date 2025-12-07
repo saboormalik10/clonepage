@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import Header from '@/components/Header'
+import { useUserProfile } from '@/hooks/useUserProfile'
+
+// Email that should not have access to settings
+const RESTRICTED_EMAIL = 'wholesale@hotshot.press'
 
 const TABLES = [
   { value: 'publications', label: 'Publications' },
@@ -56,8 +60,38 @@ export default function UserSettingsPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [removingAdjustmentId, setRemovingAdjustmentId] = useState<string | null>(null)
+  const [checkingAccess, setCheckingAccess] = useState(true)
   
   const supabase = createClient()
+  const { profile, loading: profileLoading } = useUserProfile()
+
+  // Check if user has access to settings page
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Wait for profile to load before checking
+      if (profileLoading) {
+        return
+      }
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const userEmail = session?.user?.email?.toLowerCase()
+        const profileEmail = profile?.email?.toLowerCase()
+        
+        if (userEmail === RESTRICTED_EMAIL.toLowerCase() || profileEmail === RESTRICTED_EMAIL.toLowerCase()) {
+          // Redirect to home page if user is restricted
+          router.push('/')
+          return
+        }
+      } catch (error) {
+        console.error('Error checking access:', error)
+      } finally {
+        setCheckingAccess(false)
+      }
+    }
+    
+    checkAccess()
+  }, [supabase, router, profile, profileLoading])
 
   useEffect(() => {
     fetchData()
@@ -294,7 +328,7 @@ export default function UserSettingsPage() {
     }
   }
 
-  if (loading) {
+  if (checkingAccess || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>

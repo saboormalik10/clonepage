@@ -202,10 +202,16 @@ export default function PublicationsTab() {
   // Refetch publications data (reusable function)
   // This only fetches data from API, doesn't apply filters
   const fetchPublications = useCallback(async () => {
+    let loadingTimeout: NodeJS.Timeout | null = null
     try {
       // Only show loading on initial load, not on refreshes
       if (!hasFetchedRef.current) {
         setIsLoading(true)
+        // Set a timeout to ensure loading state doesn't get stuck
+        loadingTimeout = setTimeout(() => {
+          console.warn('⚠️ [Publications] Fetch timeout - clearing loading state')
+          setIsLoading(false)
+        }, 65000) // 65 second timeout (slightly longer than API timeout)
       }
       const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
       const response = await authenticatedFetch('/api/publications', {
@@ -223,10 +229,74 @@ export default function PublicationsTab() {
           const { shouldRedirectToLogin } = await import('@/lib/authenticated-fetch')
           if (shouldRedirectToLogin()) {
             window.location.href = '/login'
+            setIsLoading(false)
             return
           } else {
-            console.log('✅ [Publications] Valid localStorage session, continuing...')
-            return // Don't throw error, just return
+            console.log('✅ [Publications] Valid localStorage session, retrying...')
+            // Retry once after a short delay
+            try {
+              await new Promise(resolve => setTimeout(resolve, 500))
+              const retryResponse = await authenticatedFetch('/api/publications', {
+                cache: 'no-store',
+                headers: {
+                  'Cache-Control': 'no-store, no-cache, must-revalidate'
+                }
+              })
+              if (!retryResponse.ok) {
+                throw new Error(`API error after retry: ${retryResponse.status}`)
+              }
+              // Process retry response using same logic as main flow
+              const retryData = await retryResponse.json()
+              let publications: Publication[] = []
+              if (retryData && typeof retryData === 'object') {
+                if ('result' in retryData && Array.isArray(retryData.result)) {
+                  publications = retryData.result as Publication[]
+                } else if ('data' in retryData && Array.isArray(retryData.data)) {
+                  publications = retryData.data as Publication[]
+                } else if (Array.isArray(retryData)) {
+                  publications = retryData as Publication[]
+                }
+              } else if (Array.isArray(retryData)) {
+                publications = retryData as Publication[]
+              }
+              
+              console.log(`✅ [Publications] Retry parsed ${publications.length} publications`)
+              
+              if (publications.length > 0) {
+                const prices = publications.map((pub: Publication) => {
+                  if (pub.customPrice && pub.customPrice.length > 0) {
+                    return typeof pub.customPrice[0] === 'string' ? parseFloat(pub.customPrice[0]) : pub.customPrice[0]
+                  }
+                  if (pub.defaultPrice && pub.defaultPrice.length > 0) {
+                    return typeof pub.defaultPrice[0] === 'string' ? parseFloat(pub.defaultPrice[0]) : pub.defaultPrice[0]
+                  }
+                  return 0
+                }).filter(price => price > 0)
+                
+                const calculatedMaxPrice = prices.length > 0 ? Math.max(...prices) : 0
+                const initialPriceRange: [number, number] = [0, calculatedMaxPrice]
+                setPublicationsData(publications)
+                setPriceRange(initialPriceRange)
+              } else {
+                setPublicationsData([])
+                setFilteredData([])
+              }
+              // Clear timeout and exit early after handling retry
+              if (loadingTimeout) {
+                clearTimeout(loadingTimeout)
+              }
+              setIsLoading(false)
+              return
+            } catch (retryError) {
+              console.error('❌ [Publications] Retry failed:', retryError)
+              setPublicationsData([])
+              setFilteredData([])
+              if (loadingTimeout) {
+                clearTimeout(loadingTimeout)
+              }
+              setIsLoading(false)
+              return
+            }
           }
         }
         throw new Error(`API error: ${response.status}`)
@@ -234,16 +304,29 @@ export default function PublicationsTab() {
       
       const data = await response.json()
       
-      // Handle different response formats
+      // Handle different response formats - check most specific first
       let publications: Publication[] = []
-      if (Array.isArray(data)) {
+      if (data && typeof data === 'object') {
+        // Check for nested result format first (most common from API)
+        if ('result' in data && Array.isArray(data.result)) {
+          publications = data.result as Publication[]
+        } 
+        // Check for data property
+        else if ('data' in data && Array.isArray(data.data)) {
+          publications = data.data as Publication[]
+        }
+        // Check if data itself is an array
+        else if (Array.isArray(data)) {
+          publications = data as Publication[]
+        }
+        else {
+          console.warn('⚠️ [Publications] Unexpected data format:', Object.keys(data))
+          publications = []
+        }
+      } else if (Array.isArray(data)) {
         publications = data as Publication[]
-      } else if (data && typeof data === 'object' && 'result' in data && Array.isArray(data.result)) {
-        publications = data.result as Publication[]
-      } else if (data && typeof data === 'object' && Array.isArray(data.data)) {
-        publications = data.data as Publication[]
       } else {
-        console.warn('⚠️ [Publications] Unexpected data format:', data)
+        console.warn('⚠️ [Publications] Unexpected data format - not an object or array')
         publications = []
       }
       
@@ -281,7 +364,11 @@ export default function PublicationsTab() {
       setPublicationsData([])
       setFilteredData([])
     } finally {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout)
+      }
       setIsLoading(false)
+      hasFetchedRef.current = true // Ensure this is set even on error
     }
   }, []) // Remove all filter dependencies - only fetch data, filtering is handled separately
 
@@ -389,9 +476,12 @@ export default function PublicationsTab() {
     // Prevent duplicate fetches on initial load
     if (!hasFetchedRef.current) {
       console.log('📥 [Publications] Initial fetch')
-      hasFetchedRef.current = true
       lastRefreshTriggerRef.current = refreshTrigger
-      fetchPublications()
+      fetchPublications().catch((error) => {
+        console.error('❌ [Publications] Fetch failed in useEffect:', error)
+        // Ensure loading state is cleared even if fetch fails
+        setIsLoading(false)
+      })
       return
     }
     
@@ -399,11 +489,14 @@ export default function PublicationsTab() {
     if (refreshTrigger !== lastRefreshTriggerRef.current) {
       console.log('📥 [Publications] Refetch due to visibility change')
       lastRefreshTriggerRef.current = refreshTrigger
-      fetchPublications()
+      fetchPublications().catch((error) => {
+        console.error('❌ [Publications] Refetch failed in useEffect:', error)
+        setIsLoading(false)
+      })
     } else {
       console.log('⏭️ [Publications] Skipping fetch - same refreshTrigger')
     }
-  }, [refreshTrigger]) // Only depend on refreshTrigger, not fetchPublications
+  }, [refreshTrigger, fetchPublications]) // Include fetchPublications in dependencies
 
   // Apply filters when filter state changes or when data is loaded
   // Use debouncedSearchTerm - filter only applies after user stops typing for 300ms

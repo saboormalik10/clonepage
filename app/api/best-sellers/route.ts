@@ -30,7 +30,6 @@ export async function GET(request: Request) {
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [Best Sellers API] Loaded ${data.length} best sellers from Supabase`)
         // Transform snake_case to camelCase
         let transformedData = data.map((item: any) => ({
           id: item.id, // Include id for delete functionality
@@ -54,13 +53,11 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'best_sellers')
-          console.log(`💰 [Best Sellers API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             price: adjustDollarPrice(item.price, adjustments)
           }))
-          console.log(`✅ [Best Sellers API] Applied price adjustments to ${transformedData.length} items`)
         } catch (adjError) {
           console.warn('⚠️ [Best Sellers API] Error applying price adjustments:', adjError)
         }
@@ -75,11 +72,9 @@ export async function GET(request: Request) {
     }
 
     // Fallback to JSON file if Supabase is not configured or query fails
-    console.log(`⚠️ [Best Sellers API] Using JSON fallback (Supabase not configured or query failed)`)
     return NextResponse.json(bestSellersData)
   } catch (error) {
     console.error('❌ [Best Sellers API] Error fetching best sellers:', error)
-    console.log(`⚠️ [Best Sellers API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return NextResponse.json(bestSellersData)
   }

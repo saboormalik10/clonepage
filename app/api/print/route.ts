@@ -30,7 +30,6 @@ export async function GET(request: Request) {
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [Print API] Loaded ${data.length} print categories from Supabase`)
         // Transform to match expected format and include id
         let transformedData = data.map((item: any) => ({
           id: item.id,
@@ -42,13 +41,11 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'print')
-          console.log(`💰 [Print API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             magazines: adjustPrintMagazines(item.magazines, adjustments)
           }))
-          console.log(`✅ [Print API] Applied price adjustments to ${transformedData.length} categories`)
         } catch (adjError) {
           console.warn('⚠️ [Print API] Error applying price adjustments:', adjError)
         }
@@ -63,11 +60,9 @@ export async function GET(request: Request) {
     }
 
     // Fallback to JSON file if Supabase is not configured or query failed
-    console.log(`⚠️ [Print API] Using JSON fallback (Supabase not configured or query failed)`)
     return NextResponse.json(printData)
   } catch (error) {
     console.error('❌ [Print API] Error fetching print data:', error)
-    console.log(`⚠️ [Print API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return NextResponse.json(printData)
   }

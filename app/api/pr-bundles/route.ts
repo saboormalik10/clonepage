@@ -29,7 +29,6 @@ export async function GET(request: Request) {
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [PR Bundles API] Loaded ${data.length} PR bundle categories from Supabase`)
         // Transform to match expected format and include id
         let transformedData = data.map((item: any) => ({
           id: item.id,
@@ -41,13 +40,11 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'pr_bundles')
-          console.log(`💰 [PR Bundles API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             bundles: adjustPRBundles(item.bundles, adjustments)
           }))
-          console.log(`✅ [PR Bundles API] Applied price adjustments to ${transformedData.length} categories`)
         } catch (adjError) {
           console.warn('⚠️ [PR Bundles API] Error applying price adjustments:', adjError)
         }
@@ -62,11 +59,9 @@ export async function GET(request: Request) {
     }
 
     // Fallback to JSON file if Supabase is not configured or query failed
-    console.log(`⚠️ [PR Bundles API] Using JSON fallback (Supabase not configured or query failed)`)
     return NextResponse.json(prBundlesData)
   } catch (error) {
     console.error('❌ [PR Bundles API] Error fetching PR bundles:', error)
-    console.log(`⚠️ [PR Bundles API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return NextResponse.json(prBundlesData)
   }

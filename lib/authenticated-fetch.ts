@@ -236,11 +236,12 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     const headers = new Headers(options.headers)
     headers.set('Authorization', `Bearer ${session.access_token}`)
     
-    // Make fetch request with timeout
+    // Make fetch request with timeout - longer timeout for publications API
+    const timeoutMs = url.includes('/api/publications') ? 60000 : 30000 // 60s for publications, 30s for others
     const response = await fetchWithTimeout(url, {
       ...options,
       headers,
-    }, 30000) // 30 second timeout
+    }, timeoutMs)
     
     const elapsed = Date.now() - startTime
     if (elapsed > 1000) {
@@ -263,10 +264,11 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
           cacheTimestamp = Date.now()
           // Retry with new token
           headers.set('Authorization', `Bearer ${newSession.access_token}`)
+          const retryTimeoutMs = url.includes('/api/publications') ? 60000 : 30000
           return fetchWithTimeout(url, {
             ...options,
             headers,
-          }, 30000)
+          }, retryTimeoutMs)
         }
       } catch (refreshErr: any) {
         // Ignore refresh errors

@@ -24,14 +24,11 @@ export async function GET(request: Request) {
           orderBy: 'affiliate',
           ascending: true
         })
-        console.log(`🔍 [Broadcast TV API] Raw Supabase data:`, data)
-        console.log(`🔍 [Broadcast TV API] Data length:`, data?.length)
       } catch (error) {
         console.error('❌ [Broadcast TV API] Supabase query error:', error)
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [Broadcast TV API] Loaded ${data.length} broadcast TV entries from Supabase`)
         // Transform snake_case to camelCase and include id
         let transformedData = data.map((item: any) => ({
           id: item.id,
@@ -51,13 +48,11 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'broadcast_tv')
-          console.log(`💰 [Broadcast TV API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             rate: adjustDollarPrice(item.rate, adjustments)
           }))
-          console.log(`✅ [Broadcast TV API] Applied price adjustments to ${transformedData.length} items`)
         } catch (adjError) {
           console.warn('⚠️ [Broadcast TV API] Error applying price adjustments:', adjError)
         }
@@ -72,14 +67,11 @@ export async function GET(request: Request) {
     }
 
     // Fallback to JSON file if Supabase is not configured or query failed
-    console.log(`⚠️ [Broadcast TV API] Using JSON fallback (Supabase not configured or query failed)`)
-    console.log(`📄 [Broadcast TV API] JSON fallback data length:`, tableData.length)
     
     // Apply price adjustments to fallback data too
     let adjustments: any = null
     try {
       adjustments = await getPriceAdjustments(userId, 'broadcast_tv')
-      console.log(`💰 [Broadcast TV API] Price adjustments for fallback:`, adjustments)
     } catch (adjError) {
       console.warn('⚠️ [Broadcast TV API] Error applying price adjustments to fallback:', adjError)
     }
@@ -92,8 +84,6 @@ export async function GET(request: Request) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('❌ [Broadcast TV API] Error fetching broadcast TV:', error)
-    console.log(`⚠️ [Broadcast TV API] Falling back to JSON file`)
-    console.log(`📄 [Broadcast TV API] Error fallback data length:`, tableData.length)
     
     // Apply price adjustments to error fallback data too
     let adjustments: any = null

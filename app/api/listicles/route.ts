@@ -30,7 +30,6 @@ export async function GET(request: Request) {
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [Listicles API] Loaded ${data.length} listicles from Supabase`)
         // Transform snake_case to camelCase
         let transformedData = data.map((item: any) => ({
           id: item.id, // Include id for delete functionality
@@ -53,13 +52,11 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'listicles')
-          console.log(`💰 [Listicles API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             price: adjustListiclesPrice(item.price, adjustments)
           }))
-          console.log(`✅ [Listicles API] Applied price adjustments to ${transformedData.length} items`)
         } catch (adjError) {
           console.warn('⚠️ [Listicles API] Error applying price adjustments:', adjError)
         }
@@ -74,11 +71,9 @@ export async function GET(request: Request) {
     }
 
     // Fallback to JSON file if Supabase is not configured or query fails
-    console.log(`⚠️ [Listicles API] Using JSON fallback (Supabase not configured or query failed)`)
     return NextResponse.json(listiclesData)
   } catch (error) {
     console.error('❌ [Listicles API] Error fetching listicles:', error)
-    console.log(`⚠️ [Listicles API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return NextResponse.json(listiclesData)
   }

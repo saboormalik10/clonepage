@@ -50,8 +50,6 @@ export async function getPriceAdjustments(userId: string | null, tableName: stri
   const globalAdjs = globalResult.data || []
   const userAdjs = userResult?.data || []
 
-  console.log(`💰 [Price Adjustments] Fetched for ${tableName} (user: ${userId || 'none'}): ${globalAdjs.length} global, ${userAdjs.length} user adjustments`)
-
   return {
     global: globalAdjs,
     user: userAdjs
@@ -144,19 +142,14 @@ export function applyPriceAdjustment(
         // For user adjustments with exact_amount, only apply if it's >= current price (which already has global adjustments)
         // This ensures user exact amounts don't reduce prices below global adjustment levels
         if (type === 'user' && adj.exact_amount < currentPrice) {
-          console.log(`⏭️ Ignoring user exact amount $${adj.exact_amount} (less than global-adjusted price $${currentPrice})`)
           return currentPrice;
         }
-        console.log(`💵 Replacing price $${currentPrice} with exact amount $${adj.exact_amount} (${type})`)
         return adj.exact_amount;
       } 
       // Otherwise apply percentage adjustment
       else if (adj.adjustment_percentage !== 0) {
-        console.log(`💵 Applying ${type} adjustment ${adj.adjustment_percentage}% to price $${currentPrice} (within range $${adj.min_price ?? '0'}-$${adj.max_price ?? 'unlimited'})`)
         return currentPrice * (1 + adj.adjustment_percentage / 100);
       }
-    } else if (adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)) {
-      console.log(`⏭️ Skipping ${type} adjustment for price $${currentPrice} (outside range $${adj.min_price ?? '0'}-$${adj.max_price ?? 'unlimited'})`)
     }
     
     return currentPrice;

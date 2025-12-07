@@ -36,13 +36,8 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Error fetching messages:', error)
-      console.error('Error details:', JSON.stringify(error, null, 2))
       throw error
     }
-
-    console.log('📨 Fetched messages data for user:', userId)
-    console.log('📨 Raw data:', JSON.stringify(data, null, 2))
-    console.log('📨 Data count:', data?.length || 0)
 
     // Transform the data to a simpler format
     const messages = (data || [])
@@ -68,9 +63,6 @@ export async function GET(request: Request) {
         const dateB = new Date(b.createdAt || 0).getTime()
         return dateB - dateA
       })
-
-    console.log('📨 Transformed messages:', JSON.stringify(messages, null, 2))
-    console.log('📨 Final messages count:', messages.length)
 
     return NextResponse.json({ messages })
   } catch (error: any) {

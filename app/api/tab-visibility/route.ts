@@ -6,7 +6,6 @@ export const revalidate = 0
 
 export async function GET(request: Request) {
   try {
-    console.log('📊 [Tab Visibility API] Fetching visible tabs...')
     const { data, error } = await supabase
       .from('tab_visibility')
       .select('tab_id, is_visible')
@@ -37,7 +36,6 @@ export async function GET(request: Request) {
     }
 
     const visibleTabs = data || []
-    console.log(`✅ [Tab Visibility API] Found ${visibleTabs.length} visible tabs:`, visibleTabs.map((t: any) => t.tab_id))
 
     return NextResponse.json({ data: visibleTabs }, {
       headers: {

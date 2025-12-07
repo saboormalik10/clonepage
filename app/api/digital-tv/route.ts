@@ -34,7 +34,6 @@ export async function GET(request: Request) {
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [Digital TV API] Loaded ${data.length} digital TV entries from Supabase`)
         // Transform snake_case to camelCase and include id
         let transformedData = data.map((item: any) => ({
           id: item.id,
@@ -55,13 +54,11 @@ export async function GET(request: Request) {
         let adjustments: any = null
         try {
           adjustments = await getPriceAdjustments(userId, 'digital_tv')
-          console.log(`💰 [Digital TV API] Price adjustments fetched:`, adjustments)
           // Always apply adjustments (even if 0) to ensure consistency
           transformedData = transformedData.map((item: any) => ({
             ...item,
             rate: adjustDollarPrice(item.rate, adjustments)
           }))
-          console.log(`✅ [Digital TV API] Applied price adjustments to ${transformedData.length} items`)
         } catch (adjError) {
           console.warn('⚠️ [Digital TV API] Error applying price adjustments:', adjError)
         }
@@ -76,11 +73,9 @@ export async function GET(request: Request) {
     }
 
     // Fallback to JSON file if Supabase is not configured or query fails
-    console.log(`⚠️ [Digital TV API] Using JSON fallback (Supabase not configured or query failed)`)
     return createFreshResponse(digitalTvData)
   } catch (error) {
     console.error('❌ [Digital TV API] Error fetching digital TV:', error)
-    console.log(`⚠️ [Digital TV API] Falling back to JSON file`)
     // Fallback to JSON file on error
     return createFreshResponse(digitalTvData)
   }
