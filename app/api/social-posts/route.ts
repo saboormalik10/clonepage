@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { getAdminClient } from '@/lib/admin-client'
 import socialPostData from '@/data/socialPostData.json'
 import { createFreshResponse, routeConfig } from '@/lib/api-helpers'
 import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 // Disable Next.js caching for this route
 export const dynamic = routeConfig.dynamic
@@ -24,13 +25,25 @@ export async function GET(request: Request) {
     // Try to fetch from Supabase first
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       let data: any[] = []
-      try {
-        data = await fetchAllRecords(supabase, 'social_posts', {
-          orderBy: 'publication',
-          ascending: true
-        })
-      } catch (error) {
-        console.error('❌ [Social Posts API] Supabase query error:', error)
+      
+      // Check cache first
+      const cachedData = dataCache.get<any[]>(CACHE_KEYS.SOCIAL_POSTS)
+      if (cachedData) {
+        data = cachedData
+        console.log(`✅ [Social Posts API] Using cached data: ${data.length} records`)
+      } else {
+        try {
+          const supabase = getSupabaseClient()
+          data = await fetchAllRecords(supabase, 'social_posts', {
+            orderBy: 'publication',
+            ascending: true
+          })
+          // Cache the data
+          dataCache.set(CACHE_KEYS.SOCIAL_POSTS, data)
+          console.log(`✅ [Social Posts API] Fetched ${data.length} records from Supabase and cached`)
+        } catch (error) {
+          console.error('❌ [Social Posts API] Supabase query error:', error)
+        }
       }
 
       if (data && data.length > 0) {
@@ -92,8 +105,11 @@ export async function POST(request: Request) {
       tat: body.tat || null,
       example_url: body.exampleUrl || null
     }
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase.from('social_posts').insert([recordData]).select()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    // Invalidate cache after insert
+    dataCache.invalidate(CACHE_KEYS.SOCIAL_POSTS)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
@@ -116,9 +132,12 @@ export async function PUT(request: Request) {
       tat: body.tat || null,
       example_url: body.exampleUrl || null
     }
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase.from('social_posts').update(recordData).eq('id', body.id).select()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     if (!data || data.length === 0) return NextResponse.json({ error: 'Record not found' }, { status: 404 })
+    // Invalidate cache after update
+    dataCache.invalidate(CACHE_KEYS.SOCIAL_POSTS)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
@@ -160,6 +179,8 @@ export async function DELETE(request: Request) {
     }
 
     console.log('✅ [Social Posts API] Record deleted successfully:', data[0])
+    // Invalidate cache after delete
+    dataCache.invalidate(CACHE_KEYS.SOCIAL_POSTS)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Social Posts API] Error in DELETE:', error)

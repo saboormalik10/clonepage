@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { getAdminClient } from '@/lib/admin-client'
 import digitalTvData from '@/data/digitalTvData.json'
 import { createFreshResponse, routeConfig } from '@/lib/api-helpers'
 import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 // Disable Next.js caching for this route
 export const dynamic = routeConfig.dynamic
@@ -24,13 +25,25 @@ export async function GET(request: Request) {
     // Try to fetch from Supabase first
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       let data: any[] = []
-      try {
-        data = await fetchAllRecords(supabase, 'digital_tv', {
-          orderBy: 'station',
-          ascending: true
-        })
-      } catch (error) {
-        console.error('❌ [Digital TV API] Supabase query error:', error)
+      
+      // Check cache first
+      const cachedData = dataCache.get<any[]>(CACHE_KEYS.DIGITAL_TV)
+      if (cachedData) {
+        data = cachedData
+        console.log(`✅ [Digital TV API] Using cached data: ${data.length} records`)
+      } else {
+        try {
+          const supabase = getSupabaseClient()
+          data = await fetchAllRecords(supabase, 'digital_tv', {
+            orderBy: 'station',
+            ascending: true
+          })
+          // Cache the data
+          dataCache.set(CACHE_KEYS.DIGITAL_TV, data)
+          console.log(`✅ [Digital TV API] Fetched ${data.length} records from Supabase and cached`)
+        } catch (error) {
+          console.error('❌ [Digital TV API] Supabase query error:', error)
+        }
       }
 
       if (data && data.length > 0) {
@@ -112,6 +125,7 @@ export async function POST(request: Request) {
       example_url: body.exampleUrl || null
     }
 
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('digital_tv')
       .insert([recordData])
@@ -123,6 +137,8 @@ export async function POST(request: Request) {
     }
 
     console.log('✅ [Digital TV API] Record created successfully:', data[0])
+    // Invalidate cache after insert
+    dataCache.invalidate(CACHE_KEYS.DIGITAL_TV)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Digital TV API] Error in POST:', error)
@@ -160,6 +176,7 @@ export async function PUT(request: Request) {
       example_url: body.exampleUrl || null
     }
 
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('digital_tv')
       .update(recordData)
@@ -176,6 +193,8 @@ export async function PUT(request: Request) {
     }
 
     console.log('✅ [Digital TV API] Record updated successfully:', data[0])
+    // Invalidate cache after update
+    dataCache.invalidate(CACHE_KEYS.DIGITAL_TV)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Digital TV API] Error in PUT:', error)
@@ -219,6 +238,8 @@ export async function DELETE(request: Request) {
     }
 
     console.log('✅ [Digital TV API] Record deleted successfully:', data[0])
+    // Invalidate cache after delete
+    dataCache.invalidate(CACHE_KEYS.DIGITAL_TV)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Digital TV API] Error in DELETE:', error)

@@ -22,7 +22,7 @@ const allTabs = [
   { name: 'BEST SELLERS', id: 'bestsellers', component: BestSellersTab },
   // { name: 'PR BUNDLES', id: 'prbundles', component: PRBundlesTab },
   { name: 'PRINT', id: 'print', component: PrintTab },
-  { name: 'SOCIAL POST', id: 'socialpost', component: SocialPostTab },
+  // { name: 'SOCIAL POST', id: 'socialpost', component: SocialPostTab },
   { name: 'OTHERS', id: 'others', component: OthersTab },
 ]
 

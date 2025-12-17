@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminClient, retryWithBackoff } from '@/lib/admin-client'
 import { getPriceAdjustments, adjustListiclesPrice } from '@/lib/price-adjustments'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 // Check if user is admin
 async function checkAdmin(request: Request) {
@@ -86,6 +87,9 @@ export async function POST(request: Request) {
 
     if (error) throw error
 
+    // Invalidate cache after insert
+    dataCache.invalidate(CACHE_KEYS.LISTICLES)
+
     // Apply price adjustments to the newly created record
     let adjustedRecord = data
     try {
@@ -139,6 +143,9 @@ export async function PUT(request: Request) {
 
     if (error) throw error
 
+    // Invalidate cache after update
+    dataCache.invalidate(CACHE_KEYS.LISTICLES)
+
     return NextResponse.json({ success: true, record: data })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -169,6 +176,9 @@ export async function DELETE(request: Request) {
     )
 
     if (error) throw error
+
+    // Invalidate cache after delete
+    dataCache.invalidate(CACHE_KEYS.LISTICLES)
 
     return NextResponse.json({ success: true, deletedId: id })
   } catch (error: any) {

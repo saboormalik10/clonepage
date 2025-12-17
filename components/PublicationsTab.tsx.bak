@@ -192,12 +192,6 @@ export default function PublicationsTab() {
     if (!articlePreview || !articlePreview.asset) {
       return null
     }
-    // Check for scraped originalUrl first (from browser scraper)
-    const asset = articlePreview.asset as any
-    if (asset._metadata && asset._metadata.originalUrl) {
-      return asset._metadata.originalUrl
-    }
-    // Fall back to Sanity CDN URL construction
     return getImageUrl(articlePreview.asset._ref)
   }
 
@@ -1713,10 +1707,7 @@ export default function PublicationsTab() {
                             const asset = pub.logo.asset as any
                             let imageUrl: string
                             
-                            if (asset._metadata && asset._metadata.originalUrl) {
-                              // If originalUrl exists in metadata, use it directly
-                              imageUrl = asset._metadata.originalUrl
-                            } else if (asset._metadata && asset._metadata.isSupabaseUpload && asset._metadata.storagePath) {
+                            if (asset._metadata && asset._metadata.isSupabaseUpload && asset._metadata.storagePath) {
                               // Supabase storage upload - construct URL dynamically using Supabase client
                               const { data: { publicUrl } } = supabase.storage
                                 .from('publications')
@@ -2180,7 +2171,7 @@ export default function PublicationsTab() {
                                       className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto whitespace-nowrap"
                                     >
                                       {niche.accepted && niche.price !== null ? (
-                                        <span className="text-sm">Please check with us to confirm price</span>
+                                        <span className="text-sm">{niche.displayName} price: ${niche.price.toLocaleString()}</span>
                                       ) : (
                                         <span className="text-sm">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}

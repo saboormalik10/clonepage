@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect, memo } from 'react'
 
 interface Magazine {
+  id: string
   name: string
   url: string
   details: string[]
@@ -13,9 +14,14 @@ interface FormData {
   magazines: Magazine[]
 }
 
+interface SubmitData {
+  category: string
+  magazines: Omit<Magazine, 'id'>[]
+}
+
 interface EditPrintFormProps {
   onClose: () => void
-  onSubmit: (data: FormData) => Promise<void>
+  onSubmit: (data: SubmitData) => Promise<void>
   error?: string
   success?: string
   initialData: any // Print data for edit mode
@@ -82,7 +88,10 @@ DebouncedInput.displayName = 'DebouncedInput'
 const getInitialFormData = (initialData: any): FormData => {
   return {
     category: initialData.category || '',
-    magazines: initialData.magazines || []
+    magazines: (initialData.magazines || []).map((magazine: any) => ({
+      ...magazine,
+      id: magazine.id || `magazine-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }))
   }
 }
 
@@ -113,53 +122,58 @@ export default function EditPrintForm({
   const handleAddMagazine = useCallback(() => {
     setFormData(prev => ({
       ...prev,
-      magazines: [...prev.magazines, { name: '', url: '', details: [] }]
+      magazines: [...prev.magazines, { 
+        id: `magazine-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: '', 
+        url: '', 
+        details: [] 
+      }]
     }))
   }, [])
 
-  const handleRemoveMagazine = useCallback((index: number) => {
+  const handleRemoveMagazine = useCallback((magazineId: string) => {
     setFormData(prev => ({
       ...prev,
-      magazines: prev.magazines.filter((_, i) => i !== index)
+      magazines: prev.magazines.filter(magazine => magazine.id !== magazineId)
     }))
   }, [])
 
-  const handleMagazineChange = useCallback((index: number, field: keyof Magazine, value: string | string[]) => {
+  const handleMagazineChange = useCallback((magazineId: string, field: keyof Magazine, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
-      magazines: prev.magazines.map((magazine, i) => 
-        i === index ? { ...magazine, [field]: value } : magazine
+      magazines: prev.magazines.map((magazine) => 
+        magazine.id === magazineId ? { ...magazine, [field]: value } : magazine
       )
     }))
   }, [])
 
-  const handleAddDetail = useCallback((magazineIndex: number) => {
+  const handleAddDetail = useCallback((magazineId: string) => {
     setFormData(prev => ({
       ...prev,
-      magazines: prev.magazines.map((magazine, i) => 
-        i === magazineIndex 
+      magazines: prev.magazines.map((magazine) => 
+        magazine.id === magazineId 
           ? { ...magazine, details: [...magazine.details, ''] }
           : magazine
       )
     }))
   }, [])
 
-  const handleRemoveDetail = useCallback((magazineIndex: number, detailIndex: number) => {
+  const handleRemoveDetail = useCallback((magazineId: string, detailIndex: number) => {
     setFormData(prev => ({
       ...prev,
-      magazines: prev.magazines.map((magazine, i) => 
-        i === magazineIndex 
+      magazines: prev.magazines.map((magazine) => 
+        magazine.id === magazineId 
           ? { ...magazine, details: magazine.details.filter((_, j) => j !== detailIndex) }
           : magazine
       )
     }))
   }, [])
 
-  const handleDetailChange = useCallback((magazineIndex: number, detailIndex: number, value: string) => {
+  const handleDetailChange = useCallback((magazineId: string, detailIndex: number, value: string) => {
     setFormData(prev => ({
       ...prev,
-      magazines: prev.magazines.map((magazine, i) => 
-        i === magazineIndex 
+      magazines: prev.magazines.map((magazine) => 
+        magazine.id === magazineId 
           ? { 
               ...magazine, 
               details: magazine.details.map((detail, j) => j === detailIndex ? value : detail)
@@ -175,7 +189,13 @@ export default function EditPrintForm({
 
     setIsSubmitting(true)
     try {
-      await onSubmit(formData)
+      // Remove temporary IDs before sending to API
+      const dataToSend = {
+        category: formData.category,
+        magazines: formData.magazines.map(({ id, ...magazine }) => magazine)
+      }
+      console.log('📝 [EditPrintForm] Sending complete record:', dataToSend)
+      await onSubmit(dataToSend)
     } finally {
       setIsSubmitting(false)
     }
@@ -243,12 +263,12 @@ export default function EditPrintForm({
 
               <div className="space-y-4">
                 {formData.magazines.map((magazine, magazineIndex) => (
-                  <div key={magazineIndex} className="border border-gray-300 rounded-md p-4 bg-gray-50">
+                  <div key={magazine.id} className="border border-gray-300 rounded-md p-4 bg-gray-50">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-sm font-medium text-gray-700">Magazine {magazineIndex + 1}</h3>
                       <button
                         type="button"
-                        onClick={() => handleRemoveMagazine(magazineIndex)}
+                        onClick={() => handleRemoveMagazine(magazine.id)}
                         className="text-sm text-red-600 hover:text-red-800 px-2 py-1 border border-red-600 rounded hover:bg-red-50"
                       >
                         Remove
@@ -264,7 +284,7 @@ export default function EditPrintForm({
                         <DebouncedInput
                           type="text"
                           value={magazine.name}
-                          onChange={(value) => handleMagazineChange(magazineIndex, 'name', value || '')}
+                          onChange={(value) => handleMagazineChange(magazine.id, 'name', value || '')}
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="e.g., Forbes, Time Magazine"
                         />
@@ -278,7 +298,7 @@ export default function EditPrintForm({
                         <DebouncedInput
                           type="url"
                           value={magazine.url}
-                          onChange={(value) => handleMagazineChange(magazineIndex, 'url', value || '')}
+                          onChange={(value) => handleMagazineChange(magazine.id, 'url', value || '')}
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="https://example.com/magazine"
                           pattern="https?://.+"
@@ -294,7 +314,7 @@ export default function EditPrintForm({
                           </label>
                           <button
                             type="button"
-                            onClick={() => handleAddDetail(magazineIndex)}
+                            onClick={() => handleAddDetail(magazine.id)}
                             className="text-xs bg-blue-600 text-white px-2 py-1 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             + Add Detail
@@ -307,13 +327,13 @@ export default function EditPrintForm({
                               <DebouncedInput
                                 type="text"
                                 value={detail}
-                                onChange={(value) => handleDetailChange(magazineIndex, detailIndex, value || '')}
+                                onChange={(value) => handleDetailChange(magazine.id, detailIndex, value || '')}
                                 className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Enter detail"
                               />
                               <button
                                 type="button"
-                                onClick={() => handleRemoveDetail(magazineIndex, detailIndex)}
+                                onClick={() => handleRemoveDetail(magazine.id, detailIndex)}
                                 className="text-red-600 hover:text-red-800 px-3 py-2 border border-red-600 rounded hover:bg-red-50"
                               >
                                 ×

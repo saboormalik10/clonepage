@@ -158,3 +158,61 @@ export async function DELETE(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { isAdmin, userId } = await checkAdmin(request)
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, table_name, adjustment_percentage, exact_amount, min_price, max_price } = body
+
+    if (!id) {
+      return NextResponse.json({ error: 'Adjustment ID is required' }, { status: 400 })
+    }
+
+    if (!table_name || (adjustment_percentage === undefined && exact_amount === undefined)) {
+      return NextResponse.json({ error: 'Table name and either adjustment percentage or exact amount is required' }, { status: 400 })
+    }
+
+    if (!TABLES.includes(table_name)) {
+      return NextResponse.json({ error: 'Invalid table name' }, { status: 400 })
+    }
+
+    // If exact_amount is provided, set adjustment_percentage to 0 and use exact_amount
+    // Otherwise, use adjustment_percentage and set exact_amount to null
+    const finalAdjustmentPercentage = exact_amount !== undefined && exact_amount !== null && exact_amount !== '' 
+      ? 0 
+      : parseFloat(adjustment_percentage) || 0
+    const finalExactAmount = exact_amount !== undefined && exact_amount !== null && exact_amount !== '' 
+      ? parseFloat(exact_amount) 
+      : null
+
+    const adminClient = getAdminClient()
+
+    // Update the adjustment with retry
+    const { data, error } = await retryWithBackoff(
+      async () => await adminClient
+        .from('global_price_adjustments')
+        .update({
+          table_name,
+          adjustment_percentage: finalAdjustmentPercentage,
+          exact_amount: finalExactAmount,
+          min_price: min_price ? parseFloat(min_price) : null,
+          max_price: max_price ? parseFloat(max_price) : null,
+          applied_by: userId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+    )
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true, data })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+

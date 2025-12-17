@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { getAdminClient } from '@/lib/admin-client'
 import prBundlesData from '@/data/prBundlesData.json'
 import { getPriceAdjustments, adjustPRBundles } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 export async function GET(request: Request) {
   // Require authentication
@@ -19,13 +20,25 @@ export async function GET(request: Request) {
     // Try to fetch from Supabase first
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       let data: any[] = []
-      try {
-        data = await fetchAllRecords(supabase, 'pr_bundles', {
-          orderBy: 'category',
-          ascending: true
-        })
-      } catch (error) {
-        console.error('❌ [PR Bundles API] Supabase query error:', error)
+      
+      // Check cache first
+      const cachedData = dataCache.get<any[]>(CACHE_KEYS.PR_BUNDLES)
+      if (cachedData) {
+        data = cachedData
+        console.log(`✅ [PR Bundles API] Using cached data: ${data.length} records`)
+      } else {
+        try {
+          const supabase = getSupabaseClient()
+          data = await fetchAllRecords(supabase, 'pr_bundles', {
+            orderBy: 'category',
+            ascending: true
+          })
+          // Cache the data
+          dataCache.set(CACHE_KEYS.PR_BUNDLES, data)
+          console.log(`✅ [PR Bundles API] Fetched ${data.length} records from Supabase and cached`)
+        } catch (error) {
+          console.error('❌ [PR Bundles API] Supabase query error:', error)
+        }
       }
 
       if (data && data.length > 0) {
@@ -89,6 +102,7 @@ export async function POST(request: Request) {
       bundles: body.bundles || []
     }
 
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('pr_bundles')
       .insert([recordData])
@@ -100,6 +114,8 @@ export async function POST(request: Request) {
     }
 
     console.log('✅ [PR Bundles API] Record created successfully:', data[0])
+    // Invalidate cache after insert
+    dataCache.invalidate(CACHE_KEYS.PR_BUNDLES)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [PR Bundles API] Error in POST:', error)
@@ -128,6 +144,7 @@ export async function PUT(request: Request) {
       bundles: body.bundles || []
     }
 
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('pr_bundles')
       .update(recordData)
@@ -144,6 +161,8 @@ export async function PUT(request: Request) {
     }
 
     console.log('✅ [PR Bundles API] Record updated successfully:', data[0])
+    // Invalidate cache after update
+    dataCache.invalidate(CACHE_KEYS.PR_BUNDLES)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [PR Bundles API] Error in PUT:', error)
@@ -187,6 +206,8 @@ export async function DELETE(request: Request) {
     }
 
     console.log('✅ [PR Bundles API] Record deleted successfully:', data[0])
+    // Invalidate cache after delete
+    dataCache.invalidate(CACHE_KEYS.PR_BUNDLES)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [PR Bundles API] Error in DELETE:', error)

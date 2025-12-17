@@ -30,6 +30,7 @@ export default function GlobalPricesPage() {
   const [adjustments, setAdjustments] = useState<Adjustment[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [editingAdjustment, setEditingAdjustment] = useState<Adjustment | null>(null)
   const [adjustmentType, setAdjustmentType] = useState<'percentage' | 'exact'>('percentage')
   const [formData, setFormData] = useState({
     table_name: 'publications',
@@ -158,6 +159,81 @@ export default function GlobalPricesPage() {
     }
   }
 
+  const handleEditAdjustment = (adjustment: Adjustment) => {
+    setEditingAdjustment(adjustment)
+    setFormData({
+      table_name: adjustment.table_name,
+      adjustment_percentage: adjustment.adjustment_percentage?.toString() || '',
+      exact_amount: adjustment.exact_amount?.toString() || '',
+      min_price: adjustment.min_price?.toString() || '',
+      max_price: adjustment.max_price?.toString() || '',
+    })
+    setAdjustmentType(adjustment.exact_amount !== null && adjustment.exact_amount !== undefined ? 'exact' : 'percentage')
+    setShowModal(true)
+  }
+
+  const handleUpdateAdjustment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingAdjustment) return
+    
+    setError('')
+    setSuccess('')
+    setProcessing(true)
+
+    try {
+      const token = await getAuthToken()
+      const response = await fetch('/api/admin/prices/global', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id: editingAdjustment.id,
+          table_name: formData.table_name,
+          adjustment_percentage: adjustmentType === 'percentage' ? parseFloat(formData.adjustment_percentage) : null,
+          exact_amount: adjustmentType === 'exact' ? parseFloat(formData.exact_amount) : null,
+          min_price: formData.min_price ? parseFloat(formData.min_price) : null,
+          max_price: formData.max_price ? parseFloat(formData.max_price) : null
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update adjustment')
+      }
+
+      setSuccess('Adjustment updated successfully!')
+      setShowModal(false)
+      setEditingAdjustment(null)
+      setFormData({
+        table_name: 'publications',
+        adjustment_percentage: '',
+        exact_amount: '',
+        min_price: '',
+        max_price: '',
+      })
+      await fetchAdjustments()
+    } catch (err: any) {
+      setError(err.message || 'Failed to update adjustment')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setEditingAdjustment(null)
+    setFormData({
+      table_name: 'publications',
+      adjustment_percentage: '',
+      exact_amount: '',
+      min_price: '',
+      max_price: '',
+    })
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -228,12 +304,20 @@ export default function GlobalPricesPage() {
                               Created: {new Date(adjustment.created_at).toLocaleDateString()}
                             </p>
                           </div>
-                          <button
-                            onClick={() => handleRemoveAdjustment(adjustment.id)}
-                            className="ml-4 text-red-600 hover:text-red-900 text-sm font-medium"
-                          >
-                            Remove
-                          </button>
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={() => handleEditAdjustment(adjustment)}
+                              className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleRemoveAdjustment(adjustment.id)}
+                              className="text-red-600 hover:text-red-900 text-sm font-medium"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -250,11 +334,13 @@ export default function GlobalPricesPage() {
       {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowModal(false)}></div>
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleApplyAdjustment}>
+              <form onSubmit={editingAdjustment ? handleUpdateAdjustment : handleApplyAdjustment}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Apply Global Price Adjustment</h3>
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    {editingAdjustment ? 'Edit Global Price Adjustment' : 'Apply Global Price Adjustment'}
+                  </h3>
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="table_name" className="block text-sm font-medium text-gray-700">
@@ -411,11 +497,11 @@ export default function GlobalPricesPage() {
                     disabled={processing}
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
                   >
-                    {processing ? 'Applying...' : 'Apply Adjustment'}
+                    {processing ? (editingAdjustment ? 'Updating...' : 'Applying...') : (editingAdjustment ? 'Update Adjustment' : 'Apply Adjustment')}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={handleCloseModal}
                     disabled={processing}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                   >

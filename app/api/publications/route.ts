@@ -4,6 +4,7 @@ import { createFreshResponse, routeConfig } from '@/lib/api-helpers'
 import { getPriceAdjustments, applyAdjustmentsToPublications } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 // Disable Next.js caching for this route
 export const dynamic = routeConfig.dynamic
@@ -36,30 +37,41 @@ export async function GET(request: Request) {
     const supabase = getSupabaseClient()
     
     let data: any[] = []
-    try {
-      // Add timeout to the query
-      const queryPromise = fetchAllRecords(supabase, 'publications', {
-        orderBy: 'name',
-        ascending: true
-      })
+    
+    // Check cache first
+    const cachedData = dataCache.get<any[]>(CACHE_KEYS.PUBLICATIONS)
+    if (cachedData) {
+      data = cachedData
+      console.log(`✅ [Publications API] Using cached data: ${data.length} records`)
+    } else {
+      try {
+        // Add timeout to the query
+        const queryPromise = fetchAllRecords(supabase, 'publications', {
+          orderBy: 'name',
+          ascending: true
+        })
       
-      // Set a 45 second timeout for the database query
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Database query timeout')), 45000)
-      })
+        // Set a 45 second timeout for the database query
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Database query timeout')), 45000)
+        })
       
-      data = await Promise.race([queryPromise, timeoutPromise])
-    } catch (error: any) {
-      console.error('❌ [Publications API] Supabase query error:', error)
-      if (error.message === 'Database query timeout') {
-        console.error('   Query timed out after 45 seconds')
-      } else {
-        console.error('   Error code:', error.code)
-        console.error('   Error message:', error.message)
-        console.error('   Error details:', error.details)
+        data = await Promise.race([queryPromise, timeoutPromise])
+        // Cache the data
+        dataCache.set(CACHE_KEYS.PUBLICATIONS, data)
+        console.log(`✅ [Publications API] Fetched ${data.length} records from Supabase and cached`)
+      } catch (error: any) {
+        console.error('❌ [Publications API] Supabase query error:', error)
+        if (error.message === 'Database query timeout') {
+          console.error('   Query timed out after 45 seconds')
+        } else {
+          console.error('   Error code:', error.code)
+          console.error('   Error message:', error.message)
+          console.error('   Error details:', error.details)
+        }
+        console.log(`⚠️ [Publications API] Using JSON fallback (Supabase query failed)`)
+        return createFreshResponse(publicationsDataRaw)
       }
-      console.log(`⚠️ [Publications API] Using JSON fallback (Supabase query failed)`)
-      return createFreshResponse(publicationsDataRaw)
     }
 
     if (data && data.length > 0) {

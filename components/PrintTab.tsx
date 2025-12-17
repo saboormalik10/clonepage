@@ -30,6 +30,11 @@ export default function PrintTab() {
   const isAdmin = useIsAdmin()
   const { refreshTrigger } = useVisibilityChange()
 
+  // Debug logging for admin status
+  useEffect(() => {
+    console.log('🔍 [PrintTab] Admin status:', isAdmin, 'User ID:', userId)
+  }, [isAdmin, userId])
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -100,8 +105,9 @@ export default function PrintTab() {
 
   const refreshData = async () => {
     try {
-      console.log('🔄 [Print] Refreshing data...')
+      console.log('🔄 [Print] Refreshing data from database...')
       const { authenticatedFetch } = await import('@/lib/authenticated-fetch')
+      // Always fetch fresh data from database (no cache)
       const response = await authenticatedFetch('/api/print')
       
       if (!response.ok) {

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { getAdminClient } from '@/lib/admin-client'
 import tableData from '@/data/tableData.json'
 import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 export async function GET(request: Request) {
   // Require authentication
@@ -19,13 +20,25 @@ export async function GET(request: Request) {
     // Try to fetch from Supabase first
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       let data: any[] = []
-      try {
-        data = await fetchAllRecords(supabase, 'broadcast_tv', {
-          orderBy: 'affiliate',
-          ascending: true
-        })
-      } catch (error) {
-        console.error('❌ [Broadcast TV API] Supabase query error:', error)
+      
+      // Check cache first
+      const cachedData = dataCache.get<any[]>(CACHE_KEYS.BROADCAST_TV)
+      if (cachedData) {
+        data = cachedData
+        console.log(`✅ [Broadcast TV API] Using cached data: ${data.length} records`)
+      } else {
+        try {
+          const supabase = getSupabaseClient()
+          data = await fetchAllRecords(supabase, 'broadcast_tv', {
+            orderBy: 'affiliate',
+            ascending: true
+          })
+          // Cache the data
+          dataCache.set(CACHE_KEYS.BROADCAST_TV, data)
+          console.log(`✅ [Broadcast TV API] Fetched ${data.length} records from Supabase and cached`)
+        } catch (error) {
+          console.error('❌ [Broadcast TV API] Supabase query error:', error)
+        }
       }
 
       if (data && data.length > 0) {
@@ -132,6 +145,7 @@ export async function POST(request: Request) {
       intake_url: body.intakeUrl || null
     }
 
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('broadcast_tv')
       .insert([recordData])
@@ -143,6 +157,8 @@ export async function POST(request: Request) {
     }
 
     console.log('✅ [Broadcast TV API] Record created successfully:', data[0])
+    // Invalidate cache after insert
+    dataCache.invalidate(CACHE_KEYS.BROADCAST_TV)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Broadcast TV API] Error in POST:', error)
@@ -179,6 +195,7 @@ export async function PUT(request: Request) {
       intake_url: body.intakeUrl || null
     }
 
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('broadcast_tv')
       .update(recordData)
@@ -195,6 +212,8 @@ export async function PUT(request: Request) {
     }
 
     console.log('✅ [Broadcast TV API] Record updated successfully:', data[0])
+    // Invalidate cache after update
+    dataCache.invalidate(CACHE_KEYS.BROADCAST_TV)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Broadcast TV API] Error in PUT:', error)
@@ -238,6 +257,8 @@ export async function DELETE(request: Request) {
     }
 
     console.log('✅ [Broadcast TV API] Record deleted successfully:', data[0])
+    // Invalidate cache after delete
+    dataCache.invalidate(CACHE_KEYS.BROADCAST_TV)
     return NextResponse.json({ success: true, data: data[0] })
   } catch (error: any) {
     console.error('❌ [Broadcast TV API] Error in DELETE:', error)

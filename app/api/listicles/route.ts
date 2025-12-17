@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import listiclesData from '@/data/listiclesData.json'
 import { getPriceAdjustments, adjustListiclesPrice } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
+import { dataCache, CACHE_KEYS } from '@/lib/cache'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(request: Request) {
   // Require authentication
@@ -20,13 +22,26 @@ export async function GET(request: Request) {
     // Try to fetch from Supabase first
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       let data: any[] = []
-      try {
-        data = await fetchAllRecords(supabase, 'listicles', {
-          orderBy: 'publication',
-          ascending: true
-        })
-      } catch (error) {
-        console.error('❌ [Listicles API] Supabase query error:', error)
+      
+      // Check cache first
+      const cachedData = dataCache.get<any[]>(CACHE_KEYS.LISTICLES)
+      if (cachedData) {
+        data = cachedData
+        console.log(`✅ [Listicles API] Using cached data: ${data.length} records`)
+      } else {
+        try {
+          // Create fresh Supabase client for each request
+          const supabase = getSupabaseClient()
+          data = await fetchAllRecords(supabase, 'listicles', {
+            orderBy: 'publication',
+            ascending: true
+          })
+          // Cache the data
+          dataCache.set(CACHE_KEYS.LISTICLES, data)
+          console.log(`✅ [Listicles API] Fetched ${data.length} records from Supabase and cached`)
+        } catch (error) {
+          console.error('❌ [Listicles API] Supabase query error:', error)
+        }
       }
 
       if (data && data.length > 0) {

@@ -1,0 +1,16 @@
+task 1:-
+
+
+in publications and listicles tab in the UI when we hover on niches
+for now just comment that price part only say 
+
+"Please check with us to confirm price"
+
+task 2:-
+
+In ui just comment the social posts tab for now.
+
+task 3:-
+
+In admin portal global price adjustment part
+To the left of remove have an edit part there so i don’t have to remove and re add

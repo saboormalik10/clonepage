@@ -1,0 +1,17 @@
+{
+  "publication": "Example Best Seller Publication",
+  "image": "https://example.com/image.jpg",
+  "genres": "News, Business, Tech, Lifestyle",
+  "price": "$500",
+  "da": "75",
+  "dr": "68",
+  "tat": "1-3 Days",
+  "region": "United States, Canada",
+  "sponsored": "No",
+  "indexed": "Yes",
+  "dofollow": "Yes",
+  "example_url": "https://example.com/article-example",
+  "has_image": "",
+  "niches": "Health: $500, CBD: $500, Crypto: $500, Gambling: $1,000, Erotic: $500"
+}
+
