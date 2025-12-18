@@ -285,8 +285,8 @@ export function applyAdjustmentsToPublications(
     let basePrice: number | null = null
     if (updated.defaultPrice && Array.isArray(updated.defaultPrice) && updated.defaultPrice.length > 0) {
       const firstPrice = updated.defaultPrice[0]
-      basePrice = typeof firstPrice === 'string' ? parseFloat(firstPrice) : firstPrice
-      if (isNaN(basePrice)) basePrice = null
+      const numPrice = typeof firstPrice === 'string' ? parseFloat(firstPrice) : firstPrice
+      basePrice = (numPrice !== null && numPrice !== undefined && !isNaN(numPrice)) ? numPrice : null
     }
 
     // Adjust defaultPrice array (handles both string and number arrays)
