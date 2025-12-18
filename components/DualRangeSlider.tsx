@@ -32,9 +32,9 @@ export default function DualRangeSlider({
 
   // Set width of the range to decrease from the left side
   useEffect(() => {
-    if (maxValRef.current) {
+    if (maxValref.current) {
       const minPercent = getPercent(minVal)
-      const maxPercent = getPercent(+maxValRef.current.value)
+      const maxPercent = getPercent(+maxValref.current.value)
 
       if (range.current) {
         range.current.style.left = `${minPercent}%`
@@ -45,8 +45,8 @@ export default function DualRangeSlider({
 
   // Set width of the range to decrease from the right side
   useEffect(() => {
-    if (minValRef.current) {
-      const minPercent = getPercent(+minValRef.current.value)
+    if (minValref.current) {
+      const minPercent = getPercent(+minValref.current.value)
       const maxPercent = getPercent(maxVal)
 
       if (range.current) {

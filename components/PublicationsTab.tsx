@@ -165,7 +165,8 @@ export default function PublicationsTab() {
   }
 
   // Convert Sanity image reference to CDN URL
-  const getImageUrl = (ref: string): string => {
+  const getImageUrl = (ref: string | null): string => {
+    if (!ref) return ''
     // Format: image-{hash}-{width}x{height}-{ext}
     // Convert to: {hash}-{width}x{height}.{ext}
     const cleaned = ref.replace('image-', '')
@@ -2180,7 +2181,7 @@ export default function PublicationsTab() {
                                       className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto whitespace-nowrap"
                                     >
                                       {niche.accepted && niche.price !== null ? (
-                                        <span className="text-sm">Please check with us to confirm price</span>
+                                        <span className="text-sm">{niche.displayName} price: ${niche.price.toLocaleString()}</span>
                                       ) : (
                                         <span className="text-sm">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}

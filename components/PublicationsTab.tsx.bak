@@ -205,7 +205,7 @@ export default function PublicationsTab() {
     let loadingTimeout: NodeJS.Timeout | null = null
     try {
       // Only show loading on initial load, not on refreshes
-      if (!hasFetchedRef.current) {
+      if (!hasFetchedref.current) {
         setIsLoading(true)
         // Set a timeout to ensure loading state doesn't get stuck
         loadingTimeout = setTimeout(() => {
@@ -368,7 +368,7 @@ export default function PublicationsTab() {
         clearTimeout(loadingTimeout)
       }
       setIsLoading(false)
-      hasFetchedRef.current = true // Ensure this is set even on error
+      hasFetchedref.current = true // Ensure this is set even on error
     }
   }, []) // Remove all filter dependencies - only fetch data, filtering is handled separately
 
@@ -474,9 +474,9 @@ export default function PublicationsTab() {
     console.log('🔄 [Publications] useEffect triggered - refreshTrigger:', refreshTrigger)
     
     // Prevent duplicate fetches on initial load
-    if (!hasFetchedRef.current) {
+    if (!hasFetchedref.current) {
       console.log('📥 [Publications] Initial fetch')
-      lastRefreshTriggerRef.current = refreshTrigger
+      lastRefreshTriggerref.current = refreshTrigger
       fetchPublications().catch((error) => {
         console.error('❌ [Publications] Fetch failed in useEffect:', error)
         // Ensure loading state is cleared even if fetch fails
@@ -486,9 +486,9 @@ export default function PublicationsTab() {
     }
     
     // Only fetch if refreshTrigger actually changed
-    if (refreshTrigger !== lastRefreshTriggerRef.current) {
+    if (refreshTrigger !== lastRefreshTriggerref.current) {
       console.log('📥 [Publications] Refetch due to visibility change')
-      lastRefreshTriggerRef.current = refreshTrigger
+      lastRefreshTriggerref.current = refreshTrigger
       fetchPublications().catch((error) => {
         console.error('❌ [Publications] Refetch failed in useEffect:', error)
         setIsLoading(false)

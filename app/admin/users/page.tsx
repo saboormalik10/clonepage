@@ -112,8 +112,8 @@ export default function UsersPage() {
       setFormData({ email: '', password: '', full_name: '', role: 'user', brand_name: '', brand_logo: '' })
       setBrandLogoPreview(null)
       setLogoUploadError('')
-      if (logoFileInputRef.current) {
-        logoFileInputRef.current.value = ''
+      if (logoFileInputref.current) {
+        logoFileInputref.current.value = ''
       }
       setShowCreateModal(false)
       
@@ -248,8 +248,8 @@ export default function UsersPage() {
     } catch (err: any) {
       setLogoUploadError(err.message || 'Failed to upload image')
       setBrandLogoPreview(null)
-      if (logoFileInputRef.current) {
-        logoFileInputRef.current.value = ''
+      if (logoFileInputref.current) {
+        logoFileInputref.current.value = ''
       }
     } finally {
       setIsUploadingLogo(false)
@@ -307,8 +307,8 @@ export default function UsersPage() {
       setEditingUser(null)
       setEditFormData({ password: '', full_name: '', role: 'user', brand_name: '', brand_logo: '' })
       setEditBrandLogoPreview(null)
-      if (editLogoFileInputRef.current) {
-        editLogoFileInputRef.current.value = ''
+      if (editLogoFileInputref.current) {
+        editLogoFileInputref.current.value = ''
       }
       
       // Refresh the list
@@ -442,8 +442,8 @@ export default function UsersPage() {
     } catch (err: any) {
       setEditLogoUploadError(err.message || 'Failed to upload image')
       setEditBrandLogoPreview(null)
-      if (editLogoFileInputRef.current) {
-        editLogoFileInputRef.current.value = ''
+      if (editLogoFileInputref.current) {
+        editLogoFileInputref.current.value = ''
       }
     } finally {
       setIsUploadingEditLogo(false)
@@ -891,8 +891,8 @@ export default function UsersPage() {
                       setEditingUser(null)
                       setEditFormData({ password: '', full_name: '', role: 'user', brand_name: '', brand_logo: '' })
                       setEditBrandLogoPreview(null)
-                      if (editLogoFileInputRef.current) {
-                        editLogoFileInputRef.current.value = ''
+                      if (editLogoFileInputref.current) {
+                        editLogoFileInputref.current.value = ''
                       }
                     }}
                     disabled={updatingUser}

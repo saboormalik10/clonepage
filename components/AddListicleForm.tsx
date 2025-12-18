@@ -512,8 +512,8 @@ function AddListicleForm({ onClose, onSubmit, error, success, initialData, isEdi
       console.error('Logo upload error:', err)
       setLogoError(err.message || 'Failed to upload logo')
       setLogoPreview(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+      if (fileInputref.current) {
+        fileInputref.current.value = ''
       }
     } finally {
       setIsUploadingLogo(false)
