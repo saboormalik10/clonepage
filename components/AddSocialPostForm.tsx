@@ -272,7 +272,7 @@ export default function AddSocialPostForm({ onClose, onSubmit, error, success, i
     } catch (err: any) {
       setImageError(err.message || 'Failed to upload image')
       setImagePreview(null)
-      if (fileInputref.current) fileInputref.current.value = ''
+      if (fileInputRef.current) fileInputRef.current.value = ''
     } finally {
       setIsUploadingImage(false)
     }

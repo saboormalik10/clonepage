@@ -564,8 +564,8 @@ function AddBestSellerForm({ onClose, onSubmit, error, success, initialData, isE
       console.error('Logo upload error:', err)
       setLogoError(err.message || 'Failed to upload logo')
       setLogoPreview(null)
-      if (fileInputref.current) {
-        fileInputref.current.value = ''
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
       }
     } finally {
       setIsUploadingLogo(false)
