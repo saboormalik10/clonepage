@@ -103,6 +103,9 @@ export default function PublicationsTab() {
   const [selectedIndexed, setSelectedIndexed] = useState<string>('')
   const [selectedImage, setSelectedImage] = useState<string>('')
   const [selectedNiches, setSelectedNiches] = useState<string[]>([])
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [regionSearchTerm, setRegionSearchTerm] = useState('')
+  const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false)
   const [filteredData, setFilteredData] = useState<Publication[]>([])
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<'example' | 'image' | 'genres' | 'regions' | 'niches' | null>(null)
@@ -391,7 +394,8 @@ export default function PublicationsTab() {
     dofollow: string,
     indexed: string,
     image: string,
-    niches: string[]
+    niches: string[],
+    regions: string[] = []
   ) => {
     if (!publicationsData || publicationsData.length === 0) {
       setFilteredData([])
@@ -460,6 +464,15 @@ export default function PublicationsTab() {
         if (!hasNiche) return false
       }
 
+      // Region filter
+      if (regions.length > 0) {
+        const pubRegions = pub.regions?.map(r => r.name) || []
+        const hasRegion = regions.some(region => 
+          pubRegions.some(pr => pr.toLowerCase() === region.toLowerCase())
+        )
+        if (!hasRegion) return false
+      }
+
       return true
     }) as Publication[]
 
@@ -514,7 +527,7 @@ export default function PublicationsTab() {
       // Use startTransition to mark filtering as non-urgent, preventing input lag
       // This ensures the input remains responsive even when filtering operation starts
       startTransition(() => {
-        applyFilters(searchLower, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+        applyFilters(searchLower, priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1009,6 +1022,29 @@ export default function PublicationsTab() {
     }
   }, [])
 
+  // Extract unique regions from all publications - memoized
+  const uniqueRegions = useMemo(() => {
+    const regionSet = new Set<string>()
+    publicationsData.forEach(pub => {
+      if (pub.regions && Array.isArray(pub.regions)) {
+        pub.regions.forEach(region => {
+          if (region.name && region.name.trim()) {
+            regionSet.add(region.name.trim())
+          }
+        })
+      }
+    })
+    return Array.from(regionSet).sort()
+  }, [publicationsData])
+
+  // Filter regions based on search term
+  const filteredRegions = useMemo(() => {
+    if (!regionSearchTerm) return uniqueRegions
+    return uniqueRegions.filter(region => 
+      region.toLowerCase().includes(regionSearchTerm.toLowerCase())
+    )
+  }, [uniqueRegions, regionSearchTerm])
+
 
   // Calculate max price from data safely - memoized to prevent recalculation on every render
   const maxPrice = useMemo(() => {
@@ -1035,7 +1071,7 @@ export default function PublicationsTab() {
     // This handles edge cases where the initial filter application didn't work
     if (publicationsData.length > 0 && priceRange[1] > 0 && filteredData.length === 0 && !debouncedSearchTerm && selectedGenres.length === 0 && selectedTypes.length === 0) {
       console.log(`🔄 [Publications] Re-applying filters (filteredData was empty): ${publicationsData.length} items, price range [${priceRange[0]}, ${priceRange[1]}]`)
-      applyFilters('', priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+      applyFilters('', priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
     }
   }, [publicationsData.length, debouncedSearchTerm]) // Only re-run when data length changes, not price range
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1118,7 +1154,9 @@ export default function PublicationsTab() {
     setSelectedIndexed('')
     setSelectedImage('')
     setSelectedNiches([])
-    applyFilters('', [0, maxPrice], 'Price (Asc)', [], [], '', '', '', '', [])
+    setSelectedRegions([])
+    setRegionSearchTerm('')
+    applyFilters('', [0, maxPrice], 'Price (Asc)', [], [], '', '', '', '', [], [])
   }
 
 
@@ -1212,7 +1250,7 @@ export default function PublicationsTab() {
                       // Ensure min doesn't exceed max
                     const newRange = [Math.min(newValue, priceRange[1] - 1), priceRange[1]] as [number, number]
                     setPriceRange(newRange)
-                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                   }}
                     className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
                   style={{ 
@@ -1234,7 +1272,7 @@ export default function PublicationsTab() {
                       // Ensure max doesn't go below min
                     const newRange = [priceRange[0], Math.max(newValue, priceRange[0] + 1)] as [number, number]
                     setPriceRange(newRange)
-                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), newRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                   }}
                     className="absolute w-full -top-1 h-4 bg-transparent appearance-none pointer-events-none"
                   style={{ 
@@ -1264,7 +1302,7 @@ export default function PublicationsTab() {
                   value={sortBy}
                   onChange={(e) => {
                     setSortBy(e.target.value)
-                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, e.target.value, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                    applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, e.target.value, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                   }}
                 >
                   <option>Price (Asc)</option>
@@ -1279,9 +1317,70 @@ export default function PublicationsTab() {
                 <input
                   type="text"
                   className="w-full bg-white border-2 p-2"
-                  placeholder="Select regions"
-                  readOnly
+                  placeholder="Search regions..."
+                  value={regionSearchTerm}
+                  onChange={(e) => setRegionSearchTerm(e.target.value)}
+                  onFocus={() => setIsRegionDropdownOpen(true)}
                 />
+                {/* Selected regions tags */}
+                {selectedRegions.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {selectedRegions.map((region) => (
+                      <span
+                        key={region}
+                        className="inline-flex items-center gap-1 bg-primary text-white text-xs px-2 py-1 rounded"
+                      >
+                        {region}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newRegions = selectedRegions.filter(r => r !== region)
+                            setSelectedRegions(newRegions)
+                            applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, newRegions)
+                          }}
+                          className="hover:text-gray-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Dropdown */}
+                {isRegionDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border-2 shadow-lg max-h-48 overflow-y-auto">
+                    {filteredRegions.length > 0 ? (
+                      filteredRegions.map((region) => (
+                        <button
+                          key={region}
+                          type="button"
+                          onClick={() => {
+                            const newRegions = selectedRegions.includes(region)
+                              ? selectedRegions.filter(r => r !== region)
+                              : [...selectedRegions, region]
+                            setSelectedRegions(newRegions)
+                            setRegionSearchTerm('')
+                            applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, newRegions)
+                          }}
+                          className={`w-full text-left px-3 py-2 hover:bg-gray-100 ${
+                            selectedRegions.includes(region) ? 'bg-primary/10 text-primary' : ''
+                          }`}
+                        >
+                          {selectedRegions.includes(region) && '✓ '}{region}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-gray-500">No regions found</div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsRegionDropdownOpen(false)}
+                      className="w-full text-center py-2 bg-gray-100 hover:bg-gray-200 text-sm text-gray-600 border-t"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1297,7 +1396,7 @@ export default function PublicationsTab() {
                         ? selectedGenres.filter(g => g !== genre)
                         : [...selectedGenres, genre]
                       setSelectedGenres(newGenres)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, newGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, newGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedGenres.includes(genre)
@@ -1323,7 +1422,7 @@ export default function PublicationsTab() {
                         ? selectedTypes.filter(t => t !== type)
                         : [...selectedTypes, type]
                       setSelectedTypes(newTypes)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, newTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, newTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedTypes.includes(type)
@@ -1347,7 +1446,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedSponsored === val ? '' : val
                       setSelectedSponsored(newVal)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, newVal, selectedDofollow, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, newVal, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedSponsored === val
@@ -1371,7 +1470,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedDofollow === val ? '' : val
                       setSelectedDofollow(newVal)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, newVal, selectedIndexed, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, newVal, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedDofollow === val
@@ -1395,7 +1494,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedIndexed === val ? '' : val
                       setSelectedIndexed(newVal)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, newVal, selectedImage, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, newVal, selectedImage, selectedNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedIndexed === val
@@ -1419,7 +1518,7 @@ export default function PublicationsTab() {
                     onClick={() => {
                       const newVal = selectedImage === val ? '' : val
                       setSelectedImage(newVal)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, newVal, selectedNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, newVal, selectedNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedImage === val
@@ -1445,7 +1544,7 @@ export default function PublicationsTab() {
                         ? selectedNiches.filter(n => n !== niche)
                         : [...selectedNiches, niche]
                       setSelectedNiches(newNiches)
-                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, newNiches)
+                      applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, newNiches, selectedRegions)
                     }}
                     className={`text-sm cursor-pointer p-1 px-2 ${
                       selectedNiches.includes(niche)

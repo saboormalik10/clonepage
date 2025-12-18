@@ -189,6 +189,89 @@ export function applyPriceAdjustment(
 }
 
 /**
+ * Helper function to find applicable adjustment for a given price
+ */
+function findApplicableAdjustmentForPrice(
+  adjs: Array<{ adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }> | null,
+  price: number
+): { adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null } | null {
+  if (!adjs || !Array.isArray(adjs) || adjs.length === 0) return null
+  
+  const isWithinRange = (p: number, min: number | null, max: number | null): boolean => {
+    const minCheck = min === null || p >= min
+    const maxCheck = max === null || p <= max
+    return minCheck && maxCheck
+  }
+  
+  const matching = adjs.filter(adj => {
+    if (!adj) return false
+    const hasAdjustment = adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)
+    return hasAdjustment && isWithinRange(price, adj.min_price, adj.max_price)
+  })
+  
+  if (matching.length === 0) return null
+  
+  // Return the most specific (smallest range)
+  return matching.reduce((best, current) => {
+    const bestRange = (best.max_price ?? Infinity) - (best.min_price ?? 0)
+    const currentRange = (current.max_price ?? Infinity) - (current.min_price ?? 0)
+    return currentRange < bestRange ? current : best
+  })
+}
+
+/**
+ * Apply adjustment to a price based on the main price's applicable adjustment
+ * This allows niche prices to be adjusted even if they fall outside the price range
+ */
+function applyAdjustmentBasedOnMainPrice(
+  nichePrice: number,
+  mainPrice: number,
+  adjustments: any
+): number {
+  if (!adjustments) return nichePrice
+  
+  // Find applicable global and user adjustments based on main price
+  const globalAdj = findApplicableAdjustmentForPrice(adjustments.global, mainPrice)
+  const userAdj = findApplicableAdjustmentForPrice(adjustments.user, mainPrice)
+  
+  // If no adjustments apply to main price, return niche price unchanged
+  if (!globalAdj && !userAdj) {
+    return nichePrice
+  }
+  
+  let adjusted = nichePrice
+  
+  // Apply global adjustment
+  if (globalAdj) {
+    if (globalAdj.exact_amount !== null && globalAdj.exact_amount !== undefined) {
+      // For exact amount, calculate the ratio and apply it to niche price
+      const ratio = globalAdj.exact_amount / mainPrice
+      adjusted = adjusted * ratio
+    } else if (globalAdj.adjustment_percentage !== 0) {
+      adjusted = adjusted * (1 + globalAdj.adjustment_percentage / 100)
+    }
+  }
+  
+  // Apply user adjustment on top
+  if (userAdj) {
+    if (userAdj.exact_amount !== null && userAdj.exact_amount !== undefined) {
+      // For user exact amount, calculate ratio based on what user adjustment does to main price
+      const mainAfterGlobal = globalAdj 
+        ? (globalAdj.exact_amount !== null ? globalAdj.exact_amount : mainPrice * (1 + (globalAdj.adjustment_percentage || 0) / 100))
+        : mainPrice
+      if (userAdj.exact_amount >= mainAfterGlobal) {
+        const ratio = userAdj.exact_amount / mainAfterGlobal
+        adjusted = adjusted * ratio
+      }
+    } else if (userAdj.adjustment_percentage !== 0) {
+      adjusted = adjusted * (1 + userAdj.adjustment_percentage / 100)
+    }
+  }
+  
+  return Math.round(adjusted)
+}
+
+/**
  * Apply adjustments to publications data
  */
 export function applyAdjustmentsToPublications(
@@ -197,6 +280,14 @@ export function applyAdjustmentsToPublications(
 ): any[] {
   return publications.map(pub => {
     const updated = { ...pub }
+
+    // Get the base price (first price in defaultPrice array) for determining niche adjustments
+    let basePrice: number | null = null
+    if (updated.defaultPrice && Array.isArray(updated.defaultPrice) && updated.defaultPrice.length > 0) {
+      const firstPrice = updated.defaultPrice[0]
+      basePrice = typeof firstPrice === 'string' ? parseFloat(firstPrice) : firstPrice
+      if (isNaN(basePrice)) basePrice = null
+    }
 
     // Adjust defaultPrice array (handles both string and number arrays)
     if (updated.defaultPrice && Array.isArray(updated.defaultPrice)) {
@@ -218,14 +309,22 @@ export function applyAdjustmentsToPublications(
       })
     }
 
-    // Adjust eroticPrice
+    // Adjust eroticPrice based on whether the base price qualifies for an adjustment
+    // This ensures erotic price gets adjusted even if it falls outside the price range
     if (updated.eroticPrice !== null && updated.eroticPrice !== undefined) {
-      updated.eroticPrice = applyPriceAdjustment(updated.eroticPrice, adjustments)
+      if (basePrice !== null) {
+        // Apply adjustment based on main price qualification
+        updated.eroticPrice = applyAdjustmentBasedOnMainPrice(updated.eroticPrice, basePrice, adjustments)
+      } else {
+        // Fallback to regular adjustment if no base price
+        updated.eroticPrice = applyPriceAdjustment(updated.eroticPrice, adjustments)
+      }
     }
 
-    // Adjust niche multipliers (they affect base price, so we adjust the multiplier effect)
-    // Note: Multipliers are applied to base price, so we adjust the resulting price
-    // This is handled at display time in the component
+    // Store the adjustment info for niche multipliers to use in the frontend
+    // The frontend calculates niche prices as basePrice * multiplier
+    // Since basePrice is already adjusted, the multiplied result will also be adjusted
+    // We just need to ensure eroticPrice (which has a direct price) is adjusted properly
 
     return updated
   })
@@ -366,6 +465,125 @@ export function adjustPrintMagazines(
     
     return updated
   })
+}
+
+/**
+ * Adjust prices in niches string format: "Health: $75, CBD: $75, Crypto: $75"
+ */
+export function adjustNichesPrice(
+  nichesStr: string | null,
+  adjustments: any
+): string | null {
+  if (!nichesStr) return nichesStr
+  
+  // Match patterns like "$75" or "$1,500" within the niches string
+  const result = nichesStr.replace(/\$[\d,]+/g, (match) => {
+    const numPrice = parseDollarPrice(match)
+    if (numPrice === null) return match
+    const adjusted = applyPriceAdjustment(numPrice, adjustments)
+    return formatDollarPrice(adjusted)
+  })
+  
+  return result
+}
+
+/**
+ * Adjust niche prices based on the main price's adjustment.
+ * If the main price qualifies for an adjustment, apply the same adjustment to all niche prices
+ * regardless of whether the niche prices fall within the adjustment's price range.
+ */
+export function adjustNichesPriceBasedOnMainPrice(
+  nichesStr: string | null,
+  mainPriceStr: string | null,
+  adjustments: any
+): string | null {
+  if (!nichesStr) return nichesStr
+  if (!adjustments) return nichesStr
+  
+  // Parse the main price to determine which adjustment applies
+  const mainPrice = mainPriceStr ? parseDollarPrice(mainPriceStr) : null
+  if (mainPrice === null) {
+    // If we can't determine main price, fall back to regular adjustment
+    return adjustNichesPrice(nichesStr, adjustments)
+  }
+  
+  // Find the adjustment that would apply to the main price
+  const findApplicableAdjustment = (
+    adjs: Array<{ adjustment_percentage: number; min_price: number | null; max_price: number | null; exact_amount: number | null }> | null,
+    price: number
+  ) => {
+    if (!adjs || !Array.isArray(adjs) || adjs.length === 0) return null
+    
+    const isWithinRange = (p: number, min: number | null, max: number | null): boolean => {
+      const minCheck = min === null || p >= min
+      const maxCheck = max === null || p <= max
+      return minCheck && maxCheck
+    }
+    
+    const matching = adjs.filter(adj => {
+      if (!adj) return false
+      const hasAdjustment = adj.adjustment_percentage !== 0 || (adj.exact_amount !== null && adj.exact_amount !== undefined)
+      return hasAdjustment && isWithinRange(price, adj.min_price, adj.max_price)
+    })
+    
+    if (matching.length === 0) return null
+    
+    // Return the most specific (smallest range)
+    return matching.reduce((best, current) => {
+      const bestRange = (best.max_price ?? Infinity) - (best.min_price ?? 0)
+      const currentRange = (current.max_price ?? Infinity) - (current.min_price ?? 0)
+      return currentRange < bestRange ? current : best
+    })
+  }
+  
+  // Find applicable global and user adjustments based on main price
+  const globalAdj = findApplicableAdjustment(adjustments.global, mainPrice)
+  const userAdj = findApplicableAdjustment(adjustments.user, mainPrice)
+  
+  // If no adjustments apply to main price, return niches unchanged
+  if (!globalAdj && !userAdj) {
+    return nichesStr
+  }
+  
+  // Apply the found adjustments to all niche prices (ignoring their individual price ranges)
+  const result = nichesStr.replace(/\$[\d,]+/g, (match) => {
+    const numPrice = parseDollarPrice(match)
+    if (numPrice === null) return match
+    
+    let adjusted = numPrice
+    
+    // Apply global adjustment
+    if (globalAdj) {
+      if (globalAdj.exact_amount !== null && globalAdj.exact_amount !== undefined) {
+        // For exact amount, calculate the ratio and apply it to niche price
+        // e.g., if main price goes from $1000 to $2000 (exact), that's 2x, so apply 2x to niches
+        const ratio = globalAdj.exact_amount / mainPrice
+        adjusted = adjusted * ratio
+      } else if (globalAdj.adjustment_percentage !== 0) {
+        adjusted = adjusted * (1 + globalAdj.adjustment_percentage / 100)
+      }
+    }
+    
+    // Apply user adjustment on top
+    if (userAdj) {
+      if (userAdj.exact_amount !== null && userAdj.exact_amount !== undefined) {
+        // For user exact amount, calculate ratio based on what user adjustment does to main price
+        const mainAfterGlobal = globalAdj 
+          ? (globalAdj.exact_amount !== null ? globalAdj.exact_amount : mainPrice * (1 + (globalAdj.adjustment_percentage || 0) / 100))
+          : mainPrice
+        if (userAdj.exact_amount >= mainAfterGlobal) {
+          const ratio = userAdj.exact_amount / mainAfterGlobal
+          adjusted = adjusted * ratio
+        }
+      } else if (userAdj.adjustment_percentage !== 0) {
+        adjusted = adjusted * (1 + userAdj.adjustment_percentage / 100)
+      }
+    }
+    
+    return formatDollarPrice(Math.round(adjusted))
+  })
+  
+  return result
 }
 
 

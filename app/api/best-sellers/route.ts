@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseClient } from '@/lib/supabase'
 import bestSellersData from '@/data/bestSellersData.json'
-import { getPriceAdjustments, adjustDollarPrice } from '@/lib/price-adjustments'
+import { getPriceAdjustments, adjustDollarPrice, adjustNichesPriceBasedOnMainPrice } from '@/lib/price-adjustments'
 import { requireAuth } from '@/lib/auth-middleware'
 import { fetchAllRecords } from '@/lib/supabase-helpers'
 import { dataCache, CACHE_KEYS } from '@/lib/cache'
@@ -69,9 +69,11 @@ export async function GET(request: Request) {
         try {
           adjustments = await getPriceAdjustments(userId, 'best_sellers')
           // Always apply adjustments (even if 0) to ensure consistency
+          // For niches, use the main price to determine if adjustment applies, then apply same adjustment to all niche prices
           transformedData = transformedData.map((item: any) => ({
             ...item,
-            price: adjustDollarPrice(item.price, adjustments)
+            price: adjustDollarPrice(item.price, adjustments),
+            niches: adjustNichesPriceBasedOnMainPrice(item.niches, item.price, adjustments)
           }))
         } catch (adjError) {
           console.warn('⚠️ [Best Sellers API] Error applying price adjustments:', adjError)
