@@ -266,15 +266,17 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, [checkAdmin, lastCheckTime])
 
   useEffect(() => {
+    let isMounted = true
+    
     // Initial check
     checkAdmin()
 
     // Re-check admin status when tab becomes visible (for browser tab switching)
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && isMounted) {
         // Small delay to ensure localStorage is updated
         setTimeout(() => {
-          checkAdmin()
+          if (isMounted) checkAdmin()
         }, 100)
       }
     }
@@ -283,37 +285,39 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for localStorage changes (cross-tab storage events)
     const handleStorageChange = (e: StorageEvent) => {
+      if (!isMounted) return
       // Check if any Supabase auth token changed
       if (e.key && e.key.startsWith('sb-') && e.key.endsWith('-auth-token')) {
         // Auth token changed, re-check admin status
         setTimeout(() => {
-          checkAdmin()
+          if (isMounted) checkAdmin()
         }, 100)
       } else if (e.key === null) {
         // Storage was cleared, re-check
         setTimeout(() => {
-          checkAdmin()
+          if (isMounted) checkAdmin()
         }, 100)
       }
     }
 
     window.addEventListener('storage', handleStorageChange)
 
-    // Periodic check when component is visible (every 30 seconds)
-    // This ensures admin status updates even if events don't fire, but less frequently
+    // Periodic check when component is visible (every 2 minutes)
+    // Reduced frequency to prevent memory issues - admin status rarely changes
     const intervalId = setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && isMounted) {
         checkAdmin()
       }
-    }, 30000) // 30 seconds instead of 1 second
+    }, 120000) // 2 minutes instead of 30 seconds
 
     // Listen for auth changes - use localStorage only
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async () => {
       // Re-check admin status when auth changes
-      checkAdmin()
+      if (isMounted) checkAdmin()
     })
 
     return () => {
+      isMounted = false
       subscription.unsubscribe()
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('storage', handleStorageChange)
@@ -327,4 +331,3 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     </AdminContext.Provider>
   )
 }
-

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase-client'
 
 interface Message {
@@ -16,7 +16,8 @@ export default function BroadcastMessagePopup() {
   const [messages, setMessages] = useState<Message[]>([])
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
-  const supabase = createClient()
+  // Use useMemo to prevent creating new client instances on every render
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchMessages = useCallback(async (isInitial = false) => {
     try {
@@ -136,17 +137,42 @@ export default function BroadcastMessagePopup() {
     }
   }, [messages.length, supabase])
 
-  // Poll for messages every 5 seconds
+  // Poll for messages - reduced frequency to prevent memory issues
   useEffect(() => {
+    let isMounted = true
+    let interval: NodeJS.Timeout | null = null
+
     // Fetch immediately on mount (initial load)
-    fetchMessages(true)
+    if (isMounted) {
+      fetchMessages(true)
+    }
 
-    // Then poll every 5 seconds (non-initial, won't clear existing messages)
-    const interval = setInterval(() => {
-      fetchMessages(false)
-    }, 5000)
+    // Then poll every 10 seconds
+    // Only poll when tab is visible
+    const startPolling = () => {
+      if (interval) clearInterval(interval)
+      interval = setInterval(() => {
+        if (isMounted && document.visibilityState === 'visible') {
+          fetchMessages(false)
+        }
+      }, 10000) // 10 seconds
+    }
 
-    return () => clearInterval(interval)
+    startPolling()
+
+    // Handle visibility change - pause polling when hidden
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && isMounted) {
+        fetchMessages(false) // Fetch immediately when visible
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      isMounted = false
+      if (interval) clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [fetchMessages])
 
   const currentMessage = messages[currentMessageIndex]

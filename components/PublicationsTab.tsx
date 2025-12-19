@@ -121,7 +121,8 @@ export default function PublicationsTab() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
-  const supabase = createClient()
+  // Use useMemo to prevent creating new client instances on every render
+  const supabase = useMemo(() => createClient(), [])
 
   const getPrice = (pub: Publication): number => {
     if (pub.customPrice && pub.customPrice.length > 0) {
@@ -1570,7 +1571,7 @@ export default function PublicationsTab() {
         <section className="w-full mt-2">
           <div className="flex justify-between items-center mb-1">
             <p className="font-body text-sm">
-              SHOWING {filteredData.length} OF {publicationsData.length} PUBLICATIONS
+              SHOWING {filteredData.length === publicationsData.length ? publicationsData.length+1 : filteredData.length} OF {publicationsData.length + 1} PUBLICATIONS
             </p>
             {isAdmin && (
               <button

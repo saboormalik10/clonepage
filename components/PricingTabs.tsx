@@ -86,15 +86,23 @@ export default function PricingTabs() {
     fetchTabVisibility()
   }, [fetchTabVisibility, refreshTrigger]) // Re-fetch when tab becomes visible
 
-  // Also poll for changes every 30 seconds (in case admin changes settings) - only for non-admins
+  // Also poll for changes every 60 seconds (in case admin changes settings) - only for non-admins
+  // Only poll when tab is visible to prevent unnecessary API calls
   useEffect(() => {
     if (isAdmin) return // Admins don't need polling
 
+    let isMounted = true
     const interval = setInterval(() => {
-      fetchTabVisibility()
-    }, 30000) // Poll every 30 seconds (reduced from 5 seconds for better performance)
+      // Only fetch if tab is visible and component is still mounted
+      if (isMounted && document.visibilityState === 'visible') {
+        fetchTabVisibility()
+      }
+    }, 60000) // Poll every 60 seconds (increased from 30 for better performance)
 
-    return () => clearInterval(interval)
+    return () => {
+      isMounted = false
+      clearInterval(interval)
+    }
   }, [fetchTabVisibility, isAdmin])
 
   // Admins see all tabs, regular users see filtered tabs

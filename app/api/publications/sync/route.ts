@@ -186,13 +186,13 @@ export async function POST(request: Request) {
       }, { status: 400, headers })
     }
 
-    // Get all existing publication names from the database
+    // Get all existing publications with name, price, domain_authority, domain_rating from the database
     let existingRecords: any[] = []
     try {
       const supabase = getSupabaseClient()
       const { data, error: fetchError } = await supabase
         .from('publications')
-        .select('name')
+        .select('name, default_price, domain_authority, domain_rating')
 
       if (fetchError) {
         throw fetchError
@@ -207,15 +207,26 @@ export async function POST(request: Request) {
       }, { status: 500, headers })
     }
 
-    // Create a set of existing publication names for quick lookup
+    // Create a set of existing publication signatures for quick lookup
     const existingPublications = new Set(
-      existingRecords.map(r => r.name?.toLowerCase())
+      existingRecords.map(r => {
+        const name = r.name?.toLowerCase() || ''
+        const price = JSON.stringify(r.default_price || [])
+        const da = r.domain_authority || 0
+        const dr = r.domain_rating || 0
+        return `${name}|${price}|${da}|${dr}`
+      })
     )
 
-    // Filter records that don't exist in the database (compare by name)
-    const newRecords = csvRecords.filter(
-      record => !existingPublications.has(record.name?.toLowerCase())
-    )
+    // Filter records that don't exist in the database (compare by name, price, DA, DR)
+    const newRecords = csvRecords.filter(record => {
+      const name = record.name?.toLowerCase() || ''
+      const price = JSON.stringify(record.default_price || [])
+      const da = record.domain_authority || 0
+      const dr = record.domain_rating || 0
+      const signature = `${name}|${price}|${da}|${dr}`
+      return !existingPublications.has(signature)
+    })
 
     if (newRecords.length === 0) {
       return NextResponse.json({ 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
@@ -40,7 +40,8 @@ export default function SocialPostTab() {
   const userId = useUserId()
   const isAdmin = useIsAdmin()
   const { refreshTrigger } = useVisibilityChange()
-  const supabase = createClient()
+  // Use useMemo to prevent creating new client instances on every render
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     const fetchData = async () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useUserId } from '@/hooks/useUserId'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
@@ -43,7 +43,8 @@ export default function ListiclesTab() {
   const userId = useUserId()
   const isAdmin = useIsAdmin()
   const { refreshTrigger } = useVisibilityChange()
-  const supabase = createClient()
+  // Use useMemo to prevent creating new client instances on every render
+  const supabase = useMemo(() => createClient(), [])
 
   const [hasLoaded, setHasLoaded] = useState(false)
 
