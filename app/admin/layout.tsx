@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, type ReactNode, type MouseEvent } from 'react'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { refreshSession } from '@/lib/session-refresh'
@@ -52,7 +53,7 @@ function getSessionFromStorage(): any {
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -159,7 +160,7 @@ export default function AdminLayout({
     checkAuth()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (!mounted) return
       if (!session && pathname !== '/admin/login') {
         // Before redirecting, check if we have a valid session in localStorage
@@ -236,7 +237,7 @@ export default function AdminLayout({
     }
   }, [pathname, router, supabase])
 
-  const handleLogout = async (e?: React.MouseEvent) => {
+  const handleLogout = async (e?: MouseEvent) => {
     // Prevent double-clicks and event bubbling
     if (e) {
       e.preventDefault()

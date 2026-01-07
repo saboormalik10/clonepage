@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { clearSessionCache } from '@/lib/authenticated-fetch'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, type MouseEvent } from 'react'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserProfile } from '@/hooks/useUserProfile'
 
@@ -22,8 +23,8 @@ export default function Header() {
   // Determine if user has both brand name and logo
   const hasBrand = Boolean(profile?.brand_name) && Boolean(profile?.brand_logo)
   // Use user's brand when available; otherwise show admin logo only
-  const brandName = hasBrand ? profile?.brand_name : ''
-  const brandLogo = hasBrand ? profile?.brand_logo : '/admin-logo.png'
+  const brandName: string = hasBrand ? String(profile?.brand_name) : ''
+  const brandLogo: string = hasBrand ? String(profile?.brand_logo) : '/admin-logo.png'
 
   useEffect(() => {
     // Check if user is logged in - try localStorage first, then API
@@ -95,14 +96,14 @@ export default function Header() {
     checkUser()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user || null)
     })
 
     return () => subscription.unsubscribe()
   }, [supabase])
 
-  const handleLogout = async (e?: React.MouseEvent) => {
+  const handleLogout = async (e?: MouseEvent) => {
     // Prevent double-clicks and event bubbling
     if (e) {
       e.preventDefault()
