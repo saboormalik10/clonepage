@@ -316,8 +316,13 @@ export default function AdminLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+              <div className="flex-shrink-0 flex items-center gap-3">
+                <img
+                  src="/admin-logo.png"
+                  alt="Vexis Collective"
+                  className="h-12 w-auto object-contain"
+                />
+                <h1 className="hidden md:block text-xl font-bold text-gray-900">Admin Panel</h1>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <Link

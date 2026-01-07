@@ -6,7 +6,7 @@ This document describes the brand customization feature that allows each user to
 
 ### New Fields Added to `user_profiles` Table
 
-- `brand_name` (TEXT, nullable): The brand name that replaces "Hotshot Social" in the UI
+- `brand_name` (TEXT, nullable): The brand name that replaces "Vexis Collective" in the UI
 - `brand_logo` (TEXT, nullable): URL to the brand logo image that replaces the default logo
 
 ### Migration Script
@@ -24,13 +24,13 @@ This script adds the two new columns to the `user_profiles` table.
 ### 1. Admin Panel - User Creation
 
 When creating a new user in the admin panel (`/admin/users`), admins can now specify:
-- **Brand Name**: The name that will be displayed instead of "Hotshot Social"
+- **Brand Name**: The name that will be displayed instead of "Vexis Collective"
 - **Brand Logo**: Upload a logo image file (JPEG, PNG, WebP, or GIF, max 5MB). The image will be uploaded to Supabase storage and the public URL will be stored automatically.
 
 ### 2. Dynamic Brand Display
 
 The application now dynamically displays:
-- **Brand Name**: Replaces "Hotshot Social" in:
+- **Brand Name**: Replaces "Vexis Collective" in:
   - Header component (top navigation)
   - Main page title ("Pricing ({brandName})")
   
@@ -40,7 +40,7 @@ The application now dynamically displays:
 ### 3. Fallback Behavior
 
 If a user doesn't have a brand name or logo configured:
-- Brand name defaults to "Hotshot Social"
+- Brand name defaults to "Vexis Collective"
 - Brand logo defaults to "/logo.jpeg"
 
 ### 4. Components Updated
@@ -68,12 +68,12 @@ If a user doesn't have a brand name or logo configured:
 ### For Users
 
 When a user logs in, they will see:
-- Their custom brand name instead of "Hotshot Social"
+- Their custom brand name instead of "Vexis Collective"
 - Their custom logo instead of the default logo
 
 ## Notes
 
-- The `layout.tsx` and `manifest.ts` files keep the default "Hotshot Social" as they are server-side metadata files
+- The `layout.tsx` and `manifest.ts` files keep the default "Vexis Collective" as they are server-side metadata files
 - Brand logos are uploaded to Supabase storage (publications bucket, logos folder) and stored as public URLs
 - Supported image formats: JPEG, PNG, WebP, GIF
 - Maximum file size: 5MB

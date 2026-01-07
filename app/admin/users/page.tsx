@@ -671,11 +671,11 @@ export default function UsersPage() {
                         type="text"
                         id="brand_name"
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="e.g., Hotshot Social"
+                        placeholder="e.g., Vexis Collective"
                         value={formData.brand_name}
                         onChange={(e) => setFormData({ ...formData, brand_name: e.target.value })}
                       />
-                      <p className="mt-1 text-xs text-gray-500">This will replace &quot;Hotshot Social&quot; in the app</p>
+                      <p className="mt-1 text-xs text-gray-500">This will replace &quot;Vexis Collective&quot; in the app</p>
                     </div>
                     <div>
                       <label htmlFor="brand_logo" className="block text-sm font-medium text-gray-700">
@@ -821,11 +821,11 @@ export default function UsersPage() {
                         type="text"
                         id="edit_brand_name"
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="e.g., Hotshot Social"
+                        placeholder="e.g., Vexis Collective"
                         value={editFormData.brand_name}
                         onChange={(e) => setEditFormData({ ...editFormData, brand_name: e.target.value })}
                       />
-                      <p className="mt-1 text-xs text-gray-500">This will replace &quot;Hotshot Social&quot; in the app</p>
+                      <p className="mt-1 text-xs text-gray-500">This will replace &quot;Vexis Collective&quot; in the app</p>
                     </div>
                     <div>
                       <label htmlFor="edit_brand_logo" className="block text-sm font-medium text-gray-700">

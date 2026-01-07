@@ -10,13 +10,13 @@ const oswald = Oswald({
 })
 
 export const metadata: Metadata = {
-  title: 'Hotshot',
-  description: 'Hotshot Social Pricing Portal',
-  applicationName: 'Hotshot',
+  title: 'Vexis Collective',
+  description: 'Vexis Collective Pricing Portal',
+  applicationName: 'Vexis Collective',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Hotshot',
+    title: 'Vexis',
   },
   icons: {
     icon: [

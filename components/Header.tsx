@@ -8,7 +8,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserProfile } from '@/hooks/useUserProfile'
 
 // Email that should not see user settings on navbar
-const RESTRICTED_EMAIL = 'wholesale@hotshot.press'
+const RESTRICTED_EMAIL = 'wholesale@vexiscollective.com'
 
 export default function Header() {
   const router = useRouter()
@@ -21,7 +21,7 @@ export default function Header() {
   
   // Get brand name and logo from profile, fallback to defaults
   // Only use defaults if profile is loaded and doesn't have brand info
-  const brandName = profile?.brand_name || 'Hotshot Social'
+  const brandName = profile?.brand_name || 'Vexis Collective'
   const brandLogo = profile?.brand_logo || '/logo.jpeg'
 
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function Header() {
             {isAdmin && (
               <button
                 onClick={() => router.push('/admin/dashboard')}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="hidden md:inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 title="Switch to Admin Panel"
               >
                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

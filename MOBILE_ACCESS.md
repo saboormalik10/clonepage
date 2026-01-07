@@ -60,7 +60,7 @@ So you would access it at: **http://192.168.1.11:3000**
 
 Once you can access the app on mobile:
 - You can test the "Add to Home Screen" feature
-- The app will show "Hotshot Social" as the name
+- The app will show "Vexis Collective" as the name
 - Your logo will appear as the icon
 
 ## Commands Summary

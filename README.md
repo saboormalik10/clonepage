@@ -1,4 +1,4 @@
-# Hotshot Social Pricing Portal - Next.js TypeScript Conversion
+# Vexis Collective Pricing Portal - Next.js TypeScript Conversion
 
 This project is a Next.js TypeScript conversion of the original HTML/CSS pricing portal.
 

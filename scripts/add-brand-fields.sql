@@ -10,6 +10,6 @@ ALTER TABLE user_profiles
 ADD COLUMN IF NOT EXISTS brand_logo TEXT;
 
 -- Add comment for documentation
-COMMENT ON COLUMN user_profiles.brand_name IS 'Brand name for the user, replaces "Hotshot Social" in the UI';
+COMMENT ON COLUMN user_profiles.brand_name IS 'Brand name for the user, replaces "Vexis Collective" in the UI';
 COMMENT ON COLUMN user_profiles.brand_logo IS 'URL to the brand logo image, replaces default logo in the UI';
 

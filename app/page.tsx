@@ -19,7 +19,7 @@ export default function Home() {
   
   // Get brand name from profile, fallback to default
   // Only use default if profile is loaded and doesn't have brand info
-  const brandName = profile?.brand_name || 'Hotshot Social'
+  const brandName = profile?.brand_name || 'Vexis Collective'
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -315,7 +315,7 @@ export default function Home() {
               Video Tutorial
             </a> */}
             {/* <a
-              href="https://www.figma.com/proto/0VHlTHQ0nY19KcyvrSwcCG/Hotshot Social-Pricing-Portal?type=design&node-id=1-2&t=4SMS3QL3VksDvURV-0&scaling=contain&page-id=0%3A1"
+              href="https://www.figma.com/proto/0VHlTHQ0nY19KcyvrSwcCG/Vexis Collective-Pricing-Portal?type=design&node-id=1-2&t=4SMS3QL3VksDvURV-0&scaling=contain&page-id=0%3A1"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary p-2 px-2 text-white font-body text-sm"

@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Hotshot',
-    short_name: 'Hotshot',
-    description: 'Hotshot Social Pricing Portal',
+    name: 'Vexis Collective',
+    short_name: 'Vexis',
+    description: 'Vexis Collective Pricing Portal',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
