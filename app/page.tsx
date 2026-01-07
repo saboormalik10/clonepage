@@ -17,9 +17,9 @@ export default function Home() {
   const [user, setUser] = useState<any>(null)
   const { profile, loading: profileLoading } = useUserProfile()
   
-  // Get brand name from profile, fallback to default
-  // Only use default if profile is loaded and doesn't have brand info
-  const brandName = profile?.brand_name || 'Vexis Collective'
+  // Determine if user has both brand name and logo
+  const hasBrand = Boolean(profile?.brand_name) && Boolean(profile?.brand_logo)
+  const brandName = hasBrand ? profile?.brand_name : ''
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -297,7 +297,9 @@ export default function Home() {
       <main className="w-full p-2 lg:w-full lg:p-4 lg:mx-auto xl:p-[2] 2xl:w-[1650px]">
         <section className="mt-2 mb-4 flex-col font-body space-y-3 flex lg:space-y-0 lg:items-center lg:flex-row justify-between">
           <div className="flex flex-col">
-            <h1 className="text-2xl uppercase bold">Pricing ({brandName})</h1>
+            <h1 className="text-2xl uppercase bold">
+              Pricing{hasBrand ? ` (${brandName})` : ''}
+            </h1>
             <p className="text-sm">
               Once we have published the article for you, any further edits may include an extra charge.
             </p>

@@ -19,10 +19,11 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { profile, loading: profileLoading } = useUserProfile()
   
-  // Get brand name and logo from profile, fallback to defaults
-  // Only use defaults if profile is loaded and doesn't have brand info
-  const brandName = profile?.brand_name || 'Vexis Collective'
-  const brandLogo = profile?.brand_logo || '/logo.jpeg'
+  // Determine if user has both brand name and logo
+  const hasBrand = Boolean(profile?.brand_name) && Boolean(profile?.brand_logo)
+  // Use user's brand when available; otherwise show admin logo only
+  const brandName = hasBrand ? profile?.brand_name : ''
+  const brandLogo = hasBrand ? profile?.brand_logo : '/admin-logo.png'
 
   useEffect(() => {
     // Check if user is logged in - try localStorage first, then API
@@ -171,17 +172,19 @@ export default function Header() {
             <>
               <img
                 src={brandLogo}
-                alt={brandName}
-                className="w-16 h-16 object-contain ml-5"
+                alt={brandName || 'Admin'}
+                className={`${hasBrand ? 'w-16 h-16' : 'h-16 w-32 max-h-16'} object-contain ml-5`}
                 onError={(e) => {
-                  // Fallback to default logo if brand logo fails to load
+                  // Fallback to admin logo if brand logo fails to load
                   const target = e.target as HTMLImageElement
-                  if (target.src !== '/logo.jpeg') {
-                    target.src = '/logo.jpeg'
+                  if (target.src !== '/admin-logo.png') {
+                    target.src = '/admin-logo.png'
                   }
                 }}
               />
-              <span className="text-2xl font-bold text-gray-800">{brandName}</span>
+              {hasBrand && (
+                <span className="text-2xl font-bold text-gray-800">{brandName}</span>
+              )}
             </>
           )}
         </button>
