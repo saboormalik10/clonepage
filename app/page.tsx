@@ -325,6 +325,14 @@ export default function Home() {
               How To
             </a> */}
             <a
+              href="/How To Guide.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary p-2 px-2 text-white font-body text-sm"
+            >
+              Portal Guide
+            </a>
+            <a
               href="https://docs.google.com/document/d/1fMHASfp2its2jacTJyxN2LYiG6ABhNKup0WGsaOrlHk/edit?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
@@ -332,6 +340,7 @@ export default function Home() {
             >
               Download PR Questionnaire
             </a>
+
             {/* <a
               href="https://docs.google.com/document/d/19et1cFZnL6DS8tX6P95c41wbJwYdAHvdHhqzGkBxIeY/edit?usp=sharing"
               target="_blank"
