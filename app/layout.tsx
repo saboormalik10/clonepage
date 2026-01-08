@@ -20,19 +20,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/logo.jpeg', sizes: '192x192', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '512x512', type: 'image/png' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/logo.jpeg', sizes: '180x180', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '152x152', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '144x144', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '120x120', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '114x114', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '76x76', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '72x72', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '60x60', type: 'image/png' },
-      { url: '/logo.jpeg', sizes: '57x57', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
   manifest: '/manifest.json',
@@ -54,16 +46,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="apple-touch-icon" sizes="180x180" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="144x144" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="120x120" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="114x114" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="76x76" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="72x72" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="60x60" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" sizes="57x57" href="/logo.jpeg" />
-        <link rel="apple-touch-icon" href="/logo.jpeg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
       </head>
       <body className={`${oswald.variable} font-body`}>
         <AdminProvider>

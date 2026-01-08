@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import PricingTabs from '@/components/PricingTabs'
 import BroadcastMessagePopup from '@/components/BroadcastMessagePopup'
+import PortalGuideSlider from '@/components/PortalGuideSlider'
 import { createClient } from '@/lib/supabase-client'
 import { refreshSession, hasValidSession, getSessionWithTimeout } from '@/lib/session-refresh'
 import { useUserProfile } from '@/hooks/useUserProfile'
@@ -15,6 +16,7 @@ export default function Home() {
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [guideOpen, setGuideOpen] = useState(false)
   const { profile, loading: profileLoading } = useUserProfile()
   
   // Determine if user has both brand name and logo
@@ -324,14 +326,12 @@ export default function Home() {
             >
               How To
             </a> */}
-            <a
-              href="/How To Guide.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-primary p-2 px-2 text-white font-body text-sm"
+            <button
+              onClick={() => setGuideOpen(true)}
+              className="bg-primary p-2 px-2 text-white font-body text-sm cursor-pointer hover:bg-primary/90 transition-colors"
             >
               Portal Guide
-            </a>
+            </button>
             <a
               href="https://docs.google.com/document/d/1fMHASfp2its2jacTJyxN2LYiG6ABhNKup0WGsaOrlHk/edit?usp=sharing"
               target="_blank"
@@ -354,6 +354,7 @@ export default function Home() {
         <PricingTabs />
       </main>
       <BroadcastMessagePopup />
+      <PortalGuideSlider isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   )
 }
