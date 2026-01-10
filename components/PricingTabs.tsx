@@ -135,7 +135,7 @@ export default function PricingTabs() {
 
   return (
     <Tab.Group defaultIndex={defaultIndex}>
-      <Tab.List className="space-x-2 font-body border-b-2 pb-2">
+      <Tab.List className="space-x-2 font-body border-b-2 pb-2 overflow-x-auto">
         {displayTabs.map((tab) => (
           <Tab
             key={tab.id}

@@ -1595,8 +1595,8 @@ export default function PublicationsTab() {
               <div className="text-sm text-green-800">{success}</div>
             </div>
           )}
-          <div className="overflow-x-scroll lg:overflow-visible relative" style={{ overflow: 'visible' }}>
-            <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white" style={{ overflow: 'visible' }}>
+          <div className="overflow-x-auto overscroll-x-contain relative">
+            <table className="w-full divide-y divide-gray-300 border bg-white">
               <thead className="text-xs text-gray-700 bg-white sticky top-0 z-20 shadow-sm">
                 <tr className="text-primary">
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">

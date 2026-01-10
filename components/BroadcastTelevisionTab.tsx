@@ -384,8 +384,8 @@ export default function BroadcastTelevisionTab() {
             Showing {filteredData.length} of {tableData.length} TVs
           </p>
 
-          <div className="overflow-x-scroll lg:overflow-visible relative">
-            <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white">
+          <div className="overflow-x-auto overscroll-x-contain relative">
+            <table className="w-full divide-y divide-gray-300 border bg-white">
               <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
                 <tr className="text-primary">
                   <th className="font-body font-medium border-l border-r uppercase p-2 px-2">

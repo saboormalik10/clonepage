@@ -319,8 +319,8 @@ export default function SocialPostTab() {
                 SHOWING {filteredData.length} OF {socialPostData.length} PUBLICATIONS
               </p>
             </div>
-            <div className="overflow-x-scroll lg:overflow-visible relative">
-              <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white">
+            <div className="overflow-x-auto overscroll-x-contain relative">
+              <table className="w-full divide-y divide-gray-300 border bg-white">
                 <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
                   <tr className="text-primary">
                     <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
@@ -620,8 +620,8 @@ export default function SocialPostTab() {
               <h2 className="text-[24px] mr-[16px]">Social Story</h2>
               <p className="font-body text-sm mb-1">SHOWING 0 OF 0 PUBLICATIONS</p>
             </div>
-            <div className="overflow-x-scroll lg:overflow-visible relative">
-              <table className="w-full divide-y divide-gray-300 overflow-hidden lg:overflow-visible border bg-white">
+            <div className="overflow-x-auto overscroll-x-contain relative">
+              <table className="w-full divide-y divide-gray-300 border bg-white">
                 <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
                   <tr className="text-primary">
                     <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
