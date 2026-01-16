@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/manifest.json',
-  themeColor: '#4f46e5',
+  themeColor: '#d4af37',
   viewport: {
     width: 'device-width',
     initialScale: 1,

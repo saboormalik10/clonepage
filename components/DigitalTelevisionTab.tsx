@@ -266,7 +266,7 @@ export default function DigitalTelevisionTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading digital TV data...</p>
+          <p className="text-charcoal-400">Loading digital TV data...</p>
         </div>
       </div>
     )
@@ -276,24 +276,25 @@ export default function DigitalTelevisionTab() {
     <div className="opacity-100">
       {/* Error/Success Messages */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 text-red-400 rounded">
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-green-900/30 border border-green-500/50 text-green-400 rounded">
           {success}
         </div>
       )}
 
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
-        <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px]">
-          <div className="sticky space-y-2 top-5">
-            <div className="space-y-1">
-              <p className="text-sm">Call Sign</p>
+        <aside className="font-body mt-2 space-y-4 bg-gradient-to-br from-charcoal-900 to-black-soft border border-charcoal-700 p-4 lg:p-4 w-full lg:w-[350px] relative">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400"></div>
+          <div className="sticky space-y-4 top-5">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold tracking-wider uppercase text-gold-400">Call Sign</p>
               <input
                 type="text"
-                className="text-sm w-full p-2 placeholder:text-gray-400 placeholder:font-base border-2 bg-white"
+                className="text-sm w-full p-3 placeholder:text-charcoal-500 border border-charcoal-600 bg-charcoal-800 text-champagne focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400/30 transition-all duration-300"
                 placeholder="Search TV name"
                 value={searchTerm}
                 onChange={handleSearch}
@@ -302,10 +303,10 @@ export default function DigitalTelevisionTab() {
             
             {/* Admin Controls */}
             {isAdmin && (
-              <div className="pt-4 border-t space-y-2">
+              <div className="pt-4 border-t border-charcoal-700 space-y-2">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 text-black-pure px-4 py-2.5 font-ui text-xs font-semibold tracking-wider uppercase hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all duration-300"
                 >
                   Add New Record
                 </button>
@@ -315,96 +316,97 @@ export default function DigitalTelevisionTab() {
         </aside>
 
         <section className="w-full mt-2">
-          <p className="font-body text-sm mb-1">
-            Showing {filteredData.length} of {digitalTvData.length} TVs
+          <p className="font-ui text-xs tracking-wider uppercase text-charcoal-400 mb-4">
+            Showing <span className="text-gold-400">{filteredData.length}</span> of <span className="text-gold-400">{digitalTvData.length}</span> TVs
           </p>
-          <div className="overflow-x-auto overscroll-x-contain relative">
-            <table className="w-full divide-y divide-gray-300 border bg-white">
-              <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
-                <tr className="text-primary">
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+          <div className="overflow-x-auto overscroll-x-contain relative bg-gradient-to-br from-charcoal-900 to-black-soft border border-charcoal-700">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 z-10"></div>
+            <table className="w-full">
+              <thead className="bg-charcoal-800 sticky -top-1">
+                <tr>
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex">Call Sign</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Station</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex flex-col items-center">
                       <span>Rate</span>
                       {hasActiveAdjustments(priceAdjustments) && !userId && (
-                        <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
+                        <span className="text-xs font-normal text-gold-300 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
                           (Adjusted)
                         </span>
                       )}
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">TAT</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Sponsored</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Indexed</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Segement Length</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Location</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Program Name</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Interview Type</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                     <div className="flex justify-center">Example</div>
                   </th>
                   {isAdmin && (
-                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                    <th className="font-ui text-xs font-semibold tracking-wider text-gold-400 border-b border-charcoal-600 uppercase p-3 px-3">
                       <div className="flex justify-center">Actions</div>
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {filteredData.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan={isAdmin ? 12 : 11} className="text-center py-8 text-gray-500">
+                    <td colSpan={isAdmin ? 12 : 11} className="text-center py-8 text-charcoal-400">
                       No digital TV data available
                     </td>
                   </tr>
                 ) : (
                   filteredData.map((tv, index) => (
-                  <tr key={index} className="text-sm">
-                    <td className="text-center border-l border-r">{tv.callSign}</td>
-                    <td className="text-center border-l border-r">{tv.station}</td>
-                    <td className="text-center border-l border-r">
+                  <tr key={index} className="text-sm border-b border-charcoal-700 hover:bg-gold-400/5 transition-all duration-300">
+                    <td className="text-center  text-ivory py-3">{tv.callSign}</td>
+                    <td className="text-center  text-champagne">{tv.station}</td>
+                    <td className="text-center ">
                       {getUserAdjustmentInfo(priceAdjustments) ? (
                         <span className="relative group">
-                          <span>{tv.rate || 'N/A'}</span>
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          <span className="text-gold-400 font-display text-lg">{tv.rate || 'N/A'}</span>
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-champagne bg-charcoal-800 border border-charcoal-600 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                             {getUserAdjustmentInfo(priceAdjustments)}
                           </span>
                         </span>
                       ) : (
-                        tv.rate || 'N/A'
+                        <span className="text-gold-400 font-display text-lg">{tv.rate || 'N/A'}</span>
                       )}
                     </td>
-                    <td className="text-center border-l border-r">{tv.tat}</td>
-                    <td className="text-center border-l border-r">{tv.sponsored}</td>
-                    <td className="text-center border-l border-r">{tv.indexed}</td>
-                    <td className="text-center border-l border-r">{tv.segmentLength}</td>
-                    <td className="text-center border-l border-r">{tv.location}</td>
-                    <td className="text-center border-l border-r">
-                      <span className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800">
+                    <td className="text-center  text-champagne">{tv.tat}</td>
+                    <td className="text-center  text-champagne">{tv.sponsored}</td>
+                    <td className="text-center  text-champagne">{tv.indexed}</td>
+                    <td className="text-center  text-champagne">{tv.segmentLength}</td>
+                    <td className="text-center  text-champagne">{tv.location}</td>
+                    <td className="text-center ">
+                      <span className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne">
                         {tv.programName}
                       </span>
                     </td>
-                    <td className="text-center border-l border-r w-8">{tv.interviewType}</td>
-                    <td className="text-center border-l border-r relative">
+                    <td className="text-center  w-8 text-champagne">{tv.interviewType}</td>
+                    <td className="text-center  relative">
                       {tv.exampleUrl && (
                         <div
                           className="relative inline-block"
@@ -500,11 +502,11 @@ export default function DigitalTelevisionTab() {
                       )}
                     </td>
                     {isAdmin && (
-                      <td className="text-center border-l border-r py-2 px-2">
+                      <td className="text-center  py-3 px-3">
                         <div className="flex justify-center space-x-2">
                           <button
                             onClick={() => setEditingRecord(tv)}
-                            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                            className="text-gold-400 hover:text-gold-300 text-xs px-3 py-1.5 border border-gold-400 hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all duration-300"
                             title="Edit record"
                           >
                             Edit
@@ -512,7 +514,7 @@ export default function DigitalTelevisionTab() {
                           <button
                             onClick={() => tv.id && handleDeleteRecord(tv.id)}
                             disabled={deletingRecordId === tv.id || !tv.id}
-                            className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 border border-red-400 hover:bg-red-400/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Delete record"
                           >
                             {deletingRecordId === tv.id ? 'Deleting...' : 'Delete'}

@@ -167,7 +167,7 @@ export default function PrintTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading print data...</p>
+          <p className="text-charcoal-400">Loading print data...</p>
         </div>
       </div>
     )
@@ -177,32 +177,32 @@ export default function PrintTab() {
     <div className="opacity-100">
       {/* Error/Success Messages */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 text-red-400 rounded">
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-green-900/30 border border-green-500/50 text-green-400 rounded">
           {success}
         </div>
       )}
 
       <div>
         {data.length === 0 && !isLoading ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-charcoal-400">
             No print categories available
           </div>
         ) : (
           data.map((category: Category, categoryIndex: number) => (
-          <div key={categoryIndex} className="flex flex-col mb-4">
-            <div className="flex justify-between items-center">
-              <h2 className="font-body font-medium text-lg my-2 uppercase">
+          <div key={categoryIndex} className="flex flex-col mb-6">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="font-ui text-xs font-semibold tracking-wider uppercase text-gold-400">
                 {category.category}
               </h2>
               {isAdmin && (
                 <button
                   onClick={() => setEditingRecord(category)}
-                  className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                  className="text-gold-400 hover:text-gold-300 text-xs px-3 py-1.5 border border-gold-400 hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all duration-300"
                   title="Edit category"
                 >
                   Edit
@@ -211,14 +211,14 @@ export default function PrintTab() {
             </div>
             {category.magazines.map((magazine: Magazine, magIndex: number) => (
               <div key={magIndex} className="flex flex-col font-body mb-3">
-                <div className="bg-white p-3">
-                  <p className="text-primary font-medium mb-1">
-                    <a href={magazine.url} target="_blank" rel="noopener noreferrer">
+                <div className="bg-gradient-to-br from-charcoal-900 to-black-soft border border-charcoal-700 p-4 hover:border-charcoal-600 transition-all duration-300">
+                  <p className="text-gold-400 font-medium mb-2">
+                    <a href={magazine.url} target="_blank" rel="noopener noreferrer" className="hover:text-gold-300 transition-colors">
                       {magazine.name}
                     </a>
                   </p>
                   {magazine.details.map((detail: string, detailIndex: number) => (
-                    <p key={detailIndex} className="text-slate-600 text-sm">
+                    <p key={detailIndex} className="text-charcoal-300 text-sm">
                       {detail}
                     </p>
                   ))}

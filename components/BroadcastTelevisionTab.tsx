@@ -307,7 +307,7 @@ export default function BroadcastTelevisionTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading broadcast TV data...</p>
+          <p className="text-charcoal-400">Loading broadcast TV data...</p>
         </div>
       </div>
     )
@@ -336,24 +336,25 @@ export default function BroadcastTelevisionTab() {
     <div className="opacity-100">
       {/* Error/Success Messages */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-900/30 border border-red-700 text-red-400 rounded">
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-green-900/30 border border-green-700 text-green-400 rounded">
           {success}
         </div>
       )}
 
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
-        <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px]">
+        <aside className="font-body mt-2 space-y-4 bg-gradient-to-b from-charcoal-900 to-black-soft border border-charcoal-700 p-4 lg:border lg:p-4 w-full lg:w-[350px] relative">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600"></div>
           <div className="sticky space-y-2 top-5">
             <div className="space-y-1">
-              <p className="text-sm">Affiliate name or calls</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Affiliate name or calls</p>
               <input
                 type="text"
-                className="text-sm w-full p-2 placeholder:text-gray-400 placeholder:font-base border-2 bg-white"
+                className="text-sm w-full p-2 placeholder:text-charcoal-500 placeholder:font-base border border-charcoal-600 bg-charcoal-800 text-champagne focus:border-gold-400 focus:ring-1 focus:ring-gold-400/20 outline-none transition-all"
                 placeholder="Search TV name"
                 value={searchTerm}
                 onChange={handleSearch}
@@ -362,10 +363,10 @@ export default function BroadcastTelevisionTab() {
             
             {/* Admin Controls */}
             {isAdmin && (
-              <div className="pt-4 border-t space-y-2">
+              <div className="pt-4 border-t border-charcoal-700 space-y-2">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full bg-gradient-to-r from-gold-400 to-gold-500 text-black-rich px-4 py-2 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-gold-400 text-sm uppercase tracking-wider transition-all duration-300"
                 >
                   Add New Record
                 </button>
@@ -373,77 +374,78 @@ export default function BroadcastTelevisionTab() {
             )}
             
           </div>
-          <ul className="text-sm text-gray-800 space-y-1">
-            <li>Turn Around Time: 2-4 Weeks</li>
-            <li>Segment Times vary between 2-4 minutes</li>
-            <li>Zoom & In Person Options Available</li>
+          <ul className="text-sm text-charcoal-300 space-y-2">
+            <li className="flex items-center gap-2"><span className="text-gold-400 text-xs">◆</span> Turn Around Time: 2-4 Weeks</li>
+            <li className="flex items-center gap-2"><span className="text-gold-400 text-xs">◆</span> Segment Times vary between 2-4 minutes</li>
+            <li className="flex items-center gap-2"><span className="text-gold-400 text-xs">◆</span> Zoom & In Person Options Available</li>
           </ul>
         </aside>
         <section className="w-full mt-2">
-          <p className="font-body text-sm mb-1">
-            Showing {filteredData.length} of {tableData.length} TVs
+          <p className="font-body text-sm mb-1 text-charcoal-400 uppercase tracking-wider">
+            Showing <span className="text-gold-400">{filteredData.length}</span> of <span className="text-gold-400">{tableData.length}</span> TVs
           </p>
 
           <div className="overflow-x-auto overscroll-x-contain relative">
-            <table className="w-full divide-y divide-gray-300 border bg-white">
-              <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
-                <tr className="text-primary">
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 z-10"></div>
+            <table className="w-full divide-y divide-charcoal-700 border border-charcoal-700 bg-gradient-to-b from-charcoal-900 to-black-soft">
+              <thead className="text-xs bg-charcoal-800 sticky -top-1 shadow-sm">
+                <tr className="text-gold-400">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex">Affiliate</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Calls</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">State</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Market</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Program Name</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Location</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Time</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex flex-col items-center">
                       <span>Rate</span>
                       {hasActiveAdjustments(priceAdjustments) && !userId && (
-                        <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
+                        <span className="text-xs font-normal text-gold-300 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
                           (Adjusted)
                         </span>
                       )}
                     </div>
                   </th>
                   {isAdmin && (
-                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                    <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                       <div className="flex justify-center">Actions</div>
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-charcoal-700">
                 {filteredData.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan={isAdmin ? 9 : 8} className="text-center py-8 text-gray-500">
+                    <td colSpan={isAdmin ? 9 : 8} className="text-center py-8 text-charcoal-400">
                       No broadcast TV data available
                     </td>
                   </tr>
                 ) : (
                   filteredData.map((row, index) => (
-                  <tr key={index} className="text-sm">
-                    <td className="py-2 px-2">
+                  <tr key={index} className="text-sm text-champagne hover:bg-gold-400/5 transition-colors">
+                    <td className="py-2 px-2 text-ivory">
                       <div className="flex items-center space-x-3">
                         <div>
                           <p>{row.affiliate}</p>
                           {row.exampleUrl && (
                             <a
                               href={row.exampleUrl}
-                              className="underline flex items-center group"
+                              className="underline flex items-center group text-gold-400 hover:text-gold-300"
                               rel="noopener noreferrer nofollow"
                               target="_blank"
                             >
@@ -454,7 +456,7 @@ export default function BroadcastTelevisionTab() {
                                 viewBox="0 0 15 15"
                                 fill="none"
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="ml-1 group-hover:translate-x-1 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:duration-500 duration-300"
+                                className="ml-1 group-hover:translate-x-1 group-hover:text-gold-300 group-hover:-translate-y-0.5 group-hover:duration-500 duration-300"
                               >
                                 <path
                                   fillRule="evenodd"
@@ -468,7 +470,7 @@ export default function BroadcastTelevisionTab() {
                           {row.intakeUrl && (
                             <a
                               href={row.intakeUrl}
-                              className="flex items-center group text-xs font-body p-[3px] bg-primary text-white hover:bg-primary/20 hover:text-primary mt-1"
+                              className="flex items-center group text-xs font-body p-[3px] bg-gradient-to-r from-gold-400 to-gold-500 text-black-rich hover:shadow-gold mt-1 transition-all"
                               rel="noopener noreferrer nofollow"
                               target="_blank"
                             >
@@ -492,21 +494,21 @@ export default function BroadcastTelevisionTab() {
                         </div>
                       </div>
                     </td>
-                    <td className="text-center border-l border-r">{row.calls}</td>
-                    <td className="text-center border-l border-r">{row.state}</td>
-                    <td className="text-center border-l border-r">{row.market}</td>
-                    <td className="text-center border-l border-r">{row.program}</td>
-                    <td className="text-center border-l border-r">
-                      <span className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800">
+                    <td className="text-center ">{row.calls}</td>
+                    <td className="text-center ">{row.state}</td>
+                    <td className="text-center ">{row.market}</td>
+                    <td className="text-center ">{row.program}</td>
+                    <td className="text-center ">
+                      <span className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne">
                         {row.location}
                       </span>
                     </td>
-                    <td className="text-center border-l border-r">{row.time}</td>
-                    <td className="text-center border-l border-r">
+                    <td className="text-center ">{row.time}</td>
+                    <td className="text-center  text-gold-400 font-semibold">
                       {getUserAdjustmentInfo(priceAdjustments) ? (
                         <span className="relative group">
                           <span>{row.rate || 'N/A'}</span>
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-champagne bg-charcoal-800 border border-charcoal-600 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                             {getUserAdjustmentInfo(priceAdjustments)}
                           </span>
                         </span>
@@ -515,11 +517,11 @@ export default function BroadcastTelevisionTab() {
                       )}
                     </td>
                     {isAdmin && (
-                      <td className="text-center border-l border-r py-2 px-2">
+                      <td className="text-center  py-2 px-2">
                         <div className="flex justify-center space-x-2">
                           <button
                             onClick={() => setEditingRecord(row)}
-                            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                            className="text-gold-400 hover:text-gold-300 text-xs px-2 py-1 border border-gold-400 hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all"
                             title="Edit record"
                           >
                             Edit
@@ -527,7 +529,7 @@ export default function BroadcastTelevisionTab() {
                           <button
                             onClick={() => row.id && handleDeleteRecord(row.id)}
                             disabled={deletingRecordId === row.id || !row.id}
-                            className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-500 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             title="Delete record"
                           >
                             {deletingRecordId === row.id ? 'Deleting...' : 'Delete'}

@@ -1165,7 +1165,7 @@ export default function PublicationsTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading publications...</p>
+          <p className="text-charcoal-400">Loading publications...</p>
         </div>
       </div>
     )
@@ -1174,13 +1174,14 @@ export default function PublicationsTab() {
   return (
     <div className="opacity-100">
       <div className="flex lg:space-x-4 flex-col lg:flex-row">
-        <aside className="font-body mt-2 space-y-4 bg-white border p-4 lg:border-none lg:p-0 lg:bg-transparent w-full lg:w-[350px] filter-sidebar-container">
+        <aside className="font-body mt-2 space-y-4 bg-gradient-to-b from-charcoal-900 to-black-soft border border-charcoal-700 p-4 lg:border lg:p-4 w-full lg:w-[350px] filter-sidebar-container relative">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600"></div>
           <div className="space-y-2">
             <div className="space-y-1">
-              <p className="text-sm">Publication name</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Publication name</p>
               <input
                 type="text"
-                className="text-sm w-full p-2 placeholder:text-gray-400 placeholder:font-base border-2 bg-white"
+                className="text-sm w-full p-2 placeholder:text-charcoal-500 placeholder:font-base border border-charcoal-600 bg-charcoal-800 text-champagne focus:border-gold-400 focus:ring-1 focus:ring-gold-400/20 outline-none transition-all"
                 placeholder="Search publication name"
                 value={searchInput}
                 onChange={handleSearch}
@@ -1204,7 +1205,7 @@ export default function PublicationsTab() {
                   pointer-events: all;
                   width: 20px;
                   height: 20px;
-                  background: #dc2626;
+                  background: #d4af37;
                   border: none;
                   border-radius: 4px;
                   cursor: pointer;
@@ -1213,26 +1214,26 @@ export default function PublicationsTab() {
                   pointer-events: all;
                   width: 20px;
                   height: 20px;
-                  background: #dc2626;
+                  background: #d4af37;
                   border: none;
                   border-radius: 4px;
                   cursor: pointer;
                 }
                 .dual-range-slider input[type="range"]::-webkit-slider-thumb:hover {
-                  background: #b91c1c;
+                  background: #b8960b;
                 }
                 .dual-range-slider input[type="range"]::-moz-range-thumb:hover {
-                  background: #b91c1c;
+                  background: #b8960b;
                 }
               ` }} />
-              <p className="text-sm">Price range</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Price range</p>
               <div className="relative px-2 py-3 dual-range-slider">
                 <div className="relative h-2">
                   {/* Track background */}
-                  <div className="absolute w-full h-2 bg-black/10 rounded-full"></div>
+                  <div className="absolute w-full h-2 bg-charcoal-700 rounded-full"></div>
                   {/* Active track */}
                   <div 
-                    className="absolute h-2 bg-primary/50 rounded-full"
+                    className="absolute h-2 bg-gold-400/50 rounded-full"
                     style={{ 
                       left: `${maxPrice > 0 ? (priceRange[0] / maxPrice) * 100 : 0}%`, 
                       right: `${maxPrice > 0 ? 100 - (priceRange[1] / maxPrice) * 100 : 100}%` 
@@ -1285,7 +1286,7 @@ export default function PublicationsTab() {
               </div>
                 
                 {/* Price labels */}
-                <div className="flex justify-between mt-3 text-gray-600">
+                <div className="flex justify-between mt-3 text-champagne">
                 <span className="text-sm">${priceRange[0].toLocaleString()}</span>
                 <span className="text-sm">${priceRange[1].toLocaleString()}</span>
                 </div>
@@ -1293,10 +1294,10 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Sort by</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Sort by</p>
               <div className="relative text-sm">
-                <button className="relative w-full bg-white border-2 p-2 text-left">
-                  <span className="block text-left text-gray-500 truncate">{sortBy}</span>
+                <button className="relative w-full bg-charcoal-800 border border-charcoal-600 p-2 text-left">
+                  <span className="block text-left text-champagne truncate">{sortBy}</span>
                 </button>
                 <select
                   className="absolute inset-0 w-full opacity-0 cursor-pointer"
@@ -1313,11 +1314,11 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Select regions</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Select regions</p>
               <div className="relative text-sm">
                 <input
                   type="text"
-                  className="w-full bg-white border-2 p-2"
+                  className="w-full bg-charcoal-800 border border-charcoal-600 p-2 text-champagne placeholder:text-charcoal-500 focus:border-gold-400 focus:ring-1 focus:ring-gold-400/20 outline-none transition-all"
                   placeholder="Search regions..."
                   value={regionSearchTerm}
                   onChange={(e) => setRegionSearchTerm(e.target.value)}
@@ -1329,7 +1330,7 @@ export default function PublicationsTab() {
                     {selectedRegions.map((region) => (
                       <span
                         key={region}
-                        className="inline-flex items-center gap-1 bg-primary text-white text-xs px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 bg-gold-400 text-black-rich text-xs px-2 py-1"
                       >
                         {region}
                         <button
@@ -1339,7 +1340,7 @@ export default function PublicationsTab() {
                             setSelectedRegions(newRegions)
                             applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, newRegions)
                           }}
-                          className="hover:text-gray-200"
+                          className="hover:text-charcoal-700"
                         >
                           ×
                         </button>
@@ -1349,7 +1350,7 @@ export default function PublicationsTab() {
                 )}
                 {/* Dropdown */}
                 {isRegionDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border-2 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-charcoal-800 border border-charcoal-600 shadow-lg max-h-48 overflow-y-auto">
                     {filteredRegions.length > 0 ? (
                       filteredRegions.map((region) => (
                         <button
@@ -1363,20 +1364,20 @@ export default function PublicationsTab() {
                             setRegionSearchTerm('')
                             applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, newRegions)
                           }}
-                          className={`w-full text-left px-3 py-2 hover:bg-gray-100 ${
-                            selectedRegions.includes(region) ? 'bg-primary/10 text-primary' : ''
+                          className={`w-full text-left px-3 py-2 text-champagne hover:bg-gold-400/10 transition-colors ${
+                            selectedRegions.includes(region) ? 'bg-gold-400/20 text-gold-400' : ''
                           }`}
                         >
                           {selectedRegions.includes(region) && '✓ '}{region}
                         </button>
                       ))
                     ) : (
-                      <div className="px-3 py-2 text-gray-500">No regions found</div>
+                      <div className="px-3 py-2 text-charcoal-400">No regions found</div>
                     )}
                     <button
                       type="button"
                       onClick={() => setIsRegionDropdownOpen(false)}
-                      className="w-full text-center py-2 bg-gray-100 hover:bg-gray-200 text-sm text-gray-600 border-t"
+                      className="w-full text-center py-2 bg-charcoal-700 hover:bg-charcoal-600 text-sm text-champagne border-t border-charcoal-600 transition-colors"
                     >
                       Close
                     </button>
@@ -1386,7 +1387,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Select genres</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Select genres</p>
               <div className="flex flex-wrap gap-1">
                 {genres.map((genre) => (
                   <button
@@ -1399,10 +1400,10 @@ export default function PublicationsTab() {
                       setSelectedGenres(newGenres)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, newGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedGenres.includes(genre)
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {genre}
@@ -1412,7 +1413,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Type</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Type</p>
               <div className="flex flex-wrap gap-1">
                 {types.map((type) => (
                   <button
@@ -1425,10 +1426,10 @@ export default function PublicationsTab() {
                       setSelectedTypes(newTypes)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, newTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedTypes.includes(type)
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {type}
@@ -1438,7 +1439,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Sponsored</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Sponsored</p>
               <div className="flex flex-wrap gap-1">
                 {['Yes', 'No', 'Discrete'].map((val) => (
                   <button
@@ -1449,10 +1450,10 @@ export default function PublicationsTab() {
                       setSelectedSponsored(newVal)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, newVal, selectedDofollow, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedSponsored === val
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {val}
@@ -1462,7 +1463,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Do follow</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Do follow</p>
               <div className="flex flex-wrap gap-1">
                 {['Yes', 'No'].map((val) => (
                   <button
@@ -1473,10 +1474,10 @@ export default function PublicationsTab() {
                       setSelectedDofollow(newVal)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, newVal, selectedIndexed, selectedImage, selectedNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedDofollow === val
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {val}
@@ -1486,7 +1487,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Indexed</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Indexed</p>
               <div className="flex flex-wrap gap-1">
                 {['Yes', 'Maybe', 'No'].map((val) => (
                   <button
@@ -1497,10 +1498,10 @@ export default function PublicationsTab() {
                       setSelectedIndexed(newVal)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, newVal, selectedImage, selectedNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedIndexed === val
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {val}
@@ -1510,7 +1511,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Image</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Image</p>
               <div className="flex flex-wrap gap-1">
                 {['Yes', 'Maybe'].map((val) => (
                   <button
@@ -1521,10 +1522,10 @@ export default function PublicationsTab() {
                       setSelectedImage(newVal)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, newVal, selectedNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedImage === val
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {val}
@@ -1534,7 +1535,7 @@ export default function PublicationsTab() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm">Niche</p>
+              <p className="text-sm text-gold-400 uppercase tracking-wider">Niche</p>
               <div className="flex flex-wrap gap-1">
                 {niches.map((niche) => (
                   <button
@@ -1547,10 +1548,10 @@ export default function PublicationsTab() {
                       setSelectedNiches(newNiches)
                       applyFilters(debouncedSearchTerm.trim().toLowerCase(), priceRange, sortBy, selectedGenres, selectedTypes, selectedSponsored, selectedDofollow, selectedIndexed, selectedImage, newNiches, selectedRegions)
                     }}
-                    className={`text-sm cursor-pointer p-1 px-2 ${
+                    className={`text-sm cursor-pointer p-1 px-2 transition-all ${
                       selectedNiches.includes(niche)
-                        ? 'bg-primary text-white'
-                        : 'bg-[#6e6e6e] text-white'
+                        ? 'bg-gold-400 text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)]'
+                        : 'bg-charcoal-600 text-champagne hover:bg-gold-400/20 hover:text-gold-400'
                     }`}
                   >
                     {niche}
@@ -1561,7 +1562,7 @@ export default function PublicationsTab() {
 
             <button
               onClick={resetFilters}
-              className="text-sm hover:underline"
+              className="text-sm text-gold-400 hover:text-gold-300 hover:underline transition-colors"
             >
               Reset all filters
             </button>
@@ -1570,8 +1571,8 @@ export default function PublicationsTab() {
 
         <section className="w-full mt-2">
           <div className="flex justify-between items-center mb-1">
-            <p className="font-body text-sm">
-              SHOWING {filteredData.length === publicationsData.length ? publicationsData.length+1 : filteredData.length} OF {publicationsData.length + 1} PUBLICATIONS
+            <p className="font-body text-sm text-charcoal-400 uppercase tracking-wider">
+              SHOWING <span className="text-gold-400">{filteredData.length === publicationsData.length ? publicationsData.length+1 : filteredData.length}</span> OF <span className="text-gold-400">{publicationsData.length + 1}</span> PUBLICATIONS
             </p>
             {isAdmin && (
               <button
@@ -1579,36 +1580,37 @@ export default function PublicationsTab() {
                   setEditingRecord(null)
                   setShowAddModal(true)
                 }}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-4 py-2 border border-gold-400 text-sm font-medium text-gold-400 bg-transparent hover:bg-gold-400 hover:text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-400 transition-all duration-300 uppercase tracking-wider"
               >
                 Add Publication
               </button>
             )}
           </div>
           {error && (
-            <div className="mb-4 rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-800">{error}</div>
+            <div className="mb-4 rounded-md bg-red-900/30 border border-red-700 p-4">
+              <div className="text-sm text-red-400">{error}</div>
             </div>
           )}
           {success && (
-            <div className="mb-4 rounded-md bg-green-50 p-4">
-              <div className="text-sm text-green-800">{success}</div>
+            <div className="mb-4 rounded-md bg-green-900/30 border border-green-700 p-4">
+              <div className="text-sm text-green-400">{success}</div>
             </div>
           )}
           <div className="overflow-x-auto overscroll-x-contain relative">
-            <table className="w-full divide-y divide-gray-300 border bg-white">
-              <thead className="text-xs text-gray-700 bg-white sticky top-0 z-20 shadow-sm">
-                <tr className="text-primary">
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 z-10"></div>
+            <table className="w-full divide-y divide-charcoal-700 border border-charcoal-700 bg-gradient-to-b from-charcoal-900 to-black-soft">
+              <thead className="text-xs bg-charcoal-800 sticky top-0 z-20 shadow-sm">
+                <tr className="text-gold-400">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex">Publication</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Genres</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Price</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center relative">
                       DA
                       <div 
@@ -1616,7 +1618,7 @@ export default function PublicationsTab() {
                         onMouseEnter={() => setHoveredHeaderTooltip('da')}
                         onMouseLeave={() => setHoveredHeaderTooltip(null)}
                       >
-                      <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
@@ -1644,12 +1646,12 @@ export default function PublicationsTab() {
                               data-side="top" 
                               data-align="center" 
                               data-state="instant-open" 
-                              className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto text-left normal-case"
+                              className="select-none rounded-[4px] bg-charcoal-800 border border-charcoal-600 px-[15px] py-[10px] text-[13px] leading-normal shadow-lg will-change-[transform,opacity] pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-red-500 font-medium mb-1 normal-case">Domain authority</h3>
-                              <p className="text-gray-500 normal-case">Search engine ranking score (1-100)</p>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain authority</h3>
+                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
                               <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                   <polygon points="0,0 30,0 15,10"></polygon>
                                 </svg>
                               </span>
@@ -1659,7 +1661,7 @@ export default function PublicationsTab() {
                       </div>
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center relative">
                       DR
                       <div 
@@ -1667,7 +1669,7 @@ export default function PublicationsTab() {
                         onMouseEnter={() => setHoveredHeaderTooltip('dr')}
                         onMouseLeave={() => setHoveredHeaderTooltip(null)}
                       >
-                      <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
@@ -1695,12 +1697,12 @@ export default function PublicationsTab() {
                               data-side="top" 
                               data-align="center" 
                               data-state="instant-open" 
-                              className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto text-left normal-case"
+                              className="select-none rounded-[4px] bg-charcoal-800 border border-charcoal-600 px-[15px] py-[10px] text-[13px] leading-normal shadow-lg will-change-[transform,opacity] pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-red-500 font-medium mb-1 normal-case">Domain rating</h3>
-                              <p className="text-gray-500 normal-case">Search engine ranking score (1-100)</p>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain rating</h3>
+                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
                               <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                   <polygon points="0,0 30,0 15,10"></polygon>
                                 </svg>
                               </span>
@@ -1710,7 +1712,7 @@ export default function PublicationsTab() {
                       </div>
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center relative">
                       TAT
                       <div 
@@ -1718,7 +1720,7 @@ export default function PublicationsTab() {
                         onMouseEnter={() => setHoveredHeaderTooltip('tat')}
                         onMouseLeave={() => setHoveredHeaderTooltip(null)}
                       >
-                      <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
@@ -1746,12 +1748,12 @@ export default function PublicationsTab() {
                               data-side="top" 
                               data-align="center" 
                               data-state="instant-open" 
-                              className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto text-left normal-case"
+                              className="select-none rounded-[4px] bg-charcoal-800 border border-charcoal-600 px-[15px] py-[10px] text-[13px] leading-normal shadow-lg will-change-[transform,opacity] pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-red-500 font-medium mb-1 normal-case">Turn around time</h3>
-                              <p className="text-gray-500 normal-case">Estimated time to deliver</p>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Turn around time</h3>
+                              <p className="text-charcoal-300 normal-case">Estimated time to deliver</p>
                               <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                   <polygon points="0,0 30,0 15,10"></polygon>
                                 </svg>
                               </span>
@@ -1761,42 +1763,42 @@ export default function PublicationsTab() {
                       </div>
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Region</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Sponsored</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Indexed</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">
                       Do follow
-                      {/* <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      {/* <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
                       </button> */}
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Example</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Image</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                     <div className="flex justify-center">Niches</div>
                   </th>
                   {isAdmin && (
-                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                    <th className="font-body font-medium uppercase p-2 px-2 tracking-wider">
                       <div className="flex justify-center">Actions</div>
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 relative z-0">
+              <tbody className="divide-y divide-charcoal-700 relative z-0">
                 {Array.isArray(filteredData) && filteredData.map((pub, index) => {
                   const price = getPrice(pub)
                   const genresArray = getGenresArray(pub)
@@ -1809,7 +1811,7 @@ export default function PublicationsTab() {
                     <td className="py-2 px-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          {pub.logo && pub.logo.asset && (() => {
+                          {pub.logo && pub.logo.asset ? (() => {
                             // Check if this is a Supabase upload (has metadata with filename)
                             const asset = pub.logo.asset as any
                             let imageUrl: string
@@ -1829,11 +1831,11 @@ export default function PublicationsTab() {
                               imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
                             }
                             return (
-                              <div className="inline-flex w-10 h-10">
+                              <div className="inline-flex w-10 h-10 rounded-md border border-charcoal-600 bg-charcoal-700 overflow-hidden">
                                 <img
                                   alt={`${pub.name || 'Publication'} image`}
                                   src={imageUrl}
-                                  className="w-10 h-10 object-cover rounded-full"
+                                  className="w-10 h-10 object-cover"
                                   width="40"
                                   height="40"
                                   loading={index < 10 ? "eager" : "lazy"}
@@ -1841,16 +1843,21 @@ export default function PublicationsTab() {
                                   fetchPriority={index < 5 ? "high" : "low"}
                                   onError={(e) => {
                                     e.currentTarget.style.display = 'none'
+                                    e.currentTarget.parentElement!.innerHTML = '<span class="text-charcoal-400 text-lg font-bold">?</span>'
                                   }}
                                 />
                               </div>
                             )
-                          })()}
+                          })() : (
+                            <div className="inline-flex w-10 h-10 rounded-md border border-charcoal-600 bg-charcoal-700 items-center justify-center">
+                              <span className="text-charcoal-400 text-lg font-bold">?</span>
+                            </div>
+                          )}
                           <p>{pub.name || 'N/A'}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="text-center border-l border-r relative">
+                    <td className="text-center relative">
                       {genresArray.length === 0 ? (
                         '-'
                       ) : genresArray.length > 2 ? (
@@ -1893,25 +1900,24 @@ export default function PublicationsTab() {
                                 setHoveredIndex(null)
                                 setHoveredColumn(null)
                               }}
-                            >
-                              <div 
+                            >              <div 
                                 data-side="top" 
                                 data-align="center" 
                                 data-state="instant-open" 
-                                className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto"
+                                className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto"
                               >
                                 <div className="flex flex-wrap gap-1">
                                   {genresArray.map((genre, genreIndex) => (
                                     <span
                                       key={genreIndex}
-                                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+                                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
                                     >
                                       {genre}
                                     </span>
                                   ))}
                                 </div>
                                 <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                  <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                  <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                     <polygon points="0,0 30,0 15,10"></polygon>
                                   </svg>
                                 </span>
@@ -1924,7 +1930,7 @@ export default function PublicationsTab() {
                           {genresArray.map((genre, genreIndex) => (
                             <span
                               key={genreIndex}
-                              className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+                              className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
                             >
                               {genre}
                             </span>
@@ -1932,11 +1938,11 @@ export default function PublicationsTab() {
                         </div>
                       )}
                     </td>
-                    <td className="text-center border-l border-r">${price.toLocaleString()}</td>
-                    <td className="text-center border-l border-r">{pub.domain_authority || '-'}</td>
-                    <td className="text-center border-l border-r">{pub.domain_rating || '-'}</td>
-                    <td className="text-center border-l border-r">{pub.estimated_time || '-'}</td>
-                    <td className="text-center border-l border-r relative">
+                    <td className="text-center ">${price.toLocaleString()}</td>
+                    <td className="text-center ">{pub.domain_authority || '-'}</td>
+                    <td className="text-center ">{pub.domain_rating || '-'}</td>
+                    <td className="text-center ">{pub.estimated_time || '-'}</td>
+                    <td className="text-center relative">
                       {regionsArray.length === 0 ? (
                         '-'
                       ) : regionsArray.length > 2 ? (
@@ -1984,20 +1990,20 @@ export default function PublicationsTab() {
                                 data-side="top" 
                                 data-align="center" 
                                 data-state="instant-open" 
-                                className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto"
+                                className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto"
                               >
                                 <div className="flex flex-wrap gap-1">
                                   {regionsArray.map((region, regionIndex) => (
                                     <span
                                       key={regionIndex}
-                                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+                                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
                                     >
                                       {region}
                                     </span>
                                   ))}
                                 </div>
                                 <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                  <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                  <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                     <polygon points="0,0 30,0 15,10"></polygon>
                                   </svg>
                                 </span>
@@ -2010,7 +2016,7 @@ export default function PublicationsTab() {
                           {regionsArray.map((region, regionIndex) => (
                             <span
                               key={regionIndex}
-                              className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+                              className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
                             >
                               {region}
                             </span>
@@ -2018,10 +2024,10 @@ export default function PublicationsTab() {
                         </div>
                       )}
                     </td>
-                    <td className="text-center border-l border-r">{pub.sponsored || '-'}</td>
-                    <td className="text-center border-l border-r">{pub.indexed || '-'}</td>
-                    <td className="text-center border-l border-r">{pub.do_follow || '-'}</td>
-                    <td className="text-center border-l border-r relative">
+                    <td className="text-center ">{pub.sponsored || '-'}</td>
+                    <td className="text-center ">{pub.indexed || '-'}</td>
+                    <td className="text-center ">{pub.do_follow || '-'}</td>
+                    <td className="text-center relative">
                       {(articlePreviewUrl || pub.url) && (
                           <div
                             className="relative inline-block"
@@ -2116,7 +2122,7 @@ export default function PublicationsTab() {
                         </div>
                       )}
                     </td>
-                    <td className="text-center border-l border-r relative">
+                    <td className="text-center relative">
                       {(articlePreviewUrl || pub.url) && (
                         <div
                           className="relative inline-block"
@@ -2194,8 +2200,8 @@ export default function PublicationsTab() {
                         </div>
                       )}
                     </td>
-                    {/* <td className="text-center border-l border-r">{pub.image || '-'}</td> */}
-                    <td className="text-center border-l border-r min-w-[120px] relative">
+                    {/* <td className="text-center ">{pub.image || '-'}</td> */}
+                    <td className="text-center min-w-[120px] relative">
                       <div className="flex justify-between px-[4px]">
                         {(() => {
                           const nicheIcons = [
@@ -2278,15 +2284,15 @@ export default function PublicationsTab() {
                                       data-side="top" 
                                       data-align="center" 
                                       data-state="instant-open" 
-                                      className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto whitespace-nowrap"
+                                      className="select-none rounded-[4px] bg-black-rich px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto whitespace-nowrap"
                                     >
                                       {niche.accepted && niche.price !== null ? (
-                                        <span className="text-sm">{niche.displayName} price: ${niche.price.toLocaleString()}</span>
+                                        <span className="text-sm text-champagne">{niche.displayName} price: <span className="text-gold-400">${niche.price.toLocaleString()}</span></span>
                                       ) : (
-                                        <span className="text-sm">The media doesn&apos;t accept {niche.displayName}</span>
+                                        <span className="text-sm text-charcoal-300">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}
                                       <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                        <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                        <svg className="fill-black-rich" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                           <polygon points="0,0 30,0 15,10"></polygon>
                                         </svg>
                                       </span>
@@ -2300,36 +2306,25 @@ export default function PublicationsTab() {
                       </div>
                     </td>
                     {isAdmin && (
-                      <td className="text-center border-l border-r">
-                        <div className="flex items-center justify-center gap-3">
+                      <td className="text-center ">
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => {
                               setEditingRecord(pub)
                               setShowAddModal(true)
                             }}
-                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            className="text-gold-400 hover:text-gold-300 text-xs px-2 py-1 border border-gold-400 hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all"
                             title="Edit"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
+                            Edit
                           </button>
                           <button
                             onClick={() => handleDeleteRecord(pub._id)}
                             disabled={deletingRecordId === pub._id}
-                            className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[80px]"
+                            className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-500 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            title="Delete record"
                           >
-                            {deletingRecordId === pub._id ? (
-                              <>
-                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Removing...</span>
-                              </>
-                            ) : (
-                              'Remove'
-                            )}
+                            {deletingRecordId === pub._id ? 'Deleting...' : 'Delete'}
                           </button>
                         </div>
                       </td>

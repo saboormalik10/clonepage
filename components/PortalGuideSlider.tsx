@@ -182,7 +182,7 @@ export default function PortalGuideSlider({ isOpen, onClose }: PortalGuideSlider
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={onClose}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm sm:text-base"
+            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all text-sm sm:text-base"
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -195,7 +195,7 @@ export default function PortalGuideSlider({ isOpen, onClose }: PortalGuideSlider
         {/* Download button */}
         <button
           onClick={handleDownload}
-          className="flex items-center gap-1 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-1 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-primary text-white rounded-lg hover:bg-primary/90 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all"
           title="Download PDF"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

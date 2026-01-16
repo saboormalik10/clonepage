@@ -330,50 +330,50 @@ export default function UserSettingsPage() {
 
   if (checkingAccess || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-black-rich flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-400"></div>
       </div>
     )
   }
 
   return (
-    <div className="__variable_a59c88">
+    <div className="__variable_a59c88 min-h-screen bg-black-rich">
       <Header />
       <main className="w-full p-2 lg:w-full lg:p-4 lg:mx-auto xl:p-[2] 2xl:w-[1650px]">
         <div className="px-2 sm:px-4 py-4 sm:py-6">
           <div className="mb-4">
             <button
               onClick={() => router.push('/')}
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+              className="inline-flex items-center text-sm text-charcoal-300 hover:text-gold-400 transition-colors mb-4"
             >
               <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back to Main Page
+              <span className="text-ivory">Back to Main Page</span>
             </button>
           </div>
           
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* Sidebar Navigation - Mobile: Horizontal tabs, Desktop: Vertical sidebar */}
             <div className="w-full lg:w-64 lg:flex-shrink-0">
-              <div className="bg-white shadow rounded-lg">
+              <div className="bg-charcoal-800 border border-charcoal-700 shadow-lg rounded-lg">
                 <nav className="p-2 flex lg:flex-col">
                   <button
                     onClick={() => setActiveTab('price-adjustment')}
-                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-all duration-300 ${
                       activeTab === 'price-adjustment'
-                        ? 'bg-indigo-50 text-indigo-700 border-b-2 lg:border-b-0 lg:border-l-4 border-indigo-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-gold-400/10 text-gold-400 border-b-2 lg:border-b-0 lg:border-l-4 border-gold-400'
+                        : 'text-charcoal-300 hover:bg-charcoal-700 hover:text-ivory'
                     }`}
                   >
                     Price Adjustment
                   </button>
                   <button
                     onClick={() => setActiveTab('password-reset')}
-                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-all duration-300 ${
                       activeTab === 'password-reset'
-                        ? 'bg-indigo-50 text-indigo-700 border-b-2 lg:border-b-0 lg:border-l-4 border-indigo-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-gold-400/10 text-gold-400 border-b-2 lg:border-b-0 lg:border-l-4 border-gold-400'
+                        : 'text-charcoal-300 hover:bg-charcoal-700 hover:text-ivory'
                     }`}
                   >
                     Password Reset
@@ -388,54 +388,55 @@ export default function UserSettingsPage() {
                 <div>
                   <div className="mb-8 flex justify-between items-center">
                     <div>
-                      <h1 className="text-3xl font-bold text-gray-900">Price Adjustments</h1>
-                      <p className="mt-2 text-sm text-gray-600">
+                      <h1 className="text-3xl font-display font-bold text-ivory uppercase tracking-wider">Price Adjustments</h1>
+                      <div className="w-16 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 my-3"></div>
+                      <p className="mt-2 text-sm text-charcoal-300">
                         Manage your personal price adjustments. You can add multiple adjustments per category.
                       </p>
                     </div>
                     <button
                       onClick={() => setShowModal(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-4 py-2 border border-gold-400 text-sm font-medium rounded-md shadow-sm text-gold-400 bg-transparent hover:bg-gold-400 hover:text-black-rich transition-all duration-300 hover:shadow-[0_4px_20px_-2px_rgba(212,175,55,0.25)]"
                     >
                       Add Adjustment
                     </button>
                   </div>
 
                   {error && (
-                    <div className="mb-4 rounded-md bg-red-50 p-4">
-                      <div className="text-sm text-red-800">{error}</div>
+                    <div className="mb-4 rounded-md bg-red-900/20 border border-red-500/50 p-4">
+                      <div className="text-sm text-red-400">{error}</div>
                     </div>
                   )}
 
                   {success && (
-                    <div className="mb-4 rounded-md bg-green-50 p-4">
-                      <div className="text-sm text-green-800">{success}</div>
+                    <div className="mb-4 rounded-md bg-green-900/20 border border-green-500/50 p-4">
+                      <div className="text-sm text-green-400">{success}</div>
                     </div>
                   )}
 
-                  <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                    <ul className="divide-y divide-gray-200">
+                  <div className="bg-charcoal-800 border border-charcoal-700 shadow-lg overflow-hidden sm:rounded-md">
+                    <ul className="divide-y divide-charcoal-700">
                       {adjustments.length > 0 ? (
                         adjustments.map((adjustment) => (
                           <li key={adjustment.id}>
                             <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-ivory">
                                   {TABLES.find(t => t.value === adjustment.table_name)?.label || adjustment.table_name}
                                 </p>
-                                <p className="mt-1 text-sm text-gray-500">
-                                  <span className="font-medium">
+                                <p className="mt-1 text-sm text-charcoal-400">
+                                  <span className="font-medium text-gold-400">
                                     {adjustment.exact_amount !== null && adjustment.exact_amount !== undefined
                                       ? `$${adjustment.exact_amount} (exact amount)`
                                       : `${adjustment.adjustment_percentage > 0 ? '+' : ''}${adjustment.adjustment_percentage}%`
                                     }
                                   </span>
                                   {(adjustment.min_price || adjustment.max_price) && (
-                                    <span className="ml-2 text-xs text-gray-400">
+                                    <span className="ml-2 text-xs text-charcoal-500">
                                       (Range: ${adjustment.min_price || '0'} - ${adjustment.max_price || 'unlimited'})
                                     </span>
                                   )}
-                                  <span className="ml-2 text-xs text-gray-400">
+                                  <span className="ml-2 text-xs text-charcoal-500">
                                     (Created: {new Date(adjustment.created_at).toLocaleDateString()})
                                   </span>
                                 </p>
@@ -443,11 +444,11 @@ export default function UserSettingsPage() {
                               <button
                                 onClick={() => handleRemoveAdjustment(adjustment.id)}
                                 disabled={removingAdjustmentId === adjustment.id}
-                                className="ml-4 text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                                className="ml-4 text-red-400 hover:text-red-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center transition-colors"
                               >
                                 {removingAdjustmentId === adjustment.id ? (
                                   <>
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
@@ -462,7 +463,7 @@ export default function UserSettingsPage() {
                         ))
                       ) : (
                         <li>
-                          <div className="px-4 py-8 text-center text-sm text-gray-500">
+                          <div className="px-4 py-8 text-center text-sm text-charcoal-400">
                             No price adjustments found. Click &quot;Add Adjustment&quot; to create one.
                           </div>
                         </li>
@@ -475,18 +476,19 @@ export default function UserSettingsPage() {
               {activeTab === 'password-reset' && (
                 <div>
                   <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Password Reset</h1>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <h1 className="text-3xl font-display font-bold text-ivory uppercase tracking-wider">Password Reset</h1>
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 my-3"></div>
+                    <p className="mt-2 text-sm text-charcoal-300">
                       Change your account password. Make sure to use a strong password.
                     </p>
                   </div>
 
-                  <div className="bg-white shadow rounded-lg">
+                  <div className="bg-charcoal-800 border border-charcoal-700 shadow-lg rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                      <h2 className="text-lg font-medium text-gray-900 mb-4">Change Password</h2>
+                      <h2 className="text-lg font-medium text-ivory mb-4">Change Password</h2>
                       
                       {passwordError && (
-                        <div className="mb-4 rounded-md bg-red-50 p-4">
+                        <div className="mb-4 rounded-md bg-red-900/20 border border-red-500/50 p-4">
                           <div className="flex">
                             <div className="flex-shrink-0">
                               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -494,14 +496,14 @@ export default function UserSettingsPage() {
                               </svg>
                             </div>
                             <div className="ml-3">
-                              <p className="text-sm font-medium text-red-800">{passwordError}</p>
+                              <p className="text-sm font-medium text-red-400">{passwordError}</p>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {passwordSuccess && (
-                        <div className="mb-4 rounded-md bg-green-50 p-4">
+                        <div className="mb-4 rounded-md bg-green-900/20 border border-green-500/50 p-4">
                           <div className="flex">
                             <div className="flex-shrink-0">
                               <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
@@ -509,7 +511,7 @@ export default function UserSettingsPage() {
                               </svg>
                             </div>
                             <div className="ml-3">
-                              <p className="text-sm font-medium text-green-800">
+                              <p className="text-sm font-medium text-green-400">
                                 Password updated successfully!
                               </p>
                             </div>
@@ -519,7 +521,7 @@ export default function UserSettingsPage() {
 
                       <form onSubmit={handlePasswordChange} className="space-y-6">
                         <div>
-                          <label htmlFor="current-password" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="current-password" className="block text-sm font-medium text-charcoal-300">
                             Current Password
                           </label>
                           <div className="mt-1">
@@ -530,14 +532,14 @@ export default function UserSettingsPage() {
                               required
                               value={currentPassword}
                               onChange={(e) => setCurrentPassword(e.target.value)}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="bg-charcoal-900 border border-charcoal-600 text-ivory placeholder-charcoal-500 focus:ring-gold-400 focus:border-gold-400 block w-full sm:text-sm rounded-md px-3 py-2"
                               placeholder="Enter your current password"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="new-password" className="block text-sm font-medium text-charcoal-300">
                             New Password
                           </label>
                           <div className="mt-1">
@@ -549,17 +551,17 @@ export default function UserSettingsPage() {
                               minLength={6}
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="bg-charcoal-900 border border-charcoal-600 text-ivory placeholder-charcoal-500 focus:ring-gold-400 focus:border-gold-400 block w-full sm:text-sm rounded-md px-3 py-2"
                               placeholder="Enter your new password (min 6 characters)"
                             />
                           </div>
-                          <p className="mt-2 text-sm text-gray-500">
+                          <p className="mt-2 text-sm text-charcoal-400">
                             Password must be at least 6 characters long
                           </p>
                         </div>
 
                         <div>
-                          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="confirm-password" className="block text-sm font-medium text-charcoal-300">
                             Confirm New Password
                           </label>
                           <div className="mt-1">
@@ -571,7 +573,7 @@ export default function UserSettingsPage() {
                               minLength={6}
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="bg-charcoal-900 border border-charcoal-600 text-ivory placeholder-charcoal-500 focus:ring-gold-400 focus:border-gold-400 block w-full sm:text-sm rounded-md px-3 py-2"
                               placeholder="Confirm your new password"
                             />
                           </div>
@@ -581,7 +583,7 @@ export default function UserSettingsPage() {
                           <button
                             type="submit"
                             disabled={passwordLoading}
-                            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex justify-center py-2 px-4 border border-gold-400 shadow-sm text-sm font-medium rounded-md text-gold-400 bg-transparent hover:bg-gold-400 hover:text-black-rich transition-all duration-300 hover:shadow-[0_4px_20px_-2px_rgba(212,175,55,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {passwordLoading ? 'Updating...' : 'Update Password'}
                           </button>
@@ -597,20 +599,20 @@ export default function UserSettingsPage() {
           {showModal && (
             <div className="fixed z-10 inset-0 overflow-y-auto">
               <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowModal(false)}></div>
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="fixed inset-0 bg-black-pure bg-opacity-80 transition-opacity" onClick={() => setShowModal(false)}></div>
+                <div className="inline-block align-bottom bg-charcoal-800 border border-charcoal-700 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                   <form onSubmit={handleApplyAdjustment}>
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Add Price Adjustment</h3>
+                    <div className="bg-charcoal-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <h3 className="text-lg leading-6 font-medium text-ivory mb-4">Add Price Adjustment</h3>
                       <div className="space-y-4">
                         <div>
-                          <label htmlFor="table_name" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="table_name" className="block text-sm font-medium text-charcoal-300">
                             Category
                           </label>
                           <select
                             id="table_name"
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className="mt-1 block w-full bg-charcoal-900 border border-charcoal-600 text-ivory rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gold-400 focus:border-gold-400 sm:text-sm"
                             value={formData.table_name}
                             onChange={(e) => setFormData({ ...formData, table_name: e.target.value })}
                           >
@@ -620,7 +622,7 @@ export default function UserSettingsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-charcoal-300 mb-2">
                             Adjustment Type
                           </label>
                           <div className="flex space-x-4">
@@ -631,9 +633,9 @@ export default function UserSettingsPage() {
                                 value="percentage"
                                 checked={adjustmentType === 'percentage'}
                                 onChange={(e) => setAdjustmentType(e.target.value as 'percentage' | 'exact')}
-                                className="mr-2"
+                                className="mr-2 text-gold-400 focus:ring-gold-400"
                               />
-                              <span className="text-sm text-gray-700">Percentage</span>
+                              <span className="text-sm text-charcoal-300">Percentage</span>
                             </label>
                             <label className="flex items-center">
                               <input
@@ -642,15 +644,15 @@ export default function UserSettingsPage() {
                                 value="exact"
                                 checked={adjustmentType === 'exact'}
                                 onChange={(e) => setAdjustmentType(e.target.value as 'percentage' | 'exact')}
-                                className="mr-2"
+                                className="mr-2 text-gold-400 focus:ring-gold-400"
                               />
-                              <span className="text-sm text-gray-700">Exact Amount ($)</span>
+                              <span className="text-sm text-charcoal-300">Exact Amount ($)</span>
                             </label>
                           </div>
                         </div>
                         {adjustmentType === 'percentage' ? (
                           <div>
-                            <label htmlFor="adjustment_percentage" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="adjustment_percentage" className="block text-sm font-medium text-charcoal-300">
                               Adjustment Percentage
                             </label>
                             <div className="mt-1 relative rounded-md shadow-sm">
@@ -661,7 +663,7 @@ export default function UserSettingsPage() {
                                 step="0.01"
                                 min="0"
                                 max="1000"
-                                className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-8 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="block w-full bg-charcoal-900 border border-charcoal-600 text-ivory rounded-md shadow-sm py-2 px-3 pr-8 focus:outline-none focus:ring-gold-400 focus:border-gold-400 sm:text-sm"
                                 placeholder="e.g., 10 for +10%"
                                 value={formData.adjustment_percentage}
                                 onChange={(e) => {
@@ -673,21 +675,21 @@ export default function UserSettingsPage() {
                                 }}
                               />
                               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 sm:text-sm">%</span>
+                                <span className="text-charcoal-400 sm:text-sm">%</span>
                               </div>
                             </div>
-                            <p className="mt-2 text-sm text-gray-500">
+                            <p className="mt-2 text-sm text-charcoal-400">
                               Only positive percentages are allowed. 
                             </p>
                           </div>
                         ) : (
                           <div>
-                            <label htmlFor="exact_amount" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="exact_amount" className="block text-sm font-medium text-charcoal-300">
                               Exact Amount ($)
                             </label>
                             <div className="mt-1 relative rounded-md shadow-sm">
                               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 text-sm">$</span>
+                                <span className="text-charcoal-400 text-sm">$</span>
                               </div>
                               <input
                                 type="number"
@@ -695,36 +697,36 @@ export default function UserSettingsPage() {
                                 required={adjustmentType === 'exact'}
                                 step="0.01"
                                 min="0"
-                                className="block w-full pl-7 pr-3 border border-gray-300 rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className="block w-full pl-7 pr-3 bg-charcoal-900 border border-charcoal-600 text-ivory rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-gold-400 focus:border-gold-400"
                                 placeholder="e.g., 1000"
                                 value={formData.exact_amount}
                                 onChange={(e) => setFormData({ ...formData, exact_amount: e.target.value })}
                               />
                             </div>
-                            <p className="mt-2 text-sm text-gray-500">
+                            <p className="mt-2 text-sm text-charcoal-400">
                               This will replace the price with the exact amount instead of applying a percentage
                             </p>
                           </div>
                         )}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-charcoal-300 mb-2">
                             Price Range (Optional)
                           </label>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <label htmlFor="min_price" className="block text-xs text-gray-500 mb-1">
+                              <label htmlFor="min_price" className="block text-xs text-charcoal-400 mb-1">
                                 Min Price
                               </label>
                               <div className="relative rounded-md shadow-sm">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                  <span className="text-gray-500 text-sm">$</span>
+                                  <span className="text-charcoal-400 text-sm">$</span>
                                 </div>
                                 <input
                                   type="number"
                                   id="min_price"
                                   step="0.01"
                                   min="0"
-                                  className="block w-full pl-7 pr-3 border border-gray-300 rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                  className="block w-full pl-7 pr-3 bg-charcoal-900 border border-charcoal-600 text-ivory rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-gold-400 focus:border-gold-400"
                                   placeholder="0"
                                   value={formData.min_price}
                                   onChange={(e) => setFormData({ ...formData, min_price: e.target.value })}
@@ -732,19 +734,19 @@ export default function UserSettingsPage() {
                               </div>
                             </div>
                             <div>
-                              <label htmlFor="max_price" className="block text-xs text-gray-500 mb-1">
+                              <label htmlFor="max_price" className="block text-xs text-charcoal-400 mb-1">
                                 Max Price
                               </label>
                               <div className="relative rounded-md shadow-sm">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                  <span className="text-gray-500 text-sm">$</span>
+                                  <span className="text-charcoal-400 text-sm">$</span>
                                 </div>
                                 <input
                                   type="number"
                                   id="max_price"
                                   step="0.01"
                                   min="0"
-                                  className="block w-full pl-7 pr-3 border border-gray-300 rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                  className="block w-full pl-7 pr-3 bg-charcoal-900 border border-charcoal-600 text-ivory rounded-md shadow-sm py-2 text-sm focus:outline-none focus:ring-gold-400 focus:border-gold-400"
                                   placeholder="Unlimited"
                                   value={formData.max_price}
                                   onChange={(e) => setFormData({ ...formData, max_price: e.target.value })}
@@ -752,17 +754,17 @@ export default function UserSettingsPage() {
                               </div>
                             </div>
                           </div>
-                          <p className="mt-2 text-xs text-gray-500">
+                          <p className="mt-2 text-xs text-charcoal-400">
                             Adjustment will only apply to prices within this range. Leave empty for no limit.
                           </p>
                         </div>
                       </div>
                     </div>
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <div className="bg-charcoal-900 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-charcoal-700">
                       <button
                         type="submit"
                         disabled={processing}
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
+                        className="w-full inline-flex justify-center rounded-md border border-gold-400 shadow-sm px-4 py-2 bg-gold-400 text-base font-medium text-black-rich hover:bg-gold-500 transition-all duration-300 hover:shadow-[0_4px_20px_-2px_rgba(212,175,55,0.25)] disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
                       >
                         {processing ? 'Applying...' : 'Apply Adjustment'}
                       </button>
@@ -770,7 +772,7 @@ export default function UserSettingsPage() {
                         type="button"
                         onClick={() => setShowModal(false)}
                         disabled={processing}
-                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        className="mt-3 w-full inline-flex justify-center rounded-md border border-charcoal-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-charcoal-300 hover:bg-charcoal-700 hover:text-ivory transition-all duration-300 disabled:opacity-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                       >
                         Cancel
                       </button>

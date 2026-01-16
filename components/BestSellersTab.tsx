@@ -644,8 +644,8 @@ export default function BestSellersTab() {
             }}
           >
             <div className="flex items-center">
-              <span className="mr-1 text-gray-500">{genresArray.length} genres</span>
-              <button className="inline-flex items-center justify-center" data-state="closed">
+              <span className="mr-1 text-charcoal-400">{genresArray.length} genres</span>
+              <button className="inline-flex items-center justify-center text-charcoal-400" data-state="closed">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                 </svg>
@@ -676,20 +676,20 @@ export default function BestSellersTab() {
                 data-side="top"
                 data-align="center"
                 data-state="instant-open"
-                className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto"
+                className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto"
               >
                 <div className="flex flex-wrap gap-1">
                   {genresArray.map((genre, gIndex) => (
                     <span 
                       key={gIndex} 
-                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
                     >
                       {genre}
                     </span>
                   ))}
                 </div>
                 <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                  <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                  <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                     <polygon points="0,0 30,0 15,10"></polygon>
                   </svg>
                 </span>
@@ -706,7 +706,7 @@ export default function BestSellersTab() {
         {genresArray.map((genre, gIndex) => (
           <span 
             key={gIndex} 
-            className="text-xs font-medium px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+            className="text-xs font-medium px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
           >
             {genre}
           </span>
@@ -771,8 +771,8 @@ export default function BestSellersTab() {
             }}
           >
             <div className="flex items-center">
-              <span className="mr-1 text-gray-500">{regions.length} regions</span>
-              <button className="inline-flex items-center justify-center" data-state="closed">
+              <span className="mr-1 text-charcoal-400">{regions.length} regions</span>
+              <button className="inline-flex items-center justify-center text-charcoal-400" data-state="closed">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                 </svg>
@@ -803,20 +803,20 @@ export default function BestSellersTab() {
                 data-side="top"
                 data-align="center"
                 data-state="instant-open"
-                className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto"
+                className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto"
               >
                 <div className="flex flex-wrap gap-1">
                   {regions.map((region, rIndex) => (
                     <span 
                       key={rIndex} 
-                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+                      className="text-xs font-medium mr-1 px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
                     >
                       {region}
                     </span>
                   ))}
                 </div>
                 <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                  <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                  <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                     <polygon points="0,0 30,0 15,10"></polygon>
                   </svg>
                 </span>
@@ -833,7 +833,7 @@ export default function BestSellersTab() {
         {regions.map((region, rIndex) => (
           <span 
             key={rIndex} 
-            className="text-xs font-medium px-2.5 py-0.5 rounded bg-gray-100 text-gray-800"
+            className="text-xs font-medium px-2.5 py-0.5 rounded bg-charcoal-700 text-champagne"
           >
             {region}
           </span>
@@ -846,7 +846,7 @@ export default function BestSellersTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading best sellers...</p>
+          <p className="text-charcoal-400">Loading best sellers...</p>
         </div>
       </div>
     )
@@ -857,8 +857,8 @@ export default function BestSellersTab() {
       <div className="flex flex-col">
         <div className="mt-2">
           <div className="flex items-center justify-between mb-1">
-            <p className="font-body text-sm">
-              SHOWING {filteredData.length} OF {bestSellersData.length} PUBLICATIONS
+            <p className="font-body text-sm text-champagne">
+              SHOWING <span className="text-gold-400 font-semibold">{filteredData.length}</span> OF <span className="text-gold-400 font-semibold">{bestSellersData.length}</span> PUBLICATIONS
             </p>
             {isAdmin && (
               <button
@@ -866,33 +866,33 @@ export default function BestSellersTab() {
                   setEditingRecord(null)
                   setShowAddModal(true)
                 }}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black-pure bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 hover:from-gold-500 hover:via-gold-600 hover:to-gold-500 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 transition-all duration-200"
               >
                 Add Best Seller
               </button>
             )}
           </div>
-          <div className="overflow-x-auto overscroll-x-contain relative">
-            <table className="w-full divide-y divide-gray-300 border bg-white">
-              <thead className="text-xs text-gray-700 bg-white sticky -top-1 shadow-sm">
-                <tr className="text-primary">
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+          <div className="overflow-x-auto overscroll-x-contain relative bg-gradient-to-br from-charcoal-900 to-black-soft rounded-lg border border-charcoal-700">
+            <table className="w-full divide-y divide-charcoal-700 border-0">
+              <thead className="text-xs bg-charcoal-800 sticky -top-1 shadow-sm">
+                <tr className="text-gold-400">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex">Publication</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">Genres</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex flex-col items-center">
                       <span>Price</span>
                       {hasActiveAdjustments(priceAdjustments) && !userId && (
-                        <span className="text-xs font-normal text-blue-600 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
+                        <span className="text-xs font-normal text-gold-400 mt-1" title={getAdjustmentInfo(priceAdjustments)}>
                           (Adjusted)
                         </span>
                       )}
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center relative">
                       DA
                       <div 
@@ -900,7 +900,7 @@ export default function BestSellersTab() {
                         onMouseEnter={() => setHoveredHeaderTooltip('da')}
                         onMouseLeave={() => setHoveredHeaderTooltip(null)}
                       >
-                      <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
@@ -928,12 +928,12 @@ export default function BestSellersTab() {
                               data-side="top" 
                               data-align="center" 
                               data-state="instant-open" 
-                              className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto text-left normal-case"
+                              className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-red-500 font-medium mb-1 normal-case">Domain authority</h3>
-                              <p className="text-gray-500 normal-case">Search engine ranking score (1-100)</p>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain authority</h3>
+                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
                               <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                   <polygon points="0,0 30,0 15,10"></polygon>
                                 </svg>
                               </span>
@@ -943,7 +943,7 @@ export default function BestSellersTab() {
                       </div>
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center relative">
                       DR
                       <div 
@@ -951,7 +951,7 @@ export default function BestSellersTab() {
                         onMouseEnter={() => setHoveredHeaderTooltip('dr')}
                         onMouseLeave={() => setHoveredHeaderTooltip(null)}
                       >
-                      <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
@@ -979,12 +979,12 @@ export default function BestSellersTab() {
                               data-side="top" 
                               data-align="center" 
                               data-state="instant-open" 
-                              className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto text-left normal-case"
+                              className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-red-500 font-medium mb-1 normal-case">Domain rating</h3>
-                              <p className="text-gray-500 normal-case">Search engine ranking score (1-100)</p>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain rating</h3>
+                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
                               <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                   <polygon points="0,0 30,0 15,10"></polygon>
                                 </svg>
                               </span>
@@ -994,7 +994,7 @@ export default function BestSellersTab() {
                       </div>
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center relative">
                       TAT
                       <div 
@@ -1002,7 +1002,7 @@ export default function BestSellersTab() {
                         onMouseEnter={() => setHoveredHeaderTooltip('tat')}
                         onMouseLeave={() => setHoveredHeaderTooltip(null)}
                       >
-                      <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
@@ -1030,12 +1030,12 @@ export default function BestSellersTab() {
                               data-side="top" 
                               data-align="center" 
                               data-state="instant-open" 
-                              className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto text-left normal-case"
+                              className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[13px] leading-normal shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-red-500 font-medium mb-1 normal-case">Turn around time</h3>
-                              <p className="text-gray-500 normal-case">Estimated time to deliver</p>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Turn around time</h3>
+                              <p className="text-charcoal-300 normal-case">Estimated time to deliver</p>
                               <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                   <polygon points="0,0 30,0 15,10"></polygon>
                                 </svg>
                               </span>
@@ -1045,41 +1045,41 @@ export default function BestSellersTab() {
                       </div>
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">Region</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">Sponsored</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">Indexed</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">
                       Do follow
-                      {/* <button className="text-gray-500 ml-1 inline-flex items-center justify-center" data-state="closed">
+                      {/* <button className="text-charcoal-400 ml-1 inline-flex items-center justify-center" data-state="closed">
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.877075 7.49972C0.877075 3.84204 3.84222 0.876892 7.49991 0.876892C11.1576 0.876892 14.1227 3.84204 14.1227 7.49972C14.1227 11.1574 11.1576 14.1226 7.49991 14.1226C3.84222 14.1226 0.877075 11.1574 0.877075 7.49972ZM7.49991 1.82689C4.36689 1.82689 1.82708 4.36671 1.82708 7.49972C1.82708 10.6327 4.36689 13.1726 7.49991 13.1726C10.6329 13.1726 13.1727 10.6327 13.1727 7.49972C13.1727 4.36671 10.6329 1.82689 7.49991 1.82689ZM8.24993 10.5C8.24993 10.9142 7.91414 11.25 7.49993 11.25C7.08571 11.25 6.74993 10.9142 6.74993 10.5C6.74993 10.0858 7.08571 9.75 7.49993 9.75C7.91414 9.75 8.24993 10.0858 8.24993 10.5ZM6.05003 6.25C6.05003 5.57211 6.63511 4.925 7.50003 4.925C8.36496 4.925 8.95003 5.57211 8.95003 6.25C8.95003 6.74118 8.68002 6.99212 8.21447 7.27494C8.16251 7.30651 8.10258 7.34131 8.03847 7.37854L8.03841 7.37858C7.85521 7.48497 7.63788 7.61119 7.47449 7.73849C7.23214 7.92732 6.95003 8.23198 6.95003 8.7C6.95004 9.00376 7.19628 9.25 7.50004 9.25C7.8024 9.25 8.04778 9.00601 8.05002 8.70417L8.05056 8.7033C8.05924 8.6896 8.08493 8.65735 8.15058 8.6062C8.25207 8.52712 8.36508 8.46163 8.51567 8.37436L8.51571 8.37433C8.59422 8.32883 8.68296 8.27741 8.78559 8.21506C9.32004 7.89038 10.05 7.35382 10.05 6.25C10.05 4.92789 8.93511 3.825 7.50003 3.825C6.06496 3.825 4.95003 4.92789 4.95003 6.25C4.95003 6.55376 5.19628 6.8 5.50003 6.8C5.80379 6.8 6.05003 6.55376 6.05003 6.25Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
                         </svg>
                       </button> */}
                     </div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">Example</div>
                   </th>
-                  <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                  <th className="font-body font-medium  uppercase p-2 px-2">
                     <div className="flex justify-center">Niches</div>
                   </th>
                   {isAdmin && (
-                    <th className="font-body font-medium border-l border-r uppercase p-2 px-2">
+                    <th className="font-body font-medium  uppercase p-2 px-2">
                       <div className="flex justify-center">Actions</div>
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-charcoal-700">
                 {filteredData.map((item, index) => (
-                  <tr key={index} className="text-sm">
+                  <tr key={index} className="text-sm hover:bg-gold-400/5 transition-colors">
                     <td className="py-2 px-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -1146,24 +1146,24 @@ export default function BestSellersTab() {
                               </div>
                             )
                           })()}
-                          <p>{item.publication || 'N/A'}</p>
+                          <p className="text-champagne">{item.publication || 'N/A'}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="text-center border-l border-r">
+                    <td className="text-center  text-champagne">
                       {formatGenres(item.genres, index)}
                     </td>
-                    <td className="text-center border-l border-r">{item.price || '-'}</td>
-                    <td className="text-center border-l border-r">{item.da}</td>
-                    <td className="text-center border-l border-r">{item.dr}</td>
-                    <td className="text-center border-l border-r">{item.tat}</td>
-                    <td className="text-center border-l border-r">
+                    <td className="text-center  text-gold-400 font-medium">{item.price || '-'}</td>
+                    <td className="text-center  text-champagne">{item.da}</td>
+                    <td className="text-center  text-champagne">{item.dr}</td>
+                    <td className="text-center  text-champagne">{item.tat}</td>
+                    <td className="text-center  text-champagne">
                       {formatRegions(item.region, index)}
                     </td>
-                    <td className="text-center border-l border-r">{item.sponsored}</td>
-                    <td className="text-center border-l border-r">{item.indexed}</td>
-                    <td className="text-center border-l border-r">{item.dofollow}</td>
-                    <td className="text-center border-l border-r relative">
+                    <td className="text-center  text-champagne">{item.sponsored}</td>
+                    <td className="text-center  text-champagne">{item.indexed}</td>
+                    <td className="text-center  text-champagne">{item.dofollow}</td>
+                    <td className="text-center  text-champagne relative">
                       {item.exampleUrl && (
                         <div
                           className="relative inline-block"
@@ -1223,10 +1223,10 @@ export default function BestSellersTab() {
                                 data-side="top" 
                                 data-align="center" 
                                 data-state="instant-open" 
-                                className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto"
+                                className="select-none rounded-[4px] bg-charcoal-800 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto"
                               >
                                 <div className="overflow-hidden max-h-80">
-                                  <p className="font-body font-bold mb-2">Click to open full image</p>
+                                  <p className="font-body font-bold mb-2 text-gold-400">Click to open full image</p>
                                   {item.exampleUrl ? (
                                     <img 
                                       alt={`${item.publication} preview`}
@@ -1235,20 +1235,20 @@ export default function BestSellersTab() {
                                       height="200"
                                       decoding="async"
                                       fetchPriority="low"
-                                      className="object-cover border"
+                                      className="object-cover border border-charcoal-600"
                                       src={item.exampleUrl.includes('?') ? `${item.exampleUrl}&w=250&h=200&fit=crop&auto=format&q=80` : `${item.exampleUrl}?w=250&h=200&fit=crop&auto=format&q=80`}
                                       onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                                         e.currentTarget.style.display = 'none'
                                       }}
                                     />
                                   ) : (
-                                    <div className="w-[250px] h-[200px] flex items-center justify-center border bg-gray-100">
-                                      <p className="text-sm text-gray-500">No preview available</p>
+                                    <div className="w-[250px] h-[200px] flex items-center justify-center border border-charcoal-600 bg-charcoal-900">
+                                      <p className="text-sm text-charcoal-400">No preview available</p>
                                     </div>
                                   )}
                                 </div>
                                 <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                  <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                  <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                     <polygon points="0,0 30,0 15,10"></polygon>
                                   </svg>
                                 </span>
@@ -1258,7 +1258,7 @@ export default function BestSellersTab() {
                         </div>
                       )}
                     </td>
-                    <td className="text-center border-l border-r min-w-[120px] relative">
+                    <td className="text-center  min-w-[120px] relative text-champagne">
                       <div className="flex justify-between px-[4px]">
                         {(() => {
                           const nicheIcons = [
@@ -1340,15 +1340,15 @@ export default function BestSellersTab() {
                                       data-side="top" 
                                       data-align="center" 
                                       data-state="instant-open" 
-                                      className="select-none rounded-[4px] bg-white px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border-2 pointer-events-auto whitespace-nowrap"
+                                      className="select-none rounded-[4px] bg-black-rich px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto whitespace-nowrap"
                                     >
                                       {niche.accepted && niche.price ? (
-                                        <span className="text-sm">{niche.displayName} price: {niche.price}</span>
+                                        <span className="text-sm text-champagne">{niche.displayName} price: <span className="text-gold-400">{niche.price}</span></span>
                                       ) : (
-                                        <span className="text-sm">The media doesn&apos;t accept {niche.displayName}</span>
+                                        <span className="text-sm text-charcoal-300">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}
                                       <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
-                                        <svg className="fill-white" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
+                                        <svg className="fill-black-rich" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                           <polygon points="0,0 30,0 15,10"></polygon>
                                         </svg>
                                       </span>
@@ -1362,19 +1362,17 @@ export default function BestSellersTab() {
                       </div>
                     </td>
                     {isAdmin && (
-                      <td className="text-center border-l border-r">
-                        <div className="flex items-center justify-center gap-3">
+                      <td className="text-center ">
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => {
                               setEditingRecord(item)
                               setShowAddModal(true)
                             }}
-                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            className="text-gold-400 hover:text-gold-300 text-xs px-2 py-1 border border-gold-400 hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all"
                             title="Edit"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
+                            Edit
                           </button>
                           <button
                             onClick={() => {
@@ -1385,20 +1383,11 @@ export default function BestSellersTab() {
                                 setError('Cannot delete: Record ID is missing')
                               }
                             }}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[80px]"
+                            className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-500 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             disabled={!item.id || deletingRecordId === item.id}
+                            title="Delete record"
                           >
-                            {deletingRecordId === item.id ? (
-                              <>
-                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Removing...</span>
-                              </>
-                            ) : (
-                              'Remove'
-                            )}
+                            {deletingRecordId === item.id ? 'Deleting...' : 'Delete'}
                           </button>
                         </div>
                       </td>

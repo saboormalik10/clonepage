@@ -2,12 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Gold Palette */
+  --gold-50: #fffbeb;
+  --gold-100: #fef3c7;
+  --gold-200: #fde68a;
+  --gold-300: #fcd34d;
+  --gold-400: #d4af37;
+  --gold-500: #b8960b;
+  --gold-600: #996515;
+  --gold-700: #7c5a0b;
+  --gold-800: #5c4507;
+  
+  /* Charcoal Palette */
+  --charcoal-100: #f5f5f5;
+  --charcoal-200: #d4d4d4;
+  --charcoal-300: #a3a3a3;
+  --charcoal-400: #737373;
+  --charcoal-500: #525252;
+  --charcoal-600: #3d3d3d;
+  --charcoal-700: #2d2d2d;
+  --charcoal-800: #222222;
+  --charcoal-900: #1a1a1a;
+  
+  /* Accent Colors */
+  --ivory: #fffef5;
+  --champagne: #f7e7ce;
+  --cream: #f5f0e6;
+  --black-rich: #0a0a0a;
+  --black-soft: #111111;
+  
+  /* Gradients */
+  --gradient-gold: linear-gradient(135deg, #d4af37 0%, #b8960b 50%, #d4af37 100%);
+  --gradient-gold-hover: linear-gradient(135deg, #e5c04a 0%, #d4af37 50%, #e5c04a 100%);
+  --gradient-dark: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+  --gradient-card: linear-gradient(145deg, #1a1a1a 0%, #111111 100%);
+  
+  /* Shadows */
+  --shadow-gold: 0 4px 20px -2px rgba(212, 175, 55, 0.25);
+  --shadow-gold-hover: 0 8px 30px -2px rgba(212, 175, 55, 0.35);
+}
+
 body {
-  background: #f0f4f7;
+  background: var(--black-rich);
+  color: var(--champagne);
 }
 
 main {
   min-height: calc(100vh - 408px);
+}
+
+/* Custom Scrollbar - Luxury Gold */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--charcoal-900);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--gold-400), var(--gold-600));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--gold-300), var(--gold-500));
+}
+
+/* Selection - Gold */
+::selection {
+  background: var(--gold-400);
+  color: var(--black-rich);
 }
 
 /* Broadcast Message Popup Animations */
@@ -37,5 +104,62 @@ main {
 
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
+}
+
+/* Luxury Button Styles */
+.btn-luxury {
+  background: var(--gradient-gold);
+  color: var(--black-rich);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-luxury:hover::before {
+  left: 100%;
+}
+
+.btn-luxury:hover {
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+/* Luxury Outline Button */
+.btn-luxury-outline {
+  background: transparent;
+  color: var(--gold-400);
+  border: 1px solid var(--gold-400);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.btn-luxury-outline:hover {
+  background: var(--gold-400);
+  color: var(--black-rich);
+  box-shadow: 0 6px 25px rgba(212, 175, 55, 0.7);
+}
+
+/* Golden shadow hover for all gold background buttons */
+button.bg-gold-400:hover,
+.bg-gold-400:hover,
+button:hover.hover\:bg-gold-400,
+[class*="bg-gold-400"]:hover {
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.5);
 }
 

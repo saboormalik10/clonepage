@@ -222,7 +222,7 @@ export default function OthersTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading others...</p>
+          <p className="text-charcoal-400">Loading others...</p>
         </div>
       </div>
     )
@@ -232,12 +232,12 @@ export default function OthersTab() {
     <div className="opacity-100">
       {/* Error/Success Messages */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 text-red-400 rounded">
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-green-900/30 border border-green-500/50 text-green-400 rounded">
           {success}
         </div>
       )}
@@ -247,7 +247,7 @@ export default function OthersTab() {
         <div className="mb-4">
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 text-black-pure px-4 py-2 rounded-md hover:from-gold-500 hover:via-gold-600 hover:to-gold-500 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] focus:outline-none focus:ring-2 focus:ring-gold-500 text-sm font-medium transition-all duration-200"
           >
             Add New Category
           </button>
@@ -256,16 +256,16 @@ export default function OthersTab() {
 
       <div>
         {data.length === 0 && !isLoading ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-charcoal-400">
             No others categories available
           </div>
         ) : (
           data.map((category: Category, categoryIndex: number) => (
-          <div key={categoryIndex} className="flex flex-col mb-4">
+          <div key={categoryIndex} className="flex flex-col mb-4 bg-gradient-to-br from-charcoal-900 to-black-soft rounded-lg border border-charcoal-700 p-4">
             <div className="flex justify-between items-center">
               <div>
-                <span className="text-xs text-gray-500 uppercase">Category</span>
-                <h2 className="font-body font-medium text-lg my-1 uppercase">
+                <span className="text-xs text-charcoal-400 uppercase">Category</span>
+                <h2 className="font-body font-medium text-lg my-1 uppercase text-gold-400">
                   {category.category}
                 </h2>
               </div>
@@ -273,7 +273,7 @@ export default function OthersTab() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setEditingRecord(category)}
-                    className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                    className="text-gold-400 hover:text-gold-300 text-xs px-2 py-1 border border-gold-400 rounded hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-colors"
                     title="Edit category"
                   >
                     Edit
@@ -281,7 +281,7 @@ export default function OthersTab() {
                   <button
                     onClick={() => category.id && handleDeleteRecord(category.id)}
                     disabled={deletingRecordId === category.id || !category.id}
-                    className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-400 rounded hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Delete category"
                   >
                     {deletingRecordId === category.id ? 'Deleting...' : 'Delete'}
@@ -291,11 +291,11 @@ export default function OthersTab() {
             </div>
             <div className="grid grid-cols-1 grid-flow-row md:grid-flow-col md:grid-cols-3 gap-4">
               {category.items.map((item: Item, itemIndex: number) => (
-                <div key={itemIndex} className="bg-white p-1 font-body text-sm">
-                  <h3 className="font-medium bg-primary/20 text-primary p-1">
+                <div key={itemIndex} className="bg-charcoal-800/50 p-1 font-body text-sm rounded border border-charcoal-700">
+                  <h3 className="font-medium bg-gold-400/20 text-gold-400 p-1 rounded-t">
                     {item.name}
                   </h3>
-                  <p className="bg-gray-50 p-1 text-xs">{item.description}</p>
+                  <p className="bg-charcoal-900/50 p-1 text-xs text-champagne">{item.description}</p>
                 </div>
               ))}
             </div>

@@ -272,8 +272,8 @@ export default function Home() {
   // Show loading if auth is loading OR profile is loading
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black-rich">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-400"></div>
       </div>
     )
   }
@@ -297,15 +297,16 @@ export default function Home() {
       />
       <Header />
       <main className="w-full p-2 lg:w-full lg:p-4 lg:mx-auto xl:p-[2] 2xl:w-[1650px]">
-        <section className="mt-2 mb-4 flex-col font-body space-y-3 flex lg:space-y-0 lg:items-center lg:flex-row justify-between">
+        <section className="mt-2 mb-4 flex-col font-body space-y-3 flex lg:space-y-0 lg:items-center lg:flex-row justify-between pb-6 border-b border-charcoal-700">
           <div className="flex flex-col">
-            <h1 className="text-2xl uppercase bold">
-              Pricing{hasBrand ? ` (${brandName})` : ''}
+            <h1 className="text-2xl uppercase bold text-ivory">
+              Pricing{hasBrand ? <span className="text-gold-400"> ({brandName})</span> : ''}
             </h1>
-            <p className="text-sm">
+            <div className="w-16 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 my-2"></div>
+            <p className="text-[0.95rem] text-charcoal-300 leading-relaxed">
               Once we have published the article for you, any further edits may include an extra charge.
             </p>
-            <p className="text-sm">
+            <p className="text-[0.95rem] text-charcoal-300 leading-relaxed">
               We will use reasonable good faith efforts to ensure that such article will remain publicly available in the applicable publication for at least 12 months.
             </p>
           </div>
@@ -328,7 +329,7 @@ export default function Home() {
             </a> */}
             <button
               onClick={() => setGuideOpen(true)}
-              className="bg-primary p-2 px-2 text-white font-body text-sm cursor-pointer hover:bg-primary/90 transition-colors"
+              className="bg-gradient-to-r from-gold-400 to-gold-500 p-2 px-4 text-black-rich font-body text-sm uppercase tracking-wider cursor-pointer hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Portal Guide
             </button>
@@ -336,7 +337,7 @@ export default function Home() {
               href="https://docs.google.com/document/d/1fMHASfp2its2jacTJyxN2LYiG6ABhNKup0WGsaOrlHk/edit?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-primary p-2 px-2 text-white font-body text-sm"
+              className="bg-gradient-to-r from-gold-400 to-gold-500 p-2 px-4 text-black-rich font-body text-sm uppercase tracking-wider hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Download PR Questionnaire
             </a>

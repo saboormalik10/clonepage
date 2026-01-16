@@ -216,7 +216,7 @@ export default function PRBundlesTab() {
     return (
       <div className="opacity-100">
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-500">Loading PR bundles...</p>
+          <p className="text-charcoal-400">Loading PR bundles...</p>
         </div>
       </div>
     )
@@ -226,12 +226,12 @@ export default function PRBundlesTab() {
     <div className="opacity-100">
       {/* Error/Success Messages */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 text-red-400 rounded">
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-green-900/30 border border-green-500/50 text-green-400 rounded">
           {success}
         </div>
       )}
@@ -241,7 +241,7 @@ export default function PRBundlesTab() {
         <div className="mb-4">
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 text-black-pure px-4 py-2.5 font-ui text-xs font-semibold tracking-wider uppercase hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all duration-300"
           >
             Add New Category
           </button>
@@ -250,21 +250,21 @@ export default function PRBundlesTab() {
 
       <div>
         {data.length === 0 && !isLoading ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-charcoal-400">
             No PR bundle categories available
           </div>
         ) : (
           data.map((category: Category, categoryIndex: number) => (
-          <div key={categoryIndex} className="flex flex-col mb-4">
-            <div className="flex justify-between items-center">
-              <h2 className="font-body font-medium text-lg my-2 uppercase">
+          <div key={categoryIndex} className="flex flex-col mb-6">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="font-ui text-xs font-semibold tracking-wider uppercase text-gold-400">
                 {category.category}
               </h2>
               {isAdmin && (
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setEditingRecord(category)}
-                    className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                    className="text-gold-400 hover:text-gold-300 text-xs px-3 py-1.5 border border-gold-400 hover:bg-gold-400/10 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all duration-300"
                     title="Edit category"
                   >
                     Edit
@@ -272,7 +272,7 @@ export default function PRBundlesTab() {
                   <button
                     onClick={() => category.id && handleDeleteRecord(category.id)}
                     disabled={deletingRecordId === category.id || !category.id}
-                    className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 border border-red-400 hover:bg-red-400/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete category"
                   >
                     {deletingRecordId === category.id ? 'Deleting...' : 'Delete'}
@@ -282,12 +282,12 @@ export default function PRBundlesTab() {
             </div>
             <div className="grid grid-cols-1 grid-flow-row md:grid-flow-col md:grid-cols-3 gap-4">
               {category.bundles.map((bundle: Bundle, bundleIndex: number) => (
-                <div key={bundleIndex} className="bg-white p-1 font-body text-sm">
-                  <h3 className="font-medium bg-primary/20 text-primary p-1">
+                <div key={bundleIndex} className="bg-gradient-to-br from-charcoal-900 to-black-soft border border-charcoal-700 font-body text-sm hover:border-charcoal-600 transition-all duration-300">
+                  <h3 className="font-medium bg-gold-400/20 text-gold-400 p-2 border-b border-charcoal-700">
                     {bundle.name}
                   </h3>
-                  <h3 className="bg-gray-50 p-1">{bundle.retailValue}</h3>
-                  <ul className="list-decimal ml-6 mt-2 mb-2">
+                  <h3 className="bg-charcoal-800 p-2 text-champagne border-b border-charcoal-700">{bundle.retailValue}</h3>
+                  <ul className="list-decimal ml-6 mt-2 mb-2 text-charcoal-300 p-2">
                     {bundle.publications.map((publication: string, pubIndex: number) => (
                       <li key={pubIndex}>{publication}</li>
                     ))}

@@ -157,7 +157,7 @@ export default function Header() {
   }
 
   return (
-    <div className="bg-white mb-2 xl:mb-8">
+    <div className="bg-gradient-to-b from-black-soft to-charcoal-900 border-b border-charcoal-700 mb-2 xl:mb-8">
       <div className="flex justify-between w-full lg:w-full lg:mx-auto xl:p-[2] 2xl:w-[1400px]">
         <button
           onClick={() => router.push('/')}
@@ -166,25 +166,27 @@ export default function Header() {
         >
           {profileLoading ? (
             <>
-              <div className="w-16 h-16 bg-gray-200 animate-pulse rounded ml-5"></div>
-              <div className="h-8 w-48 bg-gray-200 animate-pulse rounded"></div>
+              <div className="w-16 h-16 bg-charcoal-700 animate-pulse rounded ml-5 border-2 border-gold-400"></div>
+              <div className="h-8 w-48 bg-charcoal-700 animate-pulse rounded"></div>
             </>
           ) : (
             <>
-              <img
-                src={brandLogo}
-                alt={brandName || 'Admin'}
-                className={`${hasBrand ? 'w-16 h-16' : 'h-16 w-32 max-h-16'} object-contain ml-5`}
-                onError={(e) => {
-                  // Fallback to admin logo if brand logo fails to load
-                  const target = e.target as HTMLImageElement
-                  if (target.src !== '/admin-logo.png') {
-                    target.src = '/admin-logo.png'
-                  }
-                }}
-              />
+              <div className={`${hasBrand ? 'w-16 h-16' : 'h-16 w-32'} ml-5 border-2 border-gold-400 bg-black-rich flex items-center justify-center overflow-hidden`}>
+                <img
+                  src={brandLogo}
+                  alt={brandName || 'Admin'}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    // Fallback to admin logo if brand logo fails to load
+                    const target = e.target as HTMLImageElement
+                    if (target.src !== '/admin-logo.png') {
+                      target.src = '/admin-logo.png'
+                    }
+                  }}
+                />
+              </div>
               {hasBrand && (
-                <span className="text-2xl font-bold text-gray-800">{brandName}</span>
+                <span className="text-2xl font-bold text-ivory">{brandName}</span>
               )}
             </>
           )}
@@ -194,7 +196,7 @@ export default function Header() {
             {isAdmin && (
               <button
                 onClick={() => router.push('/admin/dashboard')}
-                className="hidden md:inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="hidden md:inline-flex items-center px-3 py-2 border border-gold-400 text-sm leading-4 font-medium text-gold-400 bg-transparent hover:bg-gold-400 hover:text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-400 transition-all duration-300"
                 title="Switch to Admin Panel"
               >
                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -207,7 +209,7 @@ export default function Header() {
             {!isAdmin && (user?.email?.toLowerCase() !== RESTRICTED_EMAIL.toLowerCase() && profile?.email?.toLowerCase() !== RESTRICTED_EMAIL.toLowerCase()) && (
               <button
                 onClick={() => router.push('/settings')}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-3 py-2 border border-charcoal-600 text-sm leading-4 font-medium text-champagne bg-charcoal-800 hover:border-gold-400 hover:text-gold-400 hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-400 transition-all duration-300"
                 title="Settings"
               >
                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -220,7 +222,7 @@ export default function Header() {
             <button 
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="text-sm font-body text-primary ml-2 uppercase hover:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm font-body text-gold-400 ml-2 uppercase tracking-wider hover:text-gold-300 disabled:opacity-50 disabled:cursor-not-allowed border border-gold-400 px-3 py-1.5 hover:bg-gold-400 hover:text-black-rich hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all duration-300"
             >
               {isLoggingOut ? 'Logging out...' : 'Log out'}
             </button>

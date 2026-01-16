@@ -135,21 +135,25 @@ export default function PricingTabs() {
 
   return (
     <Tab.Group defaultIndex={defaultIndex}>
-      <Tab.List className="space-x-2 font-body border-b-2 pb-2 overflow-x-auto">
+      <Tab.List className="flex flex-wrap gap-1 font-body border-b border-charcoal-700 pb-4 mb-6 overflow-x-auto relative">
         {displayTabs.map((tab) => (
           <Tab
             key={tab.id}
             className={({ selected }) =>
-              `p-2 cursor-pointer outline-none text-sm rounded-sm ${
-                selected
-                  ? 'bg-primary/[15%] text-primary'
-                  : 'hover:bg-primary/5 hover:text-primary'
+              `relative px-4 py-3 cursor-pointer outline-none text-[0.7rem] font-medium tracking-[0.12em] uppercase transition-all duration-300 ${selected
+                  ? 'bg-gold-400/10 text-gold-400'
+                  : 'text-charcoal-400 hover:bg-gold-400/5 hover:text-gold-400'
               }`
             }
           >
-            <span className="relative">
-              {tab.name}
-            </span>
+            {({ selected }) => (
+              <>
+                <span>{tab.name}</span>
+                {selected && (
+                  <span className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-[30px] h-[2px] bg-gold-400" />
+                )}
+              </>
+            )}
           </Tab>
         ))}
       </Tab.List>
