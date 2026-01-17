@@ -171,7 +171,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              <div className={`${hasBrand ? 'w-16 h-16 p-2' : 'h-16 w-32'} ml-5 border-2 border-gold-400 bg-black-rich flex items-center justify-center overflow-hidden`}>
+              <div className={`${hasBrand ? 'w-16 h-16 p-2' : 'h-16 w-32'} ml-5 border-2 border-gold-400 bg-transparent flex items-center justify-center overflow-hidden`}>
                 <img
                   src={brandLogo}
                   alt={brandName || 'Admin'}
