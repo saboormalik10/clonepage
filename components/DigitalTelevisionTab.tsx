@@ -386,13 +386,13 @@ export default function DigitalTelevisionTab() {
                     <td className="text-center ">
                       {getUserAdjustmentInfo(priceAdjustments) ? (
                         <span className="relative group">
-                          <span className="text-gold-400 font-display text-lg">{tv.rate || 'N/A'}</span>
+                          <span className="text-gold-400 font-semibold">{tv.rate || 'N/A'}</span>
                           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-champagne bg-charcoal-800 border border-charcoal-600 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                             {getUserAdjustmentInfo(priceAdjustments)}
                           </span>
                         </span>
                       ) : (
-                        <span className="text-gold-400 font-display text-lg">{tv.rate || 'N/A'}</span>
+                        <span className="text-gold-400 font-semibold">{tv.rate || 'N/A'}</span>
                       )}
                     </td>
                     <td className="text-center  text-champagne">{tv.tat}</td>

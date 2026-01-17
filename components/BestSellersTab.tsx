@@ -1153,7 +1153,7 @@ export default function BestSellersTab() {
                     <td className="text-center  text-champagne">
                       {formatGenres(item.genres, index)}
                     </td>
-                    <td className="text-center  text-gold-400 font-medium">{item.price || '-'}</td>
+                    <td className="text-center  text-gold-400 font-semibold">{item.price || '-'}</td>
                     <td className="text-center  text-champagne">{item.da}</td>
                     <td className="text-center  text-champagne">{item.dr}</td>
                     <td className="text-center  text-champagne">{item.tat}</td>
@@ -1320,7 +1320,7 @@ export default function BestSellersTab() {
                                 {isHovered && niche && (
                                   <div 
                                     data-radix-popper-content-wrapper=""
-                                    className="absolute z-[9999] left-1/2 transform -translate-x-1/2 bottom-full mb-2"
+                                    className="absolute z-[9999] right-0 bottom-full mb-2"
                                     style={{
                                       minWidth: 'max-content',
                                       willChange: 'transform',
@@ -1343,11 +1343,11 @@ export default function BestSellersTab() {
                                       className="select-none rounded-[4px] bg-black-rich px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity] border border-charcoal-600 pointer-events-auto whitespace-nowrap"
                                     >
                                       {niche.accepted && niche.price ? (
-                                        <span className="text-sm text-champagne">{niche.displayName} price: <span className="text-gold-400">{niche.price}</span></span>
+                                        <span className="text-sm text-champagne">{niche.displayName} price: <span className="text-gold-400 font-semibold">{niche.price}</span></span>
                                       ) : (
                                         <span className="text-sm text-charcoal-300">The media doesn&apos;t accept {niche.displayName}</span>
                                       )}
-                                      <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
+                                      <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', right: '10px' }}>
                                         <svg className="fill-black-rich" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
                                           <polygon points="0,0 30,0 15,10"></polygon>
                                         </svg>

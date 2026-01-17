@@ -483,11 +483,11 @@ export default function SocialPostTab() {
                       <td className="text-center ">
                         {getUserAdjustmentInfo(priceAdjustments) ? (
                           <span className="relative group">
-                            <span className="text-gold-400 font-display text-lg">{item.price || 'N/A'}</span>
+                            <span className="text-gold-400 font-semibold">{item.price || 'N/A'}</span>
                             <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-champagne bg-charcoal-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-charcoal-600">{getUserAdjustmentInfo(priceAdjustments)}</span>
                           </span>
                         ) : (
-                          <span className="text-gold-400 font-display text-lg">{item.price || 'N/A'}</span>
+                          <span className="text-gold-400 font-semibold">{item.price || 'N/A'}</span>
                         )}
                       </td>
                       <td className="text-center  text-champagne">{item.tat}</td>

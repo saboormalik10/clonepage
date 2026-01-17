@@ -520,7 +520,7 @@ export default function ListiclesTab() {
         {matches.map((item, index) => (
           <div key={index} className="text-left">
             <span className="text-gray-500">{item.top} : </span>
-            <span className="text-black">{item.price}</span>
+            <span className="text-gold-400 font-semibold">{item.price}</span>
           </div>
         ))}
       </div>
