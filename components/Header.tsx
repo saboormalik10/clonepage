@@ -177,9 +177,12 @@ export default function Header() {
                   alt={brandName || 'Admin'}
                   className={`${hasBrand ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
                   style={{
-                    imageRendering: 'crisp-edges',
+                    imageRendering: 'crisp-edges' as const,
                     WebkitImageRendering: 'crisp-edges',
                     msInterpolationMode: 'nearest-neighbor'
+                  } as React.CSSProperties & {
+                    WebkitImageRendering?: string;
+                    msInterpolationMode?: string;
                   }}
                   onError={(e) => {
                     // Fallback to admin logo if brand logo fails to load

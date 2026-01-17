@@ -323,9 +323,12 @@ export default function AdminLayout({
                   alt="Admin"
                   className="h-16 w-24 object-contain"
                   style={{
-                    imageRendering: 'crisp-edges',
+                    imageRendering: 'crisp-edges' as const,
                     WebkitImageRendering: 'crisp-edges',
                     msInterpolationMode: 'nearest-neighbor'
+                  } as React.CSSProperties & {
+                    WebkitImageRendering?: string;
+                    msInterpolationMode?: string;
                   }}
                 />
                 <h1 className="hidden md:block text-xl font-bold text-gray-900">Admin Panel</h1>
