@@ -24,7 +24,7 @@ export default function Header() {
   const hasBrand = Boolean(profile?.brand_name) && Boolean(profile?.brand_logo)
   // Use user's brand when available; otherwise show admin logo only
   const brandName: string = hasBrand ? String(profile?.brand_name) : ''
-  const brandLogo: string = hasBrand ? String(profile?.brand_logo) : '/admin-logo.png'
+  const brandLogo: string = hasBrand ? String(profile?.brand_logo) : '/admin-logo.jpeg'
 
   useEffect(() => {
     // Check if user is logged in - try localStorage first, then API
@@ -171,16 +171,21 @@ export default function Header() {
             </>
           ) : (
             <>
-              <div className={`${hasBrand ? 'w-16 h-16 p-2' : 'h-16 w-32'} ml-5 border-2 border-gold-400 bg-transparent flex items-center justify-center overflow-hidden`}>
+              <div className={`${hasBrand ? 'w-16 h-16' : 'w-32 h-auto'} ml-5 border-2 border-gold-400 bg-transparent flex items-center justify-center overflow-hidden`}>
                 <img
                   src={brandLogo}
                   alt={brandName || 'Admin'}
-                  className="w-full h-full object-contain"
+                  className={`${hasBrand ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    WebkitImageRendering: 'crisp-edges',
+                    msInterpolationMode: 'nearest-neighbor'
+                  }}
                   onError={(e) => {
                     // Fallback to admin logo if brand logo fails to load
                     const target = e.target as HTMLImageElement
-                    if (target.src !== '/admin-logo.png') {
-                      target.src = '/admin-logo.png'
+                    if (target.src !== '/admin-logo.jpeg') {
+                      target.src = '/admin-logo.jpeg'
                     }
                   }}
                 />

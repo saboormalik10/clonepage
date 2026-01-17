@@ -319,9 +319,14 @@ export default function AdminLayout({
             <div className="flex">
               <div className="flex-shrink-0 flex items-center gap-3">
                 <img
-                  src="/admin-logo.png"
+                  src="/admin-logo.jpeg"
                   alt="Admin"
                   className="h-16 w-24 object-contain"
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    WebkitImageRendering: 'crisp-edges',
+                    msInterpolationMode: 'nearest-neighbor'
+                  }}
                 />
                 <h1 className="hidden md:block text-xl font-bold text-gray-900">Admin Panel</h1>
               </div>
