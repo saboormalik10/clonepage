@@ -1626,7 +1626,7 @@ export default function PublicationsTab() {
                         {hoveredHeaderTooltip === 'da' && (
                           <div 
                             data-radix-popper-content-wrapper=""
-                            className="absolute z-[9999] left-1/2 transform -translate-x-1/2 bottom-full mb-2"
+                            className="absolute z-[9999] left-1/2 transform -translate-x-1/2 top-full mt-2"
                             style={{
                               minWidth: 'max-content',
                               willChange: 'transform',
@@ -1643,18 +1643,18 @@ export default function PublicationsTab() {
                             }}
                           >
                             <div 
-                              data-side="top" 
+                              data-side="bottom" 
                               data-align="center" 
                               data-state="instant-open" 
                               className="select-none rounded-[4px] bg-charcoal-800 border border-charcoal-600 px-[15px] py-[10px] text-[13px] leading-normal shadow-lg will-change-[transform,opacity] pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain authority</h3>
-                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
-                              <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
+                              <span style={{ position: 'absolute', top: '0px', transform: 'translateY(-100%)', left: '50%', marginLeft: '-5px' }}>
                                 <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
-                                  <polygon points="0,0 30,0 15,10"></polygon>
+                                  <polygon points="15,0 0,10 30,10"></polygon>
                                 </svg>
                               </span>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain authority</h3>
+                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
                             </div>
                           </div>
                         )}
@@ -1677,7 +1677,7 @@ export default function PublicationsTab() {
                         {hoveredHeaderTooltip === 'dr' && (
                           <div 
                             data-radix-popper-content-wrapper=""
-                            className="absolute z-[9999] left-1/2 transform -translate-x-1/2 bottom-full mb-2"
+                            className="absolute z-[9999] left-1/2 transform -translate-x-1/2 top-full mt-2"
                             style={{
                               minWidth: 'max-content',
                               willChange: 'transform',
@@ -1694,18 +1694,18 @@ export default function PublicationsTab() {
                             }}
                           >
                             <div 
-                              data-side="top" 
+                              data-side="bottom" 
                               data-align="center" 
                               data-state="instant-open" 
                               className="select-none rounded-[4px] bg-charcoal-800 border border-charcoal-600 px-[15px] py-[10px] text-[13px] leading-normal shadow-lg will-change-[transform,opacity] pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain rating</h3>
-                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
-                              <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
+                              <span style={{ position: 'absolute', top: '0px', transform: 'translateY(-100%)', left: '50%', marginLeft: '-5px' }}>
                                 <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
-                                  <polygon points="0,0 30,0 15,10"></polygon>
+                                  <polygon points="15,0 0,10 30,10"></polygon>
                                 </svg>
                               </span>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Domain rating</h3>
+                              <p className="text-charcoal-300 normal-case">Search engine ranking score (1-100)</p>
                             </div>
                           </div>
                         )}
@@ -1728,7 +1728,7 @@ export default function PublicationsTab() {
                         {hoveredHeaderTooltip === 'tat' && (
                           <div 
                             data-radix-popper-content-wrapper=""
-                            className="absolute z-[9999] left-1/2 transform -translate-x-1/2 bottom-full mb-2"
+                            className="absolute z-[9999] left-1/2 transform -translate-x-1/2 top-full mt-2"
                             style={{
                               minWidth: 'max-content',
                               willChange: 'transform',
@@ -1745,18 +1745,18 @@ export default function PublicationsTab() {
                             }}
                           >
                             <div 
-                              data-side="top" 
+                              data-side="bottom" 
                               data-align="center" 
                               data-state="instant-open" 
                               className="select-none rounded-[4px] bg-charcoal-800 border border-charcoal-600 px-[15px] py-[10px] text-[13px] leading-normal shadow-lg will-change-[transform,opacity] pointer-events-auto text-left normal-case"
                             >
-                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Turn around time</h3>
-                              <p className="text-charcoal-300 normal-case">Estimated time to deliver</p>
-                              <span style={{ position: 'absolute', bottom: '0px', transform: 'translateY(100%)', left: '50%', marginLeft: '-5px' }}>
+                              <span style={{ position: 'absolute', top: '0px', transform: 'translateY(-100%)', left: '50%', marginLeft: '-5px' }}>
                                 <svg className="fill-charcoal-800" width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none" style={{ display: 'block' }}>
-                                  <polygon points="0,0 30,0 15,10"></polygon>
+                                  <polygon points="15,0 0,10 30,10"></polygon>
                                 </svg>
                               </span>
+                              <h3 className="text-gold-400 font-medium mb-1 normal-case">Turn around time</h3>
+                              <p className="text-charcoal-300 normal-case">Estimated time to deliver</p>
                             </div>
                           </div>
                         )}
