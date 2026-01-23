@@ -130,7 +130,14 @@ export async function requireAuth(request: Request): Promise<{
   if (!user) {
     return NextResponse.json(
       { error: 'Authentication required' },
-      { status: 401 }
+      { 
+        status: 401,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+        }
+      }
     )
   }
 
@@ -150,7 +157,14 @@ export async function requireAdmin(request: Request): Promise<{
   if (!isAdmin) {
     return NextResponse.json(
       { error: 'Admin access required' },
-      { status: 403 }
+      { 
+        status: 403,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+        }
+      }
     )
   }
 
