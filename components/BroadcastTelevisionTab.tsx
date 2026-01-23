@@ -6,7 +6,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useVisibilityChange } from '@/hooks/useVisibilityChange'
 import { isPriceAdjusted, getAdjustmentInfo, hasActiveAdjustments, getUserAdjustmentInfo } from '@/lib/price-adjustment-utils'
 import AddBroadcastTVForm from './AddBroadcastTVForm'
-
+ 
 interface TableRow {
   id?: string
   affiliate: string
