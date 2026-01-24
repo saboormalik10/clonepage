@@ -163,3 +163,19 @@ button:hover.hover\:bg-gold-400,
   box-shadow: 0 4px 15px rgba(212, 175, 55, 0.5);
 }
 
+/* Form inputs in modals - ensure black text */
+.bg-white input,
+.bg-white select,
+.bg-white textarea,
+input.border-gray-300,
+select.border-gray-300,
+textarea.border-gray-300 {
+  color: #000000 !important;
+}
+
+.bg-white input::placeholder,
+.bg-white select::placeholder,
+.bg-white textarea::placeholder {
+  color: #9ca3af !important;
+}
+

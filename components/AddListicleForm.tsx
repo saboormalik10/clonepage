@@ -240,11 +240,13 @@ function AddListicleForm({ onClose, onSubmit, error, success, initialData, isEdi
               }
             } else {
               // Not an object, use as URL
-              setLogoPreview(`https://pricing.ascendagency.com${initialData.image.replace(/&amp;/g, '&')}`)
+              const imageUrl = initialData.image.replace(/&amp;/g, '&')
+              setLogoPreview(imageUrl.startsWith('https://') || imageUrl.startsWith('http://') ? imageUrl : `https://pricing.ascendagency.com${imageUrl}`)
             }
           } catch (e) {
             // Not JSON, treat as legacy string format
-            setLogoPreview(`https://pricing.ascendagency.com${initialData.image.replace(/&amp;/g, '&')}`)
+            const imageUrl = initialData.image.replace(/&amp;/g, '&')
+            setLogoPreview(imageUrl.startsWith('https://') || imageUrl.startsWith('http://') ? imageUrl : `https://pricing.ascendagency.com${imageUrl}`)
           }
         } else if (typeof initialData.image === 'object' && initialData.image !== null) {
           // Already an object

@@ -1010,11 +1010,13 @@ export default function ListiclesTab() {
                                   imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
                                 } else {
                                   // Fallback to original string
-                                  imageUrl = `https://pricing.ascendagency.com${listicle.image.replace(/&amp;/g, '&')}`
+                                  const imgUrl = listicle.image.replace(/&amp;/g, '&')
+                                  imageUrl = imgUrl.startsWith('https://') || imgUrl.startsWith('http://') ? imgUrl : `https://pricing.ascendagency.com${imgUrl}`
                                 }
                               } catch (e) {
                                 // Not JSON, treat as legacy string format
-                                imageUrl = `https://pricing.ascendagency.com${listicle.image.replace(/&amp;/g, '&')}`
+                                const imgUrl = listicle.image.replace(/&amp;/g, '&')
+                                imageUrl = imgUrl.startsWith('https://') || imgUrl.startsWith('http://') ? imgUrl : `https://pricing.ascendagency.com${imgUrl}`
                               }
                             } else if (typeof listicle.image === 'object' && listicle.image !== null) {
                               // Already an object
@@ -1031,11 +1033,13 @@ export default function ListiclesTab() {
                                 imageUrl = `https://cdn.sanity.io/images/8n90kyzz/production/${ref.replace(/-png$/, '.png').replace(/-jpg$/, '.jpg').replace(/-jpeg$/, '.jpeg').replace(/-webp$/, '.webp')}?w=80&h=80&fit=crop&auto=format&q=75`
                               } else {
                                 // Fallback
-                                imageUrl = `https://pricing.ascendagency.com${(listicle.image as any).toString().replace(/&amp;/g, '&')}`
+                                const imgUrl = (listicle.image as any).toString().replace(/&amp;/g, '&')
+                                imageUrl = imgUrl.startsWith('https://') || imgUrl.startsWith('http://') ? imgUrl : `https://pricing.ascendagency.com${imgUrl}`
                               }
                             } else {
                               // Legacy string format
-                              imageUrl = `https://pricing.ascendagency.com${listicle.image.replace(/&amp;/g, '&')}`
+                              const imgUrl = listicle.image.replace(/&amp;/g, '&')
+                              imageUrl = imgUrl.startsWith('https://') || imgUrl.startsWith('http://') ? imgUrl : `https://pricing.ascendagency.com${imgUrl}`
                             }
                             
                             return (
