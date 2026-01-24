@@ -1572,7 +1572,7 @@ export default function PublicationsTab() {
         <section className="w-full mt-2">
           <div className="flex justify-between items-center mb-1">
             <p className="font-body text-sm text-charcoal-400 uppercase tracking-wider">
-              SHOWING <span className="text-gold-400">{filteredData.length === publicationsData.length ? publicationsData.length+1 : filteredData.length}</span> OF <span className="text-gold-400">{publicationsData.length + 1}</span> PUBLICATIONS
+              SHOWING <span className="text-gold-400">{filteredData.length === publicationsData.length ? publicationsData.length-3 : filteredData.length}</span> OF <span className="text-gold-400">{publicationsData.length - 3}</span> PUBLICATIONS
             </p>
             {isAdmin && (
               <button
