@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import Header from '@/components/Header'
 import { useUserProfile } from '@/hooks/useUserProfile'
+import Image from 'next/image'
 
 // Email that should not have access to settings
 const RESTRICTED_EMAIL = 'wholesale@hotshot.press'
@@ -32,7 +33,7 @@ interface Adjustment {
   created_at: string
 }
 
-type SettingsTab = 'price-adjustment' | 'password-reset'
+type SettingsTab = 'price-adjustment' | 'password-reset' | 'brand-settings'
 
 export default function UserSettingsPage() {
   const router = useRouter()
@@ -61,6 +62,17 @@ export default function UserSettingsPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [removingAdjustmentId, setRemovingAdjustmentId] = useState<string | null>(null)
   const [checkingAccess, setCheckingAccess] = useState(true)
+  
+  // Brand settings state
+  const [brandName, setBrandName] = useState('')
+  const [brandLogo, setBrandLogo] = useState('')
+  const [brandLogoPreview, setBrandLogoPreview] = useState<string | null>(null)
+  const [brandLoading, setBrandLoading] = useState(false)
+  const [brandError, setBrandError] = useState<string | null>(null)
+  const [brandSuccess, setBrandSuccess] = useState(false)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+  const [logoUploadError, setLogoUploadError] = useState('')
+  const logoFileInputRef = useRef<HTMLInputElement>(null)
   
   const supabase = createClient()
   const { profile, loading: profileLoading } = useUserProfile()
@@ -92,6 +104,15 @@ export default function UserSettingsPage() {
     
     checkAccess()
   }, [supabase, router, profile, profileLoading])
+
+  // Load brand settings from profile
+  useEffect(() => {
+    if (profile) {
+      setBrandName(profile.brand_name || '')
+      setBrandLogo(profile.brand_logo || '')
+      setBrandLogoPreview(profile.brand_logo || null)
+    }
+  }, [profile])
 
   useEffect(() => {
     fetchData()
@@ -328,6 +349,134 @@ export default function UserSettingsPage() {
     }
   }
 
+  // Brand logo upload handler
+  const handleBrandLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setLogoUploadError('')
+    setIsUploadingLogo(true)
+    
+    try {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+      if (!allowedTypes.includes(file.type)) {
+        setLogoUploadError('Invalid file type. Only images are allowed.')
+        setIsUploadingLogo(false)
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      if (file.size > maxSize) {
+        setLogoUploadError('File size exceeds 5MB limit')
+        setIsUploadingLogo(false)
+        return
+      }
+      
+      // Show preview
+      const reader = new FileReader()
+      reader.onloadend = () => setBrandLogoPreview(reader.result as string)
+      reader.readAsDataURL(file)
+      
+      // Prepare form data for upload
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+      
+      const token = await getAuthToken()
+      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
+      let response: Response
+      try {
+        response = await fetch('/api/user/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: uploadFormData,
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId)
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Upload timeout. Please try again with a smaller file.')
+        }
+        throw fetchError
+      }
+      
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload image')
+      }
+      
+      if (!data.publicUrl) {
+        throw new Error('Upload succeeded but no URL returned')
+      }
+      
+      // Store the public URL
+      setBrandLogo(data.publicUrl)
+      setBrandLogoPreview(data.publicUrl)
+    } catch (err: any) {
+      setLogoUploadError(err.message || 'Failed to upload image')
+      setBrandLogoPreview(brandLogo || null) // Revert to previous
+      if (logoFileInputRef.current) {
+        logoFileInputRef.current.value = ''
+      }
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }, [brandLogo])
+
+  // Save brand settings handler
+  const handleSaveBrandSettings = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBrandError(null)
+    setBrandSuccess(false)
+    setBrandLoading(true)
+
+    try {
+      const token = await getAuthToken()
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          brand_name: brandName,
+          brand_logo: brandLogo
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update brand settings')
+      }
+
+      setBrandSuccess(true)
+      
+      // Reload the page to reflect changes in the header
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (err: any) {
+      setBrandError(err.message || 'An unexpected error occurred')
+    } finally {
+      setBrandLoading(false)
+    }
+  }
+
+  // Remove brand logo handler
+  const handleRemoveBrandLogo = () => {
+    setBrandLogo('')
+    setBrandLogoPreview(null)
+    if (logoFileInputRef.current) {
+      logoFileInputRef.current.value = ''
+    }
+  }
+
   if (checkingAccess || loading) {
     return (
       <div className="min-h-screen bg-black-rich flex items-center justify-center">
@@ -367,6 +516,16 @@ export default function UserSettingsPage() {
                     }`}
                   >
                     Price Adjustment
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('brand-settings')}
+                    className={`flex-1 lg:w-full text-center lg:text-left px-4 py-3 rounded-md text-sm font-medium transition-all duration-300 ${
+                      activeTab === 'brand-settings'
+                        ? 'bg-gold-400/10 text-gold-400 border-b-2 lg:border-b-0 lg:border-l-4 border-gold-400'
+                        : 'text-charcoal-300 hover:bg-charcoal-700 hover:text-ivory'
+                    }`}
+                  >
+                    Brand Settings
                   </button>
                   <button
                     onClick={() => setActiveTab('password-reset')}
@@ -586,6 +745,150 @@ export default function UserSettingsPage() {
                             className="inline-flex justify-center py-2 px-4 border border-gold-400 shadow-sm text-sm font-medium rounded-md text-gold-400 bg-transparent hover:bg-gold-400 hover:text-black-rich transition-all duration-300 hover:shadow-[0_4px_20px_-2px_rgba(212,175,55,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {passwordLoading ? 'Updating...' : 'Update Password'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'brand-settings' && (
+                <div>
+                  <div className="mb-8">
+                    <h1 className="text-3xl font-display font-bold text-ivory uppercase tracking-wider">Brand Settings</h1>
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 my-3"></div>
+                    <p className="mt-2 text-sm text-charcoal-300">
+                      Customize your brand name and logo. These will be displayed in the header and throughout the application.
+                    </p>
+                  </div>
+
+                  <div className="bg-charcoal-800 border border-charcoal-700 shadow-lg rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <h2 className="text-lg font-medium text-ivory mb-4">Brand Customization</h2>
+                      
+                      {brandError && (
+                        <div className="mb-4 rounded-md bg-red-900/20 border border-red-500/50 p-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm font-medium text-red-400">{brandError}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {brandSuccess && (
+                        <div className="mb-4 rounded-md bg-green-900/20 border border-green-500/50 p-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm font-medium text-green-400">
+                                Brand settings saved successfully! Refreshing page...
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleSaveBrandSettings} className="space-y-6">
+                        <div>
+                          <label htmlFor="brand-name" className="block text-sm font-medium text-charcoal-300">
+                            Brand Name
+                          </label>
+                          <div className="mt-1">
+                            <input
+                              id="brand-name"
+                              name="brand-name"
+                              type="text"
+                              value={brandName}
+                              onChange={(e) => setBrandName(e.target.value)}
+                              className="bg-charcoal-900 border border-charcoal-600 text-ivory placeholder-charcoal-500 focus:ring-gold-400 focus:border-gold-400 block w-full sm:text-sm rounded-md px-3 py-2"
+                              placeholder="Enter your brand name"
+                            />
+                          </div>
+                          <p className="mt-2 text-sm text-charcoal-400">
+                            This will be displayed in the header instead of the default name.
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-charcoal-300">
+                            Brand Logo
+                          </label>
+                          <div className="mt-2">
+                            {/* Logo Preview */}
+                            {brandLogoPreview && (
+                              <div className="mb-4 relative inline-block">
+                                <div className="w-24 h-24 rounded-lg border-2 border-charcoal-600 overflow-hidden bg-charcoal-900">
+                                  <Image
+                                    src={brandLogoPreview}
+                                    alt="Brand logo preview"
+                                    width={96}
+                                    height={96}
+                                    className="w-full h-full object-contain"
+                                    onError={() => setBrandLogoPreview(null)}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={handleRemoveBrandLogo}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                  title="Remove logo"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                            
+                            {/* Upload Input */}
+                            <div className="flex items-center gap-4">
+                              <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-charcoal-600 text-sm font-medium rounded-md shadow-sm text-charcoal-300 bg-transparent hover:bg-charcoal-700 hover:text-ivory transition-all duration-300">
+                                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {isUploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                                <input
+                                  ref={logoFileInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleBrandLogoUpload}
+                                  disabled={isUploadingLogo}
+                                  className="hidden"
+                                />
+                              </label>
+                              {isUploadingLogo && (
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gold-400"></div>
+                              )}
+                            </div>
+                            
+                            {logoUploadError && (
+                              <p className="mt-2 text-sm text-red-400">{logoUploadError}</p>
+                            )}
+                            
+                            <p className="mt-2 text-sm text-charcoal-400">
+                              Supported formats: JPEG, PNG, WebP, GIF. Max file size: 5MB.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-charcoal-700">
+                          <button
+                            type="submit"
+                            disabled={brandLoading}
+                            className="inline-flex justify-center py-2 px-4 border border-gold-400 shadow-sm text-sm font-medium rounded-md text-gold-400 bg-transparent hover:bg-gold-400 hover:text-black-rich transition-all duration-300 hover:shadow-[0_4px_20px_-2px_rgba(212,175,55,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {brandLoading ? 'Saving...' : 'Save Brand Settings'}
                           </button>
                         </div>
                       </form>
