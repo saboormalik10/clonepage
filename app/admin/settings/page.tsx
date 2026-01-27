@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface TabVisibility {
   id: string
@@ -32,6 +33,14 @@ export default function AdminSettings() {
   const [tabVisibilitySaving, setTabVisibilitySaving] = useState(false)
   const [tabVisibilityError, setTabVisibilityError] = useState<string | null>(null)
   const [tabVisibilitySuccess, setTabVisibilitySuccess] = useState(false)
+
+  // Admin logo state
+  const [adminLogo, setAdminLogo] = useState<string | null>(null)
+  const [logoLoading, setLogoLoading] = useState(false)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const [logoError, setLogoError] = useState<string | null>(null)
+  const [logoSuccess, setLogoSuccess] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
   
   const supabase = createClient()
   const router = useRouter()
@@ -59,6 +68,123 @@ export default function AdminSettings() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Fetch admin logo
+  useEffect(() => {
+    const fetchAdminLogo = async () => {
+      try {
+        setLogoLoading(true)
+        const response = await fetch('/api/admin/logo')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch admin logo')
+        }
+
+        const result = await response.json()
+        // Add cache-busting timestamp if logo exists
+        const logoUrl = result.logo_url ? `${result.logo_url}?t=${Date.now()}` : null
+        setAdminLogo(logoUrl)
+      } catch (error: any) {
+        console.error('Error fetching admin logo:', error)
+        // Don't show error for logo - just use default
+      } finally {
+        setLogoLoading(false)
+      }
+    }
+
+    fetchAdminLogo()
+  }, [])
+
+  // Handle logo upload
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setLogoError(null)
+    setLogoSuccess(false)
+    setLogoUploading(true)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setLogoError('You must be logged in')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/admin/logo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || result.details || 'Failed to upload logo')
+      }
+
+      // Add cache-busting timestamp to force browser to load new image
+      const logoUrlWithCache = `${result.logo_url}?t=${Date.now()}`
+      setAdminLogo(logoUrlWithCache)
+      // Dispatch event to update logo in admin layout
+      window.dispatchEvent(new CustomEvent('adminLogoUpdated', { detail: { logo_url: logoUrlWithCache } }))
+      setLogoSuccess(true)
+      setTimeout(() => setLogoSuccess(false), 3000)
+    } catch (error: any) {
+      console.error('Error uploading logo:', error)
+      setLogoError(error.message || 'Failed to upload logo')
+    } finally {
+      setLogoUploading(false)
+      // Reset file input
+      if (logoInputRef.current) {
+        logoInputRef.current.value = ''
+      }
+    }
+  }
+
+  // Handle logo reset to default
+  const handleResetLogo = async () => {
+    setLogoError(null)
+    setLogoSuccess(false)
+    setLogoUploading(true)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setLogoError('You must be logged in')
+        return
+      }
+
+      const response = await fetch('/api/admin/logo', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to reset logo')
+      }
+
+      setAdminLogo(null)
+      // Dispatch event to update logo in admin layout
+      window.dispatchEvent(new CustomEvent('adminLogoUpdated', { detail: { logo_url: null } }))
+      setLogoSuccess(true)
+      setTimeout(() => setLogoSuccess(false), 3000)
+    } catch (error: any) {
+      console.error('Error resetting logo:', error)
+      setLogoError(error.message || 'Failed to reset logo')
+    } finally {
+      setLogoUploading(false)
+    }
+  }
 
   // Fetch tab visibility settings
   useEffect(() => {
@@ -349,6 +475,128 @@ export default function AdminSettings() {
 
       <div className="max-w-2xl space-y-6">
         
+        {/* Admin Logo Section */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Admin Logo</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Upload a custom logo for the admin panel. This logo will appear in the admin navigation.
+            </p>
+
+            {logoError && (
+              <div className="mb-4 rounded-md bg-red-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-red-800">{logoError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {logoSuccess && (
+              <div className="mb-4 rounded-md bg-green-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-green-800">
+                      Logo updated successfully!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-start space-x-6">
+              {/* Logo Preview */}
+              <div className="flex-shrink-0">
+                <div className="relative h-24 w-36 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+                  {logoLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    </div>
+                  ) : (
+                    <img
+                      key={adminLogo || 'default'}
+                      src={adminLogo || '/admin-logo.jpeg'}
+                      alt="Admin Logo"
+                      className="h-full w-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/admin-logo.jpeg'
+                      }}
+                    />
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-gray-500 text-center">
+                  {adminLogo ? 'Custom logo' : 'Default logo'}
+                </p>
+              </div>
+
+              {/* Upload Controls */}
+              <div className="flex-1">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload New Logo
+                    </label>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                      onChange={handleLogoUpload}
+                      disabled={logoUploading}
+                      className="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-medium
+                        file:bg-indigo-50 file:text-indigo-700
+                        hover:file:bg-indigo-100
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Supported: JPEG, PNG, WebP, GIF. Max size: 5MB
+                    </p>
+                  </div>
+
+                  {adminLogo && (
+                    <button
+                      type="button"
+                      onClick={handleResetLogo}
+                      disabled={logoUploading}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {logoUploading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="-ml-1 mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Reset to Default
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Change Password Section */}
         <div className="bg-white shadow rounded-lg">

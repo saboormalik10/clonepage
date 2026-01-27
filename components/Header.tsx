@@ -19,12 +19,44 @@ export default function Header() {
   const isAdmin = useIsAdmin() // Use AdminContext instead of local state
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { profile, loading: profileLoading } = useUserProfile()
+  const [adminLogo, setAdminLogo] = useState<string | null>(null)
   
   // Determine if user has both brand name and logo
   const hasBrand = Boolean(profile?.brand_name) && Boolean(profile?.brand_logo)
-  // Use user's brand when available; otherwise show admin logo only
+  // Use user's brand when available; otherwise show admin logo (custom or default)
   const brandName: string = hasBrand ? String(profile?.brand_name) : ''
-  const brandLogo: string = hasBrand ? String(profile?.brand_logo) : '/admin-logo.jpeg'
+  const defaultLogo = adminLogo || '/admin-logo.jpeg'
+  const brandLogo: string = hasBrand ? String(profile?.brand_logo) : defaultLogo
+
+  // Fetch admin logo
+  useEffect(() => {
+    const fetchAdminLogo = async () => {
+      try {
+        const response = await fetch('/api/admin/logo')
+        if (response.ok) {
+          const result = await response.json()
+          const logoUrl = result.logo_url ? `${result.logo_url}?t=${Date.now()}` : null
+          setAdminLogo(logoUrl)
+        }
+      } catch (error) {
+        console.error('Error fetching admin logo:', error)
+        // Use default logo on error
+      }
+    }
+
+    fetchAdminLogo()
+
+    // Listen for logo updates from admin settings
+    const handleLogoUpdate = (event: CustomEvent<{ logo_url: string | null }>) => {
+      setAdminLogo(event.detail.logo_url)
+    }
+
+    window.addEventListener('adminLogoUpdated', handleLogoUpdate as EventListener)
+
+    return () => {
+      window.removeEventListener('adminLogoUpdated', handleLogoUpdate as EventListener)
+    }
+  }, [])
 
   useEffect(() => {
     // Check if user is logged in - try localStorage first, then API
@@ -171,11 +203,12 @@ export default function Header() {
             </>
           ) : (
             <>
-              <div className={`${hasBrand ? 'w-16 h-16' : 'w-32 h-auto'} ml-5 border-2 border-gold-400 bg-transparent flex items-center justify-center overflow-hidden`}>
+              <div className={`${hasBrand ? 'w-16 h-16' : 'h-16 w-auto inline-block'} ml-5 border-2 border-gold-400 bg-transparent overflow-hidden`}>
                 <img
+                  key={brandLogo}
                   src={brandLogo}
                   alt={brandName || 'Admin'}
-                  className={`${hasBrand ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
+                  className={`${hasBrand ? 'w-full h-full object-cover' : 'h-full w-auto object-contain'}`}
                   style={{
                     imageRendering: 'crisp-edges' as const,
                     WebkitImageRendering: 'crisp-edges',
@@ -185,7 +218,7 @@ export default function Header() {
                     msInterpolationMode?: string;
                   }}
                   onError={(e) => {
-                    // Fallback to admin logo if brand logo fails to load
+                    // Fallback to default admin logo if brand logo fails to load
                     const target = e.target as HTMLImageElement
                     if (target.src !== '/admin-logo.jpeg') {
                       target.src = '/admin-logo.jpeg'

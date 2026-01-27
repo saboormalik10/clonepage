@@ -61,8 +61,40 @@ export default function AdminLayout({
   const [user, setUser] = useState<any>(null)
   const [viewMode, setViewMode] = useState<'admin' | 'portal'>('admin')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [adminLogo, setAdminLogo] = useState<string | null>(null)
   // Use useMemo to ensure we get the same client instance
   const supabase = useMemo(() => createClient(), [])
+
+  // Fetch admin logo
+  useEffect(() => {
+    const fetchAdminLogo = async () => {
+      try {
+        const response = await fetch('/api/admin/logo')
+        if (response.ok) {
+          const result = await response.json()
+          // Add cache-busting timestamp if logo exists
+          const logoUrl = result.logo_url ? `${result.logo_url}?t=${Date.now()}` : null
+          setAdminLogo(logoUrl)
+        }
+      } catch (error) {
+        console.error('Error fetching admin logo:', error)
+        // Use default logo on error
+      }
+    }
+
+    fetchAdminLogo()
+
+    // Listen for logo updates from settings page
+    const handleLogoUpdate = (event: CustomEvent<{ logo_url: string | null }>) => {
+      setAdminLogo(event.detail.logo_url)
+    }
+
+    window.addEventListener('adminLogoUpdated', handleLogoUpdate as EventListener)
+
+    return () => {
+      window.removeEventListener('adminLogoUpdated', handleLogoUpdate as EventListener)
+    }
+  }, [])
   
   // Check if we're on admin routes or main portal
   useEffect(() => {
@@ -319,7 +351,8 @@ export default function AdminLayout({
             <div className="flex">
               <div className="flex-shrink-0 flex items-center gap-3">
                 <img
-                  src="/admin-logo.jpeg"
+                  key={adminLogo || 'default-admin-logo'}
+                  src={adminLogo || '/admin-logo.jpeg'}
                   alt="Admin"
                   className="h-16 w-24 object-contain"
                   style={{
@@ -329,6 +362,12 @@ export default function AdminLayout({
                   } as React.CSSProperties & {
                     WebkitImageRendering?: string;
                     msInterpolationMode?: string;
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    if (target.src !== '/admin-logo.jpeg') {
+                      target.src = '/admin-logo.jpeg'
+                    }
                   }}
                 />
                 <h1 className="hidden md:block text-xl font-bold text-gray-900">Admin Panel</h1>
