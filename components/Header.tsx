@@ -23,10 +23,16 @@ export default function Header() {
   
   // Determine if user has both brand name and logo
   const hasBrand = Boolean(profile?.brand_name) && Boolean(profile?.brand_logo)
-  // Use user's brand when available; otherwise show admin logo (custom or default)
-  const brandName: string = hasBrand ? String(profile?.brand_name) : ''
+  // Check if agency has brand name but no logo (show no logo in this case)
+  const hasAgencyBrandName = Boolean(profile?.brand_name) && !Boolean(profile?.brand_logo)
+  // Use user's brand when available; for agencies without logo, show nothing; otherwise show admin logo
+  const brandName: string = hasBrand ? String(profile?.brand_name) : (hasAgencyBrandName ? String(profile?.brand_name) : '')
   const defaultLogo = adminLogo || '/admin-logo.jpeg'
-  const brandLogo: string = hasBrand ? String(profile?.brand_logo) : defaultLogo
+  // For agencies (non-admin users) without their own logo, don't show any logo
+  // Only admins should see the admin logo when no user-specific logo is set
+  const brandLogo: string | null = profile?.brand_logo 
+    ? String(profile?.brand_logo) 
+    : (isAdmin ? defaultLogo : null)
 
   // Fetch admin logo
   useEffect(() => {
@@ -189,7 +195,7 @@ export default function Header() {
   }
 
   return (
-    <div className="bg-gradient-to-b from-black-soft to-charcoal-900 border-b border-charcoal-700 mb-2 xl:mb-8">
+    <div className={`bg-gradient-to-b from-black-soft to-charcoal-900 border-b border-charcoal-700 mb-2 xl:mb-8 ${!brandLogo ? 'py-4' : ''}`}>
       <div className="flex justify-between w-full lg:w-full lg:mx-auto xl:p-[2] 2xl:w-[1400px]">
         <button
           onClick={() => router.push('/')}
@@ -203,31 +209,33 @@ export default function Header() {
             </>
           ) : (
             <>
-              <div className={`${hasBrand ? 'w-16 h-16' : 'h-16 w-auto inline-block'} ml-5 border-2 border-gold-400 bg-transparent overflow-hidden`}>
-                <img
-                  key={brandLogo}
-                  src={brandLogo}
-                  alt={brandName || 'Admin'}
-                  className={`${hasBrand ? 'w-full h-full object-cover' : 'h-full w-auto object-contain'}`}
-                  style={{
-                    imageRendering: 'crisp-edges' as const,
-                    WebkitImageRendering: 'crisp-edges',
-                    msInterpolationMode: 'nearest-neighbor'
-                  } as React.CSSProperties & {
-                    WebkitImageRendering?: string;
-                    msInterpolationMode?: string;
-                  }}
-                  onError={(e) => {
-                    // Fallback to default admin logo if brand logo fails to load
-                    const target = e.target as HTMLImageElement
-                    if (target.src !== '/admin-logo.jpeg') {
-                      target.src = '/admin-logo.jpeg'
-                    }
-                  }}
-                />
-              </div>
-              {hasBrand && (
-                <span className="text-2xl font-bold text-ivory">{brandName}</span>
+              {brandLogo && (
+                <div className={`${hasBrand ? 'w-16 h-16' : 'h-16 w-auto inline-block'} ml-5 border-2 border-gold-400 bg-transparent overflow-hidden`}>
+                  <img
+                    key={brandLogo}
+                    src={brandLogo}
+                    alt={brandName || 'Admin'}
+                    className={`${hasBrand ? 'w-full h-full object-cover' : 'h-full w-auto object-contain'}`}
+                    style={{
+                      imageRendering: 'crisp-edges' as const,
+                      WebkitImageRendering: 'crisp-edges',
+                      msInterpolationMode: 'nearest-neighbor'
+                    } as React.CSSProperties & {
+                      WebkitImageRendering?: string;
+                      msInterpolationMode?: string;
+                    }}
+                    onError={(e) => {
+                      // Fallback to default admin logo if brand logo fails to load
+                      const target = e.target as HTMLImageElement
+                      if (target.src !== '/admin-logo.jpeg') {
+                        target.src = '/admin-logo.jpeg'
+                      }
+                    }}
+                  />
+                </div>
+              )}
+              {(hasBrand || hasAgencyBrandName) && (
+                <span className={`text-2xl font-bold text-ivory ${!brandLogo ? 'ml-5' : ''}`}>{brandName}</span>
               )}
             </>
           )}
