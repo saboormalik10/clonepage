@@ -1,0 +1,22 @@
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+
+============================================================
+[36m🚀 SUPABASE MIGRATION TOOL[0m
+[34m   Source: https://fzorirzobvypsachtwkx.supabase.co[0m
+[34m   Destination: https://fgptzilqznazirjlwydg.supabase.co[0m
+============================================================
+[36m
+🔌 Testing connections...[0m
+[32m  ✓ Source database connected[0m
+[33m  ⚠️  Destination connection issue[0m
+[36m
+============================================================[0m
+[36m📝 STEP 1: SCHEMA GENERATION[0m
+[36m============================================================[0m
+[36m
+📋 Generating schema from source database...[0m
+[36m
+📋 Fetching all tables from source database...[0m
+[32m  ✓ Found 16 tables from API[0m
+[32m  ✓ Generated schema for "pr_bundles" (from predefined)[0m
+[32m  ✓ Generated schema for "user_price_adjustments" (from predefined)[0m

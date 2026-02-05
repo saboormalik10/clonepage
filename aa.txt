@@ -1,0 +1,65 @@
+create table public.publications (
+  _id uuid not null default gen_random_uuid (),
+  name text not null,
+  logo jsonb null,
+  genres jsonb null default '[]'::jsonb,
+  default_price integer[] null default array[]::integer[],
+  custom_price integer[] null default array[]::integer[],
+  domain_authority numeric null,
+  domain_rating numeric null,
+  estimated_time text null,
+  regions jsonb null default '[]'::jsonb,
+  sponsored text null,
+  indexed text null,
+  do_follow text null,
+  article_preview jsonb null,
+  image text null,
+  url text null,
+  health boolean null,
+  health_multiplier text null,
+  cbd boolean null,
+  cbd_multiplier text null,
+  crypto boolean null,
+  crypto_multiplier text null,
+  gambling boolean null,
+  gambling_multiplier text null,
+  erotic boolean null,
+  erotic_multiplier text null,
+  erotic_price text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  badges jsonb null default '[]'::jsonb,
+  business jsonb null,
+  is_presale boolean null,
+  more_info text null,
+  sale_expire_date timestamp with time zone null,
+  sale_price numeric null,
+  show_on_sale boolean null,
+  slug text null,
+  img_explain text null,
+  listicles jsonb null,
+  constraint publications_pkey primary key (_id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_publications_name on public.publications using btree (name) TABLESPACE pg_default;
+
+create index IF not exists idx_publications_domain_authority on public.publications using btree (domain_authority) TABLESPACE pg_default;
+
+create index IF not exists idx_publications_domain_rating on public.publications using btree (domain_rating) TABLESPACE pg_default;
+
+
+
+create table public.tab_visibility (
+  id uuid not null default gen_random_uuid (),
+  tab_id text not null,
+  tab_name text not null,
+  is_visible boolean null default true,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint tab_visibility_pkey primary key (id),
+  constraint tab_visibility_tab_id_key unique (tab_id)
+) TABLESPACE pg_default;
+
+create trigger update_tab_visibility_timestamp BEFORE
+update on tab_visibility for EACH row
+execute FUNCTION update_tab_visibility_updated_at ();
